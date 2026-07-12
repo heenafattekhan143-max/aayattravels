@@ -1,0 +1,298 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
+import { BarChart3, TrendingUp, Calendar, Search, Filter, Car, IndianRupee, FileText, Loader2, CheckCircle, MoreVertical } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect';
+import * as XLSX from 'xlsx-js-style';
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '—';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    if (year.length === 4) return `${day}-${month}-${year}`;
+  }
+  return dateStr;
+};
+
+export default function MyVehicleSalesScreen() {
+  const [bills, setBills] = useState([]);
+  const [myVehicleNumbers, setMyVehicleNumbers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedCustomer, setSelectedCustomer] = useState('');
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  async function fetchData() {
+    try {
+      const [vehiclesRes, billsRes] = await Promise.all([
+        axios.get('/api/vehicles'),
+        axios.get('/api/bills')
+      ]);
+
+      const myVehicles = vehiclesRes.data.map(v => v.vehicle_number.toUpperCase());
+      setMyVehicleNumbers(myVehicles);
+
+      const salesBills = billsRes.data.filter(b => b.bill_type === 'Sales');
+      setBills(salesBills);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch data.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const uniqueCustomers = useMemo(() => {
+    const customers = bills
+      .filter(b => b.vehicle_number && myVehicleNumbers.includes(b.vehicle_number.toUpperCase()) && b.customer_name)
+      .map(b => b.customer_name);
+    return Array.from(new Set(customers)).sort();
+  }, [bills, myVehicleNumbers]);
+
+  const filteredBills = useMemo(() => {
+    return bills.filter(b => {
+      // Must belong to "My Vehicles"
+      const isMyVehicle = b.vehicle_number && myVehicleNumbers.includes(b.vehicle_number.toUpperCase());
+      if (!isMyVehicle) return false;
+
+      // Filter by month/year based on bill.date (format: YYYY-MM-DD)
+      if (b.date) {
+        const [year, month] = b.date.split('-');
+        if (selectedYear && year !== selectedYear) return false;
+        if (selectedMonth && month !== selectedMonth) return false;
+      }
+
+      // Filter by customer if selected
+      if (selectedCustomer && b.customer_name !== selectedCustomer) return false;
+
+      return true;
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [bills, myVehicleNumbers, selectedMonth, selectedYear, selectedCustomer]);
+
+  const totalRevenue = filteredBills.reduce((sum, b) => sum + (b.final_bill_amount || 0), 0);
+
+  const handleExport = () => {
+    const rows = filteredBills.map(b => ({
+      'Date': formatDate(b.date),
+      'Bill Number': b.bill_no || b.id.substring(0, 6).toUpperCase(),
+      'Vehicle': b.vehicle_number,
+      'Customer': b.customer_name,
+      'Source': b.source || '-',
+      'Destination': b.destination || '-',
+      'Total Amount': b.final_bill_amount,
+      'Status': b.status || 'Pending'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "My_Vehicle_Sales");
+    XLSX.writeFile(wb, `My_Vehicle_Sales_${selectedMonth}_${selectedYear}.xlsx`);
+  };
+
+  const handleMarkPaid = async (txnId) => {
+    try {
+      await axios.patch(`/api/bills/${txnId}/status`, { status: 'Paid' });
+      fetchData(); // Reload bills to update status
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      alert("Failed to mark transaction as paid.");
+    }
+  };
+
+  const handleRevertStatus = async (txnId) => {
+    try {
+      await axios.patch(`/api/bills/${txnId}/status`, { status: 'Pending' });
+      setOpenDropdownId(null);
+      fetchData(); // Reload bills to update status
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      alert("Failed to revert transaction status.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-950">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="p-6 text-rose-400 bg-slate-950 h-full">{error}</div>;
+  }
+
+  return (
+    <div className="h-full flex flex-col bg-slate-950 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
+            My Vehicle Sales
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">Track revenue generated by your registered fleet.</p>
+        </div>
+
+        <div className="flex items-center gap-4 bg-slate-900 p-2 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-2 px-2">
+            <Calendar className="h-4 w-4 text-slate-400" />
+            <div className="w-32">
+              <CustomSelect
+                value={selectedMonth}
+                onChange={(val) => setSelectedMonth(val)}
+                options={Array.from({ length: 12 }).map((_, i) => ({
+                  value: (i + 1).toString().padStart(2, '0'),
+                  label: new Date(0, i).toLocaleString('default', { month: 'short' })
+                }))}
+                placeholder="All Months"
+                className="border-none bg-transparent"
+              />
+            </div>
+          </div>
+          <div className="h-4 w-px bg-slate-700"></div>
+          <div className="w-28">
+            <CustomSelect
+              value={selectedYear}
+              onChange={(val) => setSelectedYear(val)}
+              options={[
+                { value: '2024', label: '2024' },
+                { value: '2025', label: '2025' },
+                { value: '2026', label: '2026' },
+                { value: '2027', label: '2027' }
+              ]}
+              placeholder="All Years"
+              className="border-none bg-transparent"
+            />
+          </div>
+          <div className="h-4 w-px bg-slate-700"></div>
+          <div className="flex items-center gap-2 px-2">
+            <Search className="h-4 w-4 text-slate-400" />
+            <div className="w-40">
+              <CustomSelect
+                value={selectedCustomer}
+                onChange={(val) => setSelectedCustomer(val)}
+                options={uniqueCustomers.map((cust) => ({ value: cust, label: cust }))}
+                placeholder="All Customers"
+                className="border-none bg-transparent"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-gradient-to-br from-indigo-900/50 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 shadow-lg">
+          <p className="text-indigo-300 font-semibold text-sm uppercase tracking-wider mb-2">Total Revenue</p>
+          <p className="text-3xl font-black text-slate-50 font-mono">₹{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+        </div>
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 shadow-lg flex justify-between items-center">
+          <div>
+            <p className="text-slate-400 font-semibold text-sm uppercase tracking-wider mb-2">Total Trips</p>
+            <p className="text-3xl font-bold text-slate-200">{filteredBills.length}</p>
+          </div>
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-semibold transition"
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden flex flex-col">
+        <div className="overflow-auto flex-1">
+          <table className="w-full text-left border-collapse">
+            <thead className="sticky top-0 bg-slate-900 shadow-sm z-10">
+              <tr className="bg-table-header border-b border-slate-700 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">Bill No.</th>
+                <th className="px-6 py-4">Vehicle</th>
+                <th className="px-6 py-4">Customer</th>
+                <th className="px-6 py-4">Route</th>
+                <th className="px-6 py-4 text-right">Total Amount</th>
+                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-center w-24">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/50">
+              {filteredBills.map((b, idx) => (
+                <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="px-6 py-4 text-sm text-slate-300">{formatDate(b.date)}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-indigo-400">{b.bill_no || b.id.substring(0, 6).toUpperCase()}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-200">{b.vehicle_number}</td>
+                  <td className="px-6 py-4 text-sm text-slate-300">{b.customer_name}</td>
+                  <td className="px-6 py-4 text-sm text-slate-400">
+                    {b.source} <span className="mx-1 text-slate-600">&rarr;</span> {b.destination}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-mono font-bold text-slate-200 text-right">
+                    ₹{b.final_bill_amount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-2 py-1 rounded text-[10px] uppercase tracking-wider font-bold border ${(b.status || 'Pending') === 'Paid'
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      }`}>
+                      {b.status || 'Pending'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {(b.status || 'Pending') === 'Pending' ? (
+                      <div className="flex justify-center">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleMarkPaid(b.id); }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-emerald-900/20"
+                        >
+                          <CheckCircle className="h-3 w-3" /> Paid
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="relative flex justify-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDropdownId(openDropdownId === b.id ? null : b.id);
+                          }}
+                          className="text-slate-500 hover:text-slate-300 p-1 rounded transition"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+                        {openDropdownId === b.id && (
+                          <div className="absolute right-10 top-0 mt-0 w-36 rounded-md shadow-2xl border border-slate-700 bg-slate-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                            <div className="py-1">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleRevertStatus(b.id); }}
+                                className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-50"
+                              >
+                                Revert to Pending
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {filteredBills.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
+                    No vehicle sales found for the selected period.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  );
+}

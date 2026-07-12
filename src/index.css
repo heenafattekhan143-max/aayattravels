@@ -1,0 +1,417 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slate-50: var(--slate-50);
+  --color-slate-100: var(--slate-100);
+  --color-slate-200: var(--slate-200);
+  --color-slate-300: var(--slate-300);
+  --color-slate-400: var(--slate-400);
+  --color-slate-500: var(--slate-500);
+  --color-slate-600: var(--slate-600);
+  --color-slate-700: var(--slate-700);
+  --color-slate-800: var(--slate-800);
+  --color-slate-900: var(--slate-900);
+  --color-slate-950: var(--slate-950);
+}
+
+:root {
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+}
+
+:root.light {
+  --slate-50: #000000;
+  --slate-100: #020617; /* Slate 950 - Main bold text */
+  --slate-200: #0f172a; /* Slate 900 - Standard text */
+  --slate-300: #0f172a; /* Slate 900 - Standard text */
+  --slate-400: #1e293b; /* Slate 800 - Secondary text */
+  --slate-500: #334155; /* Slate 700 - Muted text */
+  --slate-600: #475569; /* Slate 600 */
+  --slate-700: #cbd5e1; /* Darker borders */
+  --slate-800: #e2e8f0; /* Light borders */
+  --slate-900: #ffffff; /* Sidebar/Headers */
+  --slate-950: #f1f5f9; /* Main Page Background (Light Gray) */
+  
+  /* OVERRIDE CORE COLORS FOR LIGHT MODE CONTRAST */
+  /* In dark mode, 300 and 400 shades are bright and readable.
+     In light mode, we must force them to be darker (600 or 700) so that text remains readable against light backgrounds. */
+  --color-indigo-300: var(--color-indigo-700);
+  --color-indigo-400: var(--color-indigo-700);
+  --color-emerald-300: var(--color-emerald-700);
+  --color-emerald-400: var(--color-emerald-700);
+  --color-sky-300: var(--color-sky-700);
+  --color-sky-400: var(--color-sky-700);
+  --color-blue-300: var(--color-blue-700);
+  --color-blue-400: var(--color-blue-700);
+  --color-violet-300: var(--color-violet-700);
+  --color-violet-400: var(--color-violet-700);
+  --color-amber-300: var(--color-amber-700);
+  --color-amber-400: var(--color-amber-700);
+  --color-rose-300: var(--color-rose-700);
+  --color-rose-400: var(--color-rose-700);
+  --color-purple-300: var(--color-purple-700);
+  --color-purple-400: var(--color-purple-700);
+  --color-cyan-300: var(--color-cyan-700);
+  --color-cyan-400: var(--color-cyan-700);
+}
+
+.bg-table-header {
+  background-color: var(--slate-900);
+}
+:root.light .bg-table-header {
+  background-color: var(--slate-800);
+}
+
+/* Force dark theme variables for specific elements like the sidebar */
+.force-dark {
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+}
+
+/* Custom Inter Font or fallback */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--slate-950);
+  color: var(--slate-100);
+  overflow-x: hidden;
+}
+
+/* Mobile: full viewport height */
+html, body, #root {
+  height: 100%;
+  min-height: 100%;
+}
+
+/* Prevent horizontal scroll on mobile */
+* {
+  box-sizing: border-box;
+}
+
+/* Mobile: comfortable tap targets */
+@media (max-width: 640px) {
+  button, a, select, input, textarea {
+    min-height: 36px;
+  }
+  
+  /* Tables scroll horizontally on mobile */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Modals full width on mobile */
+  .modal-content,
+  .fixed .glass-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+
+  /* Mobile list action buttons - bigger tap area */
+  .list-action-btn {
+    padding: 0.5rem 0.75rem !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    border-radius: 0.5rem !important;
+  }
+
+  /* Add button full width on mobile */
+  .page-add-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Table cells compact on mobile */
+  table th,
+  table td {
+    padding: 0.5rem 0.6rem !important;
+    font-size: 11px !important;
+  }
+
+  /* Table header smaller */
+  table th {
+    font-size: 9px !important;
+    letter-spacing: 0.05em !important;
+  }
+}
+
+/* Hide scrollbar but keep scrollable */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+
+
+/* Glassmorphism Styles */
+.glass-panel {
+  background: var(--slate-800);
+  opacity: 0.7;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--slate-100) 8%, transparent);
+}
+
+:root.light .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom Scrollbar for premium feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--slate-900);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--slate-700);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--slate-600);
+}
+
+/* Print Styles for Invoices */
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 10mm !important; /* Serves as the page margin */
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-border {
+    border: 1px solid #000 !important;
+  }
+  @page {
+    size: auto;
+    margin: 0 !important; /* Hides default header/footer text (date, title, URL) */
+  }
+  #invoice-print-area {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important; /* Handled by body padding */
+    margin: 0 auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  /* Compress margins during print to fit on single page */
+  .mt-8 {
+    margin-top: 1rem !important;
+  }
+  .mt-12 {
+    margin-top: 1.25rem !important;
+  }
+  .mb-6 {
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+/* React DatePicker Theme Overrides */
+.dark-theme-calendar {
+  display: flex !important;
+  flex-direction: column !important;
+  background-color: var(--slate-800) !important;
+  border: 1px solid var(--slate-700) !important;
+  border-radius: 0.75rem !important;
+  font-family: inherit !important;
+  color: var(--slate-100) !important;
+}
+
+.dark-theme-calendar .react-datepicker__month-container {
+  background-color: var(--slate-800) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  float: none !important;
+}
+
+.dark-theme-calendar .react-datepicker__header {
+  background-color: var(--slate-900) !important;
+  border-bottom: 1px solid var(--slate-700) !important;
+  border-top-left-radius: 0.75rem !important;
+  border-top-right-radius: 0.75rem !important;
+}
+
+.dark-theme-calendar .react-datepicker__current-month,
+.dark-theme-calendar .react-datepicker-time__header,
+.dark-theme-calendar .react-datepicker-year-header {
+  color: var(--slate-100) !important;
+  font-weight: 600 !important;
+}
+
+.dark-theme-calendar .react-datepicker__day-name,
+.dark-theme-calendar .react-datepicker__day,
+.dark-theme-calendar .react-datepicker__time-name {
+  color: var(--slate-300) !important;
+}
+
+.dark-theme-calendar .react-datepicker__day:hover,
+.dark-theme-calendar .react-datepicker__month-text:hover,
+.dark-theme-calendar .react-datepicker__quarter-text:hover,
+.dark-theme-calendar .react-datepicker__year-text:hover {
+  background-color: var(--slate-700) !important;
+  border-radius: 0.5rem !important;
+}
+
+.dark-theme-calendar .react-datepicker__day--selected,
+.dark-theme-calendar .react-datepicker__day--in-selecting-range,
+.dark-theme-calendar .react-datepicker__day--in-range,
+.dark-theme-calendar .react-datepicker__month-text--selected,
+.dark-theme-calendar .react-datepicker__quarter-text--selected,
+.dark-theme-calendar .react-datepicker__year-text--selected {
+  background-color: #4f46e5 !important; /* Indigo 600 */
+  color: white !important;
+  border-radius: 0.5rem !important;
+}
+
+.dark-theme-calendar .react-datepicker__day--keyboard-selected {
+  background-color: #4338ca !important; /* Indigo 700 */
+  color: white !important;
+  border-radius: 0.5rem !important;
+}
+
+.dark-theme-calendar .react-datepicker__day--disabled,
+.dark-theme-calendar .react-datepicker__month-text--disabled,
+.dark-theme-calendar .react-datepicker__quarter-text--disabled,
+.dark-theme-calendar .react-datepicker__year-text--disabled {
+  color: var(--slate-600) !important; /* Slate 600 - darker for disabled */
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+}
+
+.dark-theme-calendar .react-datepicker__day--disabled:hover,
+.dark-theme-calendar .react-datepicker__month-text--disabled:hover,
+.dark-theme-calendar .react-datepicker__quarter-text--disabled:hover,
+.dark-theme-calendar .react-datepicker__year-text--disabled:hover {
+  background-color: transparent !important;
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+/* ===== LANDING PAGE ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-18px); }
+}
+@keyframes floatY2 {
+  0%, 100% { transform: translateY(0px) rotate(3deg); }
+  50%       { transform: translateY(-12px) rotate(-2deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.3); }
+  50%       { box-shadow: 0 0 50px rgba(99,102,241,0.7); }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes counter-ping {
+  0%   { transform: scale(1); opacity: 1; }
+  75%  { transform: scale(2); opacity: 0; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.animate-fade-in-up   { animation: fadeInUp 0.7s ease-out forwards; }
+.animate-fade-in-down { animation: fadeInDown 0.6s ease-out forwards; }
+.animate-float        { animation: floatY 4s ease-in-out infinite; }
+.animate-float-2      { animation: floatY2 5s ease-in-out infinite; }
+.animate-pulse-glow   { animation: pulse-glow 2.5s ease-in-out infinite; }
+.animate-spin-slow    { animation: spin-slow 12s linear infinite; }
+.animate-slide-left   { animation: slide-in-left 0.8s ease-out forwards; }
+.animate-slide-right  { animation: slide-in-right 0.8s ease-out forwards; }
+
+.shimmer-text {
+  background: linear-gradient(90deg, #818cf8 0%, #c084fc 25%, #38bdf8 50%, #c084fc 75%, #818cf8 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-700 { animation-delay: 0.7s; }
+.delay-900 { animation-delay: 0.9s; }
+.opacity-0-init { opacity: 0; }
