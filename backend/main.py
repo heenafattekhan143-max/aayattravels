@@ -15,7 +15,11 @@ app = FastAPI(
 # In development, allow all origins for convenience.
 raw_origins = os.environ.get("ALLOWED_ORIGINS", "*")
 if raw_origins == "*":
-    allow_origins = ["*"]
+    allow_origins =[
+    "https://aayattravels.vercel.app",
+    "http://localhost:5173",  # if you use Vite locally
+    "http://localhost:3000"   # if you use Next.js/React locally
+]
 else:
     allow_origins = [o.strip() for o in raw_origins.split(",")]
 
