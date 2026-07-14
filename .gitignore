@@ -31,7 +31,8 @@ dist-ssr
 # Python virtual environment
 backend/.venv
 .venv
-
+venv/
+venv
 # Local SQLite databases
 *.sqlite
 backend/database.sqlite
