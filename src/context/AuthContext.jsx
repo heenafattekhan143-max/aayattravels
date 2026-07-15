@@ -110,17 +110,20 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('purvi_user');
   };
 
-  const updateUser = (patch) => {
-    setUser(prev => {
-      const updated = { ...prev, ...patch };
-      try {
-        localStorage.setItem('purvi_user', JSON.stringify(updated));
-      } catch (e) {
-        console.error('Failed to save to localStorage', e);
-        alert('Failed to save changes. The logo image might be too large for storage. Please try a smaller image.');
-      }
-      return updated;
-    });
+  const updateUser = async (patch) => {
+    try {
+      const res = await axios.put(`${API_URL}/auth/profile`, patch);
+      const updatedUser = res.data;
+      setUser(updatedUser);
+      localStorage.setItem('purvi_user', JSON.stringify(updatedUser));
+      return { success: true, user: updatedUser };
+    } catch (e) {
+      console.error('Failed to update profile', e);
+      return { 
+        success: false, 
+        error: e.response?.data?.detail || 'Failed to update profile.' 
+      };
+    }
   };
 
   const hasPermission = (sectionId) => {

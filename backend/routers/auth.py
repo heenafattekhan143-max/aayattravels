@@ -21,6 +21,18 @@ class UserRegister(BaseModel):
     logo: Optional[str] = None
     role: Optional[str] = "superadmin"
 
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    businessName: Optional[str] = None
+    businessType: Optional[str] = None
+    address: Optional[str] = None
+    pincode: Optional[str] = None
+    city: Optional[str] = None
+    gstin: Optional[str] = None
+    logo: Optional[str] = None
+    state: Optional[str] = None
+
 class UserLogin(BaseModel):
     identifier: str  # Can be email or phone
     password: str
@@ -77,3 +89,27 @@ def login(creds: UserLogin):
         )
         
     return serialize_user(user)
+
+from backend.dependencies import get_current_user
+from fastapi import Depends
+
+@router.put("/profile")
+def update_profile(update_data: UserUpdate, user_email: str = Depends(get_current_user)):
+    user = users_collection.find_one({"email": user_email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    
+    if not update_dict:
+        return serialize_user(user)
+        
+    from pymongo import ReturnDocument
+    updated_user = users_collection.find_one_and_update(
+        {"email": user_email},
+        {"$set": update_dict},
+        return_document=ReturnDocument.AFTER
+    )
+    
+    return serialize_user(updated_user)
+

@@ -70,7 +70,13 @@ export default function BusinessProfile({ navigateTo }) {
       logoBase64 = null; // user removed logo
     }
 
-    updateUser({ ...form, logo: logoBase64 });
+    const result = await updateUser({ ...form, logo: logoBase64 });
+    
+    if (result && !result.success) {
+      setError(result.error || 'Failed to update profile.');
+      return;
+    }
+    
     setSuccess('Business profile updated successfully!');
     setTimeout(() => setSuccess(''), 3500);
   };
@@ -162,11 +168,11 @@ export default function BusinessProfile({ navigateTo }) {
                 </div>
               </div>
               <div>
-                <label className={labelCls}>Email</label>
+                <label className={labelCls}>Email <span className="text-slate-500 font-normal normal-case">(Login ID - Cannot be changed)</span></label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                  <input type="email" name="email" value={form.email} onChange={handleChange}
-                    placeholder="business@example.com" className={inputIconCls} />
+                  <input type="email" name="email" value={form.email} disabled
+                    placeholder="business@example.com" className={`${inputIconCls} opacity-50 cursor-not-allowed`} />
                 </div>
               </div>
             </div>
