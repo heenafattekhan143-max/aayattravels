@@ -22,6 +22,7 @@ class UserRegister(BaseModel):
     role: Optional[str] = "superadmin"
 
 class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
     name: Optional[str] = None
     phone: Optional[str] = None
     businessName: Optional[str] = None
@@ -100,6 +101,16 @@ def update_profile(update_data: UserUpdate, user_email: str = Depends(get_curren
         raise HTTPException(status_code=404, detail="User not found")
         
     update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    
+    if "email" in update_dict and update_dict["email"] != user_email:
+        new_email = update_dict["email"]
+        if users_collection.find_one({"email": new_email}):
+            raise HTTPException(status_code=400, detail="Email already in use")
+        
+        from backend.config import db
+        for coll_name in db.list_collection_names():
+            if coll_name != "users":
+                db[coll_name].update_many({"user_email": user_email}, {"$set": {"user_email": new_email}})
     
     if not update_dict:
         return serialize_user(user)

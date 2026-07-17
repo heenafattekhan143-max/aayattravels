@@ -168,11 +168,11 @@ export default function BusinessProfile({ navigateTo }) {
                 </div>
               </div>
               <div>
-                <label className={labelCls}>Email <span className="text-slate-500 font-normal normal-case">(Login ID - Cannot be changed)</span></label>
+                <label className={labelCls}>Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                  <input type="email" name="email" value={form.email} disabled
-                    placeholder="business@example.com" className={`${inputIconCls} opacity-50 cursor-not-allowed`} />
+                  <input type="email" name="email" value={form.email} onChange={handleChange}
+                    placeholder="business@example.com" className={inputIconCls} />
                 </div>
               </div>
             </div>
