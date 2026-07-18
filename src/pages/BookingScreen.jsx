@@ -1023,6 +1023,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                           onChange={(val) => handleChange('plan_id', val)}
                           options={planOptions}
                           placeholder="-- Select Package --"
+                          searchable={true}
                         />
                       </>
                     )}

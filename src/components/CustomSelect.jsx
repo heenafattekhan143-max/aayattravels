@@ -11,8 +11,10 @@ export default function CustomSelect({
   className = '',
   placement = 'bottom',
   hidePlaceholder = false,
+  searchable = false,
 }) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const wrapRef = useRef(null);
 
   useEffect(() => {
@@ -25,6 +27,12 @@ export default function CustomSelect({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery('');
+    }
+  }, [open]);
 
   const handleSelect = (v) => {
     onChange(v);
@@ -97,7 +105,20 @@ export default function CustomSelect({
       </button>
 
       {open && !disabled && createPortal(
-        <div style={dropdownStyle} className="custom-select-portal-dropdown bg-slate-900 border border-slate-800 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden min-w-[max-content]">
+        <div style={dropdownStyle} className="custom-select-portal-dropdown bg-slate-900 border border-slate-800 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden min-w-[max-content] flex flex-col">
+          {searchable && (
+            <div className="p-2 border-b border-slate-800/50">
+              <input
+                type="text"
+                autoFocus
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+                className="w-full bg-slate-950 border border-slate-700 outline-none rounded text-xs px-2 py-1.5 text-slate-100 focus:border-indigo-500"
+              />
+            </div>
+          )}
           <div className="max-h-52 overflow-y-auto py-1">
             {!hidePlaceholder && (
               <button
@@ -108,7 +129,11 @@ export default function CustomSelect({
                 {placeholder}
               </button>
             )}
-            {options.map((opt, i) => {
+            {options.filter(opt => {
+              if (!searchable || !searchQuery) return true;
+              const label = typeof opt === 'object' ? opt.label : opt;
+              return String(label).toLowerCase().includes(searchQuery.toLowerCase());
+            }).map((opt, i) => {
               const optVal = typeof opt === 'object' ? opt.value : opt;
               const optLabel = typeof opt === 'object' ? opt.label : opt;
               const dropdownLabel = typeof opt === 'object' && opt.dropdownLabel ? opt.dropdownLabel : optLabel;
