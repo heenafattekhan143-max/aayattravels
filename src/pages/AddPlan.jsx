@@ -18,8 +18,6 @@ export default function AddPlan({ navigateTo }) {
     vehicle_type: 'Sedan',
     extra_km_rate: '',
     extra_hours_rate: '',
-    customer_type: 'customer',
-    customer_id: '',
     plan_type: 'Local',
     base_hours: '',
     base_km: '',
@@ -32,9 +30,6 @@ export default function AddPlan({ navigateTo }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [planNamesList, setPlanNamesList] = useState([]);
-  const [allCustomers, setAllCustomers] = useState([]);
-
-  useEffect(() => {
     const fetchPlanNames = async () => {
       try {
         const res = await axios.get('/api/plan-names');
@@ -43,16 +38,7 @@ export default function AddPlan({ navigateTo }) {
         console.error(err);
       }
     };
-    const fetchCustomers = async () => {
-      try {
-        const res = await axios.get('/api/customers');
-        setAllCustomers(res.data);
-      } catch (err) {
-        console.error("Failed to fetch customers", err);
-      }
-    };
     fetchPlanNames();
-    fetchCustomers();
   }, []);
 
   // Handle Outstation defaults
@@ -77,9 +63,6 @@ export default function AddPlan({ navigateTo }) {
 
   const validate = () => {
     const tempErrors = {};
-    if (!formData.customer_id) {
-      tempErrors.customer_id = "Please select a " + (formData.customer_type === 'customer' ? 'Company' : 'Vendor') + ".";
-    }
 
     if (!formData.plan_name.trim()) {
       tempErrors.plan_name = "Plan name is required.";
@@ -143,8 +126,6 @@ export default function AddPlan({ navigateTo }) {
         vehicle_type: formData.vehicle_type,
         extra_km_rate: parseFloat(formData.extra_km_rate),
         extra_hours_rate: formData.plan_type === 'Local' ? parseFloat(formData.extra_hours_rate) : 0,
-        customer_type: formData.customer_type,
-        customer_id: formData.customer_id,
         plan_type: formData.plan_type,
         base_hours: formData.base_hours ? parseInt(formData.base_hours, 10) : null,
         base_km: formData.base_km ? parseInt(formData.base_km, 10) : null,
@@ -161,8 +142,6 @@ export default function AddPlan({ navigateTo }) {
         vehicle_type: 'Sedan',
         extra_km_rate: '12',
         extra_hours_rate: '150',
-        customer_type: 'customer',
-        customer_id: '',
         plan_type: 'Local',
         base_hours: '',
         base_km: '',
@@ -183,28 +162,7 @@ export default function AddPlan({ navigateTo }) {
     }
   };
 
-  const filteredCustomers = allCustomers.filter(c => c.entity_type === formData.customer_type);
-
-  return (
-    <div className="w-full max-w-[1200px] mx-auto space-y-4">
-      {successMsg && (
-        <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl shadow-lg">
-          <CheckCircle className="h-5 w-5 shrink-0 animate-bounce" />
-          <span className="font-semibold text-sm">{successMsg}</span>
-        </div>
-      )}
-
-      {errors.api && (
-        <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 p-3 rounded-xl shadow-lg">
-          <AlertTriangle className="h-5 w-5 shrink-0" />
-          <span className="font-semibold text-sm">{errors.api}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5 items-stretch">
-
-          {/* ── LEFT COLUMN (CARD 1) ── */}
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
           <div className="glass-panel rounded-xl border border-slate-800 p-5 md:p-6 space-y-6">
 
             {/* Header */}
@@ -393,71 +351,8 @@ export default function AddPlan({ navigateTo }) {
                   </div>
                 </div>
               </div>
-          </div>
-
-          {/* ── RIGHT COLUMN (CARD 2) ── */}
-          <div className="glass-panel rounded-xl border border-slate-800 p-5 md:p-6 flex flex-col justify-between h-fit lg:sticky lg:top-6">
-            <div className="space-y-6">
-
-              {/* Header */}
-              <div className="flex items-center gap-2 mb-2 border-b border-slate-800 pb-2">
-                <Sparkles className="h-5 w-5 text-indigo-400" />
-                <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">Party Assignment</h3>
-              </div>
-
-              {/* Customer Type Toggle */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-300 block">Customer <span className="text-rose-500">*</span></label>
-                <div className="flex gap-4 mt-1">
-                  <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border ${formData.customer_type === 'customer' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-slate-950/60 border-slate-700 text-slate-400 hover:border-slate-500'} cursor-pointer transition shadow-sm`}>
-                    <input
-                      type="radio"
-                      name="customer_type"
-                      value="customer"
-                      checked={formData.customer_type === 'customer'}
-                      onChange={handleChange}
-                      className="hidden"
-                    />
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${formData.customer_type === 'customer' ? 'border-indigo-500' : 'border-slate-500'}`}>
-                      {formData.customer_type === 'customer' && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
-                    </div>
-                    <span className="text-sm font-semibold truncate">Company</span>
-                  </label>
-                  <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border ${formData.customer_type === 'vendor' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-slate-950/60 border-slate-700 text-slate-400 hover:border-slate-500'} cursor-pointer transition shadow-sm`}>
-                    <input
-                      type="radio"
-                      name="customer_type"
-                      value="vendor"
-                      checked={formData.customer_type === 'vendor'}
-                      onChange={handleChange}
-                      className="hidden"
-                    />
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${formData.customer_type === 'vendor' ? 'border-indigo-500' : 'border-slate-500'}`}>
-                      {formData.customer_type === 'vendor' && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
-                    </div>
-                    <span className="text-sm font-semibold">Vendor</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Company / Vendor List Dropdown */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-400">
-                  Select {formData.customer_type === 'customer' ? 'Company' : 'Vendor'} <span className="text-rose-500">*</span>
-                </label>
-                <CustomSelect
-                  value={formData.customer_id}
-                  onChange={(val) => handleChange({ target: { name: 'customer_id', value: val } })}
-                  options={filteredCustomers.map(c => ({ value: c.id, label: c.name }))}
-                  placeholder={`-- Select ${formData.customer_type === 'customer' ? 'Company' : 'Vendor'} --`}
-                />
-                {errors.customer_id && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.customer_id}</p>}
-              </div>
-
-            </div>
-
             {/* Buttons Panel */}
-            <div className="flex justify-between items-center mt-5">
+            <div className="flex justify-between items-center mt-8 pt-4 border-t border-slate-800/50">
               <button
                 type="button"
                 onClick={() => navigateTo('plan-list')}
@@ -475,8 +370,6 @@ export default function AddPlan({ navigateTo }) {
               </button>
             </div>
           </div>
-
-        </div>
       </form>
     </div>
   );

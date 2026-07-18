@@ -37,8 +37,6 @@ class PlanBase(BaseModel):
     base_km: Optional[int] = None
     extra_km_rate: Optional[float] = None
     extra_hours_rate: Optional[float] = None
-    customer_type: Optional[str] = None
-    customer_id: Optional[str] = None
     plan_type: Optional[str] = None
     da_allowance: Optional[float] = 0.0
     night_allowance: Optional[float] = 0.0
@@ -54,8 +52,6 @@ class PlanUpdate(BaseModel):
     base_km: Optional[int] = None
     extra_km_rate: Optional[float] = None
     extra_hours_rate: Optional[float] = None
-    customer_type: Optional[str] = None
-    customer_id: Optional[str] = None
     plan_type: Optional[str] = None
     da_allowance: Optional[float] = None
     night_allowance: Optional[float] = None
@@ -79,8 +75,6 @@ def serialize_plan(doc) -> dict:
         "base_km": doc.get("base_km"),
         "extra_km_rate": doc.get("extra_km_rate"),
         "extra_hours_rate": doc.get("extra_hours_rate"),
-        "customer_type": doc.get("customer_type"),
-        "customer_id": doc.get("customer_id"),
         "plan_type": doc.get("plan_type"),
         "da_allowance": doc.get("da_allowance", 0.0),
         "night_allowance": doc.get("night_allowance", 0.0)
@@ -112,17 +106,11 @@ def create_plan(plan: PlanCreate, user_email: str = Depends(get_current_user)):
 
 @router.get("", response_model=List[PlanResponse])
 def get_plans(
-    vehicle_type: Optional[str] = None,
-    customer_id: Optional[str] = None,
-    customer_type: Optional[str] = None
+    vehicle_type: Optional[str] = None
 , user_email: str = Depends(get_current_user)):
     query = {"user_email": user_email}
     if vehicle_type:
         query["vehicle_type"] = vehicle_type
-    if customer_id:
-        query["customer_id"] = customer_id
-    if customer_type:
-        query["customer_type"] = customer_type
     
     docs = list(plans_collection.find(query))
     return [serialize_plan(doc) for doc in docs]

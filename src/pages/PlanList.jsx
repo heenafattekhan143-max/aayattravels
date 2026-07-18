@@ -25,7 +25,6 @@ const DEFAULT_RATES = {
 export default function PlanList({ navigateTo }) {
   const confirm = useConfirm();
   const [plans, setPlans] = useState([]);
-  const [allCustomers, setAllCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,17 +38,7 @@ export default function PlanList({ navigateTo }) {
 
   useEffect(() => {
     fetchPlans();
-    fetchCustomers();
   }, []);
-
-  async function fetchCustomers() {
-    try {
-      const res = await axios.get('/api/customers');
-      setAllCustomers(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  }
 
   async function fetchPlans() {
     try {
@@ -189,16 +178,9 @@ export default function PlanList({ navigateTo }) {
     }
   };
 
-  const getCustomerName = (plan) => {
-    if (!plan.customer_id) return 'General';
-    const customer = allCustomers.find(c => c.id === plan.customer_id);
-    return customer ? customer.name : 'Unknown';
-  };
-
   const filteredPlans = plans.filter(p =>
     p.plan_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.vehicle_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getCustomerName(p).toLowerCase().includes(searchTerm.toLowerCase())
+    p.vehicle_type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -231,7 +213,6 @@ export default function PlanList({ navigateTo }) {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-700 bg-table-header text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                  <th className="p-4">Party</th>
                   <th className="p-4">Plan Type</th>
                   <th className="p-4">Vehicle</th>
                   <th className="p-4">Plan Name</th>
@@ -249,16 +230,6 @@ export default function PlanList({ navigateTo }) {
                 ) : (
                   filteredPlans.map((plan) => (
                     <tr key={plan.id} className="hover:bg-slate-800/20 transition">
-                      <td className="p-4">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-slate-200">{getCustomerName(plan)}</span>
-                          <span className={`text-[10px] uppercase tracking-wider font-semibold ${plan.customer_type === 'customer' ? 'text-sky-400' :
-                              plan.customer_type === 'vendor' ? 'text-fuchsia-400' : 'text-slate-500'
-                            }`}>
-                            {plan.customer_type === 'customer' ? 'Company' : (plan.customer_type === 'vendor' ? 'Vendor' : 'Global')}
-                          </span>
-                        </div>
-                      </td>
                       <td className="p-4">
                         <span className={`px-2 py-1 rounded text-[10px] font-bold border uppercase ${plan.plan_type === 'Outstation' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
                           {plan.plan_type || 'Local'}
