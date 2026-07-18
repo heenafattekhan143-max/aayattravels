@@ -736,6 +736,18 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
     }
   };
 
+  const handleConfirmBooking = async (bookingId) => {
+    try {
+      await axios.put(`${API}/bookings/${bookingId}`, {
+        booking_status: 'Confirmed'
+      });
+      setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, booking_status: 'Confirmed' } : b));
+    } catch (err) {
+      console.error("Failed to confirm booking:", err);
+      alert("Failed to confirm booking. Please try again.");
+    }
+  };
+
   const handleSaveAllotment = async (bookingId, updateData) => {
     try {
       await axios.put(`${API}/bookings/${bookingId}`, updateData);
@@ -1077,6 +1089,8 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${bStatusColor}`}>{b.booking_status}</span>
                         {b.booking_status === 'Dispatched' ? (
                           <button onClick={(e) => { e.stopPropagation(); setCloseBookingId(b.id); setCloseModalOpen(true); }} className="text-[9px] font-bold px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow border border-emerald-500 transition cursor-pointer">Close</button>
+                        ) : b.booking_status === 'Unconfirmed' ? (
+                          <button onClick={(e) => { e.stopPropagation(); handleConfirmBooking(b.id); }} className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow border border-blue-500 transition cursor-pointer">Confirm</button>
                         ) : ['Completed', 'Cancelled'].includes(b.booking_status) ? null : (
                           <button onClick={(e) => { e.stopPropagation(); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow border border-indigo-500 transition cursor-pointer">Allot</button>
                         )}
@@ -1207,6 +1221,8 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                         <td className="px-2.5 py-2 text-center">
                           {b.booking_status === 'Dispatched' ? (
                             <button onClick={(e) => { e.stopPropagation(); setCloseBookingId(b.id); setCloseModalOpen(true); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow border border-emerald-500 transition cursor-pointer">Close</button>
+                          ) : b.booking_status === 'Unconfirmed' ? (
+                            <button onClick={(e) => { e.stopPropagation(); handleConfirmBooking(b.id); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow border border-blue-500 transition cursor-pointer">Confirm</button>
                           ) : ['Completed', 'Cancelled'].includes(b.booking_status) ? null : (
                             <button onClick={(e) => { e.stopPropagation(); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow border border-indigo-500 transition cursor-pointer">Allot</button>
                           )}
