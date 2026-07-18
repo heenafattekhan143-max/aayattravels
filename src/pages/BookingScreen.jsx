@@ -562,7 +562,6 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
     const errs = {};
     if (!formData.journey_date) errs.journey_date = 'Journey date is required.';
     if (!formData.pickup_time) errs.pickup_time = 'Start time is required.';
-    if (!formData.end_time) errs.end_time = 'End time is required.';
 
     // Validate return date is equal to or after journey date
     if (formData.journey_date && formData.return_date) {
@@ -1021,7 +1020,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                      <Clock className="h-3 w-3 text-indigo-400" /> End Time *
+                      <Clock className="h-3 w-3 text-indigo-400" /> End Time
                     </label>
                     <CustomTimePicker
                       value={formData.end_time || ''}
