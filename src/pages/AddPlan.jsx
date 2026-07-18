@@ -30,6 +30,8 @@ export default function AddPlan({ navigateTo }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [planNamesList, setPlanNamesList] = useState([]);
+
+  useEffect(() => {
     const fetchPlanNames = async () => {
       try {
         const res = await axios.get('/api/plan-names');
@@ -161,6 +163,22 @@ export default function AddPlan({ navigateTo }) {
       setIsSubmitting(false);
     }
   };
+
+  return (
+    <div className="w-full max-w-[1200px] mx-auto space-y-4">
+      {successMsg && (
+        <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl shadow-lg">
+          <CheckCircle className="h-5 w-5 shrink-0 animate-bounce" />
+          <span className="font-semibold text-sm">{successMsg}</span>
+        </div>
+      )}
+
+      {errors.api && (
+        <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 p-3 rounded-xl shadow-lg">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <span className="font-semibold text-sm">{errors.api}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
           <div className="glass-panel rounded-xl border border-slate-800 p-5 md:p-6 space-y-6">
