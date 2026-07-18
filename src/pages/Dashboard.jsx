@@ -1164,15 +1164,14 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                       <MapPin className="h-2.5 w-2.5 text-green-400 shrink-0" />
                       <span className="truncate">{b.pickup_address || b.pickup_location || '—'}</span>
                       {b.drop_location && (<><ArrowRight className="h-2 w-2 text-slate-600 shrink-0" /><span className="truncate">{b.drop_location}</span></>)}
-                      <span className="ml-auto shrink-0 px-1.5 py-0.5 rounded-full bg-slate-700/60 border border-slate-600/40 text-[9px] font-medium whitespace-nowrap">{b.trip_type || '—'}</span>
+                      {plan && <span className="ml-auto shrink-0 px-1.5 py-0.5 rounded-full bg-slate-700/60 border border-slate-600/40 text-[9px] font-medium whitespace-nowrap">{plan.plan_name}</span>}
                     </div>
                     <div className="flex items-center justify-between gap-2 text-[10px]">
                       <div className="flex items-center gap-2 text-indigo-300 font-mono">
                         {b.pickup_time && <span>{b.pickup_time}</span>}
                         {b.end_time && <><ArrowRight className="h-2 w-2 text-slate-600" /><span>{b.end_time}</span></>}
                       </div>
-                      <div className="text-violet-300 truncate max-w-[80px]">{b.driver_name || <span className="text-slate-600 italic">No driver</span>}</div>
-                      <div className="text-emerald-400 font-bold text-xs shrink-0">{amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : '—'}</div>
+                      <div className="text-violet-300 truncate max-w-[120px]">{b.driver_name || <span className="text-slate-600 italic">No driver</span>}</div>
                     </div>
                   </div>
                 );
@@ -1191,10 +1190,9 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                   <th className="px-2.5 py-2">End Time</th>
                   <th className="px-2.5 py-2">Client</th>
                   <th className="px-2.5 py-2">Pickup → Drop</th>
-                  <th className="px-2.5 py-2">Trip Type</th>
+                  <th className="px-2.5 py-2">Package Name</th>
                   <th className="px-2.5 py-2">Vehicle</th>
                   <th className="px-2.5 py-2">Driver</th>
-                  <th className="px-2.5 py-2 text-right">Amount</th>
                   <th className="px-2.5 py-2 text-center">Status</th>
                   <th className="px-2.5 py-2 text-center">Action</th>
                 </tr>
@@ -1251,7 +1249,7 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                           </div>
                         </td>
                         <td className="px-2.5 py-2">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300 border border-slate-600/40 font-medium whitespace-nowrap">{b.trip_type || '—'}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300 border border-slate-600/40 font-medium whitespace-nowrap">{plan ? plan.plan_name : '—'}</span>
                         </td>
                         <td className="px-2.5 py-2">
                           <div className="flex flex-col gap-0.5 text-xs">
@@ -1261,13 +1259,9 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                         </td>
                         <td className="px-2.5 py-2">
                           <div className="flex flex-col gap-0.5 text-xs">
-                            <span className="text-violet-300 truncate max-w-[110px]">{b.driver_name || <span className="text-slate-600 italic">Unassigned</span>}</span>
+                            <span className="text-violet-300 truncate max-w-[130px]">{b.driver_name || <span className="text-slate-600 italic">Unassigned</span>}</span>
                             {b.passengers > 0 && <span className="text-slate-500 text-[10px]">{b.passengers} pax</span>}
                           </div>
-                        </td>
-                        <td className="px-2.5 py-2 text-right">
-                          <span className="text-emerald-400 font-bold text-xs">{amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : '—'}</span>
-                          {b.advance_amount > 0 && <div className="text-[10px] text-slate-500">Adv: ₹{b.advance_amount.toLocaleString('en-IN')}</div>}
                         </td>
                         <td className="px-2.5 py-2 text-center">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${bStatusColor}`}>{b.booking_status}</span>
