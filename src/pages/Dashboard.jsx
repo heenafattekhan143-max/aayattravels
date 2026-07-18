@@ -190,7 +190,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
               <label className="text-xs font-semibold text-slate-400 uppercase flex items-center justify-between w-full">
                 <span className="flex items-center gap-1.5"><Car className="h-3 w-3" /> Vehicle No.</span>
                 {isGuestVehicle && (
-                  <button type="button" onClick={() => { setIsGuestVehicle(false); setSelectedVehicle(''); setVehicleType(''); }} className="text-[10px] text-indigo-400 hover:text-indigo-300 transition font-bold">
+                  <button type="button" onClick={() => { setIsGuestVehicle(false); setSelectedVehicle(''); setVehicleType(''); }} className="text-[10px] text-red-400 hover:text-red-300 transition font-bold">
                     Cancel Guest
                   </button>
                 )}
@@ -257,7 +257,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
               <label className="text-xs font-semibold text-slate-400 uppercase flex items-center justify-between w-full">
                 <span>Driver</span>
                 {isGuestDriver && (
-                  <button type="button" onClick={() => { setIsGuestDriver(false); setSelectedDriver(''); }} className="text-[10px] text-indigo-400 hover:text-indigo-300 transition font-bold">
+                  <button type="button" onClick={() => { setIsGuestDriver(false); setSelectedDriver(''); }} className="text-[10px] text-red-400 hover:text-red-300 transition font-bold">
                     Cancel Guest
                   </button>
                 )}
