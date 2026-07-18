@@ -740,9 +740,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
 
   const selectedEntity = entities.find(e => e.phone === formData.customer_phone);
   const selectedCustomerId = selectedEntity ? selectedEntity.id : null;
-  const availablePlans = formData.is_guest 
-    ? plans.filter(p => p.customer_type === 'customer' || !p.customer_id) 
-    : (selectedCustomerId ? plans.filter(p => p.customer_id === selectedCustomerId) : []);
+  const availablePlans = plans;
   const planOptions = availablePlans.map(p => ({ value: p.id, label: `${p.plan_name} (₹${p.rate})` }));
 
   const inputCls = (field) =>
@@ -1019,12 +1017,12 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                       </>
                     ) : (
                       <>
-                        <label className="text-xs font-semibold text-slate-300">Select Plan</label>
+                        <label className="text-xs font-semibold text-slate-300">Select Package</label>
                         <CustomSelect
                           value={formData.plan_id}
                           onChange={(val) => handleChange('plan_id', val)}
                           options={planOptions}
-                          placeholder="-- Select Plan --"
+                          placeholder="-- Select Package --"
                         />
                       </>
                     )}
