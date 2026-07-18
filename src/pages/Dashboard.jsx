@@ -186,11 +186,11 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400 uppercase flex items-center justify-between">
+              <label className="text-xs font-semibold text-slate-400 uppercase flex items-center justify-between w-full">
                 <span className="flex items-center gap-1.5"><Car className="h-3 w-3" /> Vehicle No.</span>
                 {isGuestVehicle && (
-                  <button type="button" onClick={() => { setIsGuestVehicle(false); setSelectedVehicle(''); setVehicleType(''); }} className="text-[10px] text-indigo-400 hover:text-indigo-300 transition">
-                    Cancel
+                  <button type="button" onClick={() => { setIsGuestVehicle(false); setSelectedVehicle(''); setVehicleType(''); }} className="text-[10px] text-indigo-400 hover:text-indigo-300 transition font-bold">
+                    Cancel Guest
                   </button>
                 )}
               </label>
@@ -206,44 +206,33 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
               ) : (
                 <CustomSelect
                   value={selectedVehicle}
-                  onChange={(val) => {
-                    if (val === 'ADD_GUEST_VEHICLE') {
+                  onChange={setSelectedVehicle}
+                  options={filteredVehicles.map(v => ({
+                    value: v.vehicle_number,
+                    label: `${v.vehicle_number} (${v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'})`,
+                    dropdownLabel: (
+                      <div className="flex flex-col w-full text-left">
+                        <div className="flex items-center gap-2">
+                          <span>{v.vehicle_number}</span>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${v.ownership_type === 'Owner' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
+                            {v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-normal mt-0.5">
+                          {v.vehicle_type} • {v.driver_name || 'Unassigned'}
+                        </span>
+                      </div>
+                    )
+                  }))}
+                  placeholder="-- Select Vehicle --"
+                  actionButton={{
+                    label: '+ Add Guest Vehicle',
+                    onClick: () => {
                       setIsGuestVehicle(true);
                       setSelectedVehicle('');
                       setVehicleType('');
-                    } else {
-                      setSelectedVehicle(val);
                     }
                   }}
-                  options={[
-                    ...filteredVehicles.map(v => ({
-                      value: v.vehicle_number,
-                      label: `${v.vehicle_number} (${v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'})`,
-                      dropdownLabel: (
-                        <div className="flex flex-col w-full text-left">
-                          <div className="flex items-center gap-2">
-                            <span>{v.vehicle_number}</span>
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${v.ownership_type === 'Owner' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
-                              {v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'}
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-slate-400 font-normal mt-0.5">
-                            {v.vehicle_type} • {v.driver_name || 'Unassigned'}
-                          </span>
-                        </div>
-                      )
-                    })),
-                    {
-                      value: 'ADD_GUEST_VEHICLE',
-                      label: '+ Add Guest Vehicle',
-                      dropdownLabel: (
-                        <div className="flex items-center justify-center py-2 text-indigo-400 font-bold border-t border-slate-700/50 mt-1 hover:text-indigo-300">
-                          + Add Guest Vehicle
-                        </div>
-                      )
-                    }
-                  ]}
-                  placeholder="-- Select Vehicle --"
                 />
               )}
             </div>

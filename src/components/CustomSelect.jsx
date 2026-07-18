@@ -12,6 +12,7 @@ export default function CustomSelect({
   placement = 'bottom',
   hidePlaceholder = false,
   searchable = false,
+  actionButton = null,
 }) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -149,6 +150,21 @@ export default function CustomSelect({
               );
             })}
           </div>
+          {actionButton && (
+            <div className="border-t border-slate-800 p-1">
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setOpen(false);
+                  actionButton.onClick();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition"
+              >
+                {actionButton.label}
+              </button>
+            </div>
+          )}
         </div>,
         document.body
       )}
