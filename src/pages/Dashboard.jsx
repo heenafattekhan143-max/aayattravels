@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import {
   Users, FileText, DollarSign, BookOpen, MapPin, Clock, Calendar,
   User, RefreshCw, Car, ArrowRight, ShoppingCart, Search, Filter,
   X, CheckCircle, AlertTriangle, Truck, Ban, CheckSquare, Receipt,
   TrendingUp, ChevronDown, Sun, Moon, Phone, CreditCard, Navigation,
-  Hash, UserCheck, IndianRupee
+  Hash, UserCheck, IndianRupee, Plus
 } from 'lucide-react';
 import CustomDatePicker from '../components/CustomDatePicker';
 import { useConfirm } from '../context/ConfirmContext';
@@ -736,9 +736,9 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
       return saved ? JSON.parse(saved) : { right: 32, bottom: 40 };
     } catch { return { right: 32, bottom: 40 }; }
   });
-  const fabDragging = React.useRef(false);
-  const fabOffset = React.useRef({ x: 0, y: 0 });
-  const fabRef = React.useRef(null);
+  const fabDragging = useRef(false);
+  const fabOffset = useRef({ x: 0, y: 0 });
+  const fabRef = useRef(null);
   const [paymentIsSubmitting, setPaymentIsSubmitting] = useState(false);
 
   const fetchAll = async () => {
