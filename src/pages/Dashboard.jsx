@@ -80,6 +80,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
   const [pickupTime, setPickupTime] = useState(booking?.pickup_time || '');
   const [note, setNote] = useState(booking?.note || '');
   const [ownershipType, setOwnershipType] = useState('All');
+  const [isGuestVehicle, setIsGuestVehicle] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter vehicles
@@ -113,13 +114,15 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
 
   // Auto-fill vehicle type when vehicle changes
   useEffect(() => {
-    if (selectedVehicle) {
-      const veh = vehicles.find(v => v.vehicle_number === selectedVehicle);
-      if (veh) setVehicleType(veh.model || '');
-    } else {
-      setVehicleType('');
+    if (!isGuestVehicle) {
+      if (selectedVehicle) {
+        const veh = vehicles.find(v => v.vehicle_number === selectedVehicle);
+        if (veh) setVehicleType(veh.model || veh.vehicle_type || '');
+      } else {
+        setVehicleType('');
+      }
     }
-  }, [selectedVehicle, vehicles]);
+  }, [selectedVehicle, vehicles, isGuestVehicle]);
 
   const handleSave = async () => {
     if (!selectedVehicle || !selectedDriver) {
@@ -183,31 +186,66 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400 uppercase flex items-center gap-1.5">
-                <Car className="h-3 w-3" /> Vehicle No.
+              <label className="text-xs font-semibold text-slate-400 uppercase flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><Car className="h-3 w-3" /> Vehicle No.</span>
+                {isGuestVehicle && (
+                  <button type="button" onClick={() => { setIsGuestVehicle(false); setSelectedVehicle(''); setVehicleType(''); }} className="text-[10px] text-indigo-400 hover:text-indigo-300 transition">
+                    Cancel
+                  </button>
+                )}
               </label>
-              <CustomSelect
-                value={selectedVehicle}
-                onChange={setSelectedVehicle}
-                options={filteredVehicles.map(v => ({
-                  value: v.vehicle_number,
-                  label: `${v.vehicle_number} (${v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'})`,
-                  dropdownLabel: (
-                    <div className="flex flex-col w-full text-left">
-                      <div className="flex items-center gap-2">
-                        <span>{v.vehicle_number}</span>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${v.ownership_type === 'Owner' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
-                          {v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'}
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-slate-400 font-normal mt-0.5">
-                        {v.vehicle_type} • {v.driver_name || 'Unassigned'}
-                      </span>
-                    </div>
-                  )
-                }))}
-                placeholder="-- Select Vehicle --"
-              />
+              {isGuestVehicle ? (
+                <input 
+                  type="text" 
+                  value={selectedVehicle} 
+                  onChange={(e) => setSelectedVehicle(e.target.value.toUpperCase())}
+                  placeholder="Enter Guest Vehicle No."
+                  className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 text-slate-100 rounded-xl px-3 py-2.5 text-sm outline-none transition uppercase"
+                  autoFocus
+                />
+              ) : (
+                <CustomSelect
+                  value={selectedVehicle}
+                  onChange={(val) => {
+                    if (val === 'ADD_GUEST_VEHICLE') {
+                      setIsGuestVehicle(true);
+                      setSelectedVehicle('');
+                      setVehicleType('');
+                    } else {
+                      setSelectedVehicle(val);
+                    }
+                  }}
+                  options={[
+                    ...filteredVehicles.map(v => ({
+                      value: v.vehicle_number,
+                      label: `${v.vehicle_number} (${v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'})`,
+                      dropdownLabel: (
+                        <div className="flex flex-col w-full text-left">
+                          <div className="flex items-center gap-2">
+                            <span>{v.vehicle_number}</span>
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${v.ownership_type === 'Owner' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
+                              {v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-normal mt-0.5">
+                            {v.vehicle_type} • {v.driver_name || 'Unassigned'}
+                          </span>
+                        </div>
+                      )
+                    })),
+                    {
+                      value: 'ADD_GUEST_VEHICLE',
+                      label: '+ Add Guest Vehicle',
+                      dropdownLabel: (
+                        <div className="flex items-center justify-center py-2 text-indigo-400 font-bold border-t border-slate-700/50 mt-1 hover:text-indigo-300">
+                          + Add Guest Vehicle
+                        </div>
+                      )
+                    }
+                  ]}
+                  placeholder="-- Select Vehicle --"
+                />
+              )}
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-400 uppercase flex items-center gap-1.5">
@@ -215,10 +253,11 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
               </label>
               <input
                 type="text"
-                readOnly
+                readOnly={!isGuestVehicle}
                 value={vehicleType}
-                placeholder="Auto-filled on selection"
-                className="w-full bg-slate-950/50 border border-slate-800 text-slate-400 rounded-xl px-3 py-2.5 text-sm outline-none cursor-not-allowed"
+                onChange={(e) => isGuestVehicle && setVehicleType(e.target.value)}
+                placeholder={isGuestVehicle ? "Enter Vehicle Type / Model" : "Auto-filled on selection"}
+                className={`w-full ${isGuestVehicle ? 'bg-slate-950 border border-slate-700 focus:border-indigo-500 text-slate-100 cursor-text' : 'bg-slate-950/50 border border-slate-800 text-slate-400 cursor-not-allowed'} rounded-xl px-3 py-2.5 text-sm outline-none transition`}
               />
             </div>
           </div>
