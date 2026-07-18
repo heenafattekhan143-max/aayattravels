@@ -6,6 +6,7 @@ import {
   Phone, CreditCard, Clock, ArrowRight, RefreshCw, Loader2, Building2, UserPlus, ChevronDown
 } from 'lucide-react';
 import CustomDatePicker from '../components/CustomDatePicker';
+import CustomTimePicker from '../components/CustomTimePicker';
 import CustomSelect from '../components/CustomSelect';
 import CreatePlanModal from '../components/CreatePlanModal';
 import CITIES from '../data/cities.json';
@@ -268,7 +269,7 @@ function CitySelect({ value, onChange, placeholder, error }) {
   const [query, setQuery] = useState(value || '');
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
-  
+
   useEffect(() => { setQuery(value || ''); }, [value]);
 
   useEffect(() => {
@@ -316,7 +317,7 @@ function CitySelect({ value, onChange, placeholder, error }) {
           </button>
         )}
       </div>
-      
+
       {open && (
         <div className="absolute z-40 mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
           <div className="max-h-52 overflow-y-auto">
@@ -392,11 +393,10 @@ function VehicleSelectDropdown({ vehicles, value, unavailableVehicleIds, onChang
                   type="button"
                   onMouseDown={(e) => { e.preventDefault(); handleSelect(v, isUnavailable); }}
                   disabled={isUnavailable}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition ${
-                    isUnavailable 
-                      ? 'opacity-50 cursor-not-allowed bg-slate-900/50' 
-                      : 'hover:bg-indigo-500/10 hover:text-indigo-300'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition ${isUnavailable
+                    ? 'opacity-50 cursor-not-allowed bg-slate-900/50'
+                    : 'hover:bg-indigo-500/10 hover:text-indigo-300'
+                    }`}
                 >
                   <div className={`p-1.5 rounded-lg border shrink-0 ${isUnavailable ? 'bg-slate-800 border-slate-700 text-slate-500' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'}`}>
                     <Car className="h-3 w-3" />
@@ -493,7 +493,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
 
   const unavailableVehicleIds = useMemo(() => {
     if (!formData.journey_date) return [];
-    
+
     const reqStart = parseDateTime(formData.journey_date, formData.pickup_time);
     const reqEnd = parseDateTime(formData.return_date || formData.journey_date, formData.end_time || '23:59');
 
@@ -508,7 +508,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
 
       const bStart = parseDateTime(b.journey_date, b.pickup_time);
       const bEnd = parseDateTime(b.return_date || b.journey_date, b.end_time || '23:59');
-      
+
       if (doDateRangesOverlap(reqStart, reqEnd, bStart, bEnd)) {
         unavailable.add(b.vehicle_number);
       }
@@ -558,26 +558,28 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
     }
   };
 
-    const validate = () => {
-      const errs = {};
-      if (!formData.journey_date) errs.journey_date = 'Journey date is required.';
-  
-      // Validate return date is equal to or after journey date
-      if (formData.journey_date && formData.return_date) {
-        if (formData.return_date < formData.journey_date) {
-          errs.return_date = 'Return date must be equal to or greater than journey start date.';
-        }
-      }
+  const validate = () => {
+    const errs = {};
+    if (!formData.journey_date) errs.journey_date = 'Journey date is required.';
+    if (!formData.pickup_time) errs.pickup_time = 'Start time is required.';
+    if (!formData.end_time) errs.end_time = 'End time is required.';
 
-      if (formData.booking_status === 'Completed') {
-        if (!formData.end_km) errs.end_km = 'Required for billing.';
-        if (!formData.working_hours) errs.working_hours = 'Required for billing.';
-        if (!formData.plan_id) errs.plan_id = 'A package plan is required to generate the bill.';
+    // Validate return date is equal to or after journey date
+    if (formData.journey_date && formData.return_date) {
+      if (formData.return_date < formData.journey_date) {
+        errs.return_date = 'Return date must be equal to or greater than journey start date.';
       }
-  
-      setErrors(errs);
-      return Object.keys(errs).length === 0;
-    };
+    }
+
+    if (formData.booking_status === 'Completed') {
+      if (!formData.end_km) errs.end_km = 'Required for billing.';
+      if (!formData.working_hours) errs.working_hours = 'Required for billing.';
+      if (!formData.plan_id) errs.plan_id = 'A package plan is required to generate the bill.';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleChange = (field, value) => {
     setFormData(prev => {
@@ -800,16 +802,16 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       {/* ── FORM ── */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-5 items-stretch">
-          
+
           {/* ── LEFT COLUMN (CARD 1) ── */}
           <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 space-y-8">
-            
+
             {/* Section 1: Customer & Route */}
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 border-b border-slate-800 pb-2 flex items-center gap-2">
                 <User className="h-4 w-4 text-indigo-400" /> Customer & Route
               </h4>
-              
+
               {/* SEARCHABLE CUSTOMER PICKER */}
               <div className="relative">
                 <CustomerSearchPicker
@@ -824,180 +826,12 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                   error={errors.customer_name}
                 />
               </div>
-
-              {/* Pickup From / Drop To */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-green-400" /> From (City)
-                  </label>
-                  <CitySelect
-                    value={formData.pickup_location}
-                    onChange={(v) => handleChange('pickup_location', v)}
-                    placeholder="Departure city"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-red-400" /> To (City)
-                  </label>
-                  <CitySelect
-                    value={formData.drop_location}
-                    onChange={(v) => handleChange('drop_location', v)}
-                    placeholder="Destination city"
-                  />
-                </div>
-              </div>
-
-              {/* Booked By Name */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <User className="h-3 w-3 text-sky-400" /> Booked By Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Person who made the booking"
-                  value={formData.booked_by_name}
-                  onChange={(e) => handleChange('booked_by_name', e.target.value)}
-                  className={inputCls('booked_by_name')}
-                />
-              </div>
-
-              {/* Flight/Train Number (Optional) */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <BookOpen className="h-3 w-3 text-amber-400" /> Flight / Train Number
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. AI-302 or 12431"
-                  value={formData.flight_train_number}
-                  onChange={(e) => handleChange('flight_train_number', e.target.value)}
-                  className={inputCls('flight_train_number')}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Pickup Address */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-indigo-400" /> Pickup Address
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Hotel name, landmark..."
-                    value={formData.pickup_address}
-                    onChange={(e) => handleChange('pickup_address', e.target.value)}
-                    className={inputCls('pickup_address')}
-                  />
-                </div>
-                
-                {/* Drop Address */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-rose-400" /> Drop Address
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Airport terminal..."
-                    value={formData.drop_address}
-                    onChange={(e) => handleChange('drop_address', e.target.value)}
-                    className={inputCls('drop_address')}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Section 2: Travel Schedule */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 border-b border-slate-800 pb-2 flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-blue-400" /> Travel Schedule
-              </h4>
-              
-              {/* Journey Date + Return Date */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Journey Date *</label>
-                  <CustomDatePicker
-                    value={formData.journey_date}
-                    onChange={(v) => handleChange('journey_date', v)}
-                    placeholder="Journey date"
-                  />
-                  {errors.journey_date && <p className="text-xs text-red-400">{errors.journey_date}</p>}
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Return Date</label>
-                  <CustomDatePicker
-                    value={formData.return_date}
-                    onChange={(v) => handleChange('return_date', v)}
-                    placeholder="Return date"
-                    minDate={formData.journey_date}
-                  />
-                  {errors.return_date && <p className="text-xs text-red-400">{errors.return_date}</p>}
-                </div>
-              </div>
-
-              {/* Times & Trip Type */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <Clock className="h-3 w-3 text-indigo-400" /> Start Time
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.pickup_time}
-                    onChange={(e) => handleChange('pickup_time', e.target.value)}
-                    className={`${inputCls('pickup_time')} [color-scheme:dark]`}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <Clock className="h-3 w-3 text-indigo-400" /> End Time
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.end_time || ''}
-                    onChange={(e) => handleChange('end_time', e.target.value)}
-                    className={`${inputCls('end_time')} [color-scheme:dark]`}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Start from garage before (in min) *</label>
-                  <input
-                    type="number"
-                    value={formData.start_garage_mins}
-                    onChange={(e) => handleChange('start_garage_mins', e.target.value ? parseInt(e.target.value) : 0)}
-                    className={inputCls('start_garage_mins')}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Trip Type</label>
-                  <CustomSelect
-                    value={formData.trip_type}
-                    onChange={(val) => handleChange('trip_type', val)}
-                    options={TRIP_TYPES}
-                    placeholder="-- Select Trip Type --"
-                  />
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* ── RIGHT COLUMN (CARD 2) ── */}
-          <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 flex flex-col justify-between">
-            <div className="space-y-8">
-              
               {/* Passengers Section */}
               <div className="space-y-4">
                 <h4 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 border-b border-slate-800 pb-2 flex items-center gap-2">
-                  <UserPlus className="h-4 w-4 text-indigo-400" /> Passenger Details (Optional)
+                  <UserPlus className="h-4 w-4 text-indigo-400" /> Passenger Details
                 </h4>
-                
+
                 {(formData.passenger_details || []).map((p, idx) => (
                   <div key={idx} className="p-3 bg-slate-900/50 border border-slate-800 rounded-xl space-y-3 relative group">
                     <button
@@ -1008,7 +842,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pr-8">
                       <div className="space-y-1">
                         <label className="text-[10px] font-semibold text-slate-400">Passenger Name</label>
@@ -1049,8 +883,175 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                   onClick={addPassenger}
                   className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5"
                 >
-                  <Plus className="h-3.5 w-3.5" /> ADD ANOTHER PASSENGER
+                  <Plus className="h-3.5 w-3.5" /> ADD PASSENGER
                 </button>
+              </div>
+
+
+              {/* Booked By Name */}
+              <div className="space-y-1 mt-12">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <User className="h-3 w-3 text-sky-400" /> Booked By Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Person who made the booking"
+                  value={formData.booked_by_name}
+                  onChange={(e) => handleChange('booked_by_name', e.target.value)}
+                  className={inputCls('booked_by_name')}
+                />
+              </div>
+
+              {/* Pickup From / Drop To */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3 text-green-400" /> From (City)
+                  </label>
+                  <CitySelect
+                    value={formData.pickup_location}
+                    onChange={(v) => handleChange('pickup_location', v)}
+                    placeholder="Departure city"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3 text-red-400" /> To (City)
+                  </label>
+                  <CitySelect
+                    value={formData.drop_location}
+                    onChange={(v) => handleChange('drop_location', v)}
+                    placeholder="Destination city"
+                  />
+                </div>
+              </div>
+
+
+              {/* Flight/Train Number (Optional) */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <BookOpen className="h-3 w-3 text-amber-400" /> Flight / Train Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. AI-302 or 12431"
+                  value={formData.flight_train_number}
+                  onChange={(e) => handleChange('flight_train_number', e.target.value)}
+                  className={inputCls('flight_train_number')}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Pickup Address */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3 text-indigo-400" /> Pickup Address
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Hotel name, landmark..."
+                    value={formData.pickup_address}
+                    onChange={(e) => handleChange('pickup_address', e.target.value)}
+                    className={inputCls('pickup_address')}
+                  />
+                </div>
+
+                {/* Drop Address */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3 text-rose-400" /> Drop Address
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Airport terminal..."
+                    value={formData.drop_address}
+                    onChange={(e) => handleChange('drop_address', e.target.value)}
+                    className={inputCls('drop_address')}
+                  />
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* ── RIGHT COLUMN (CARD 2) ── */}
+          <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 flex flex-col justify-between">
+            <div className="space-y-8">
+
+              {/* Section 2: Travel Schedule */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 border-b border-slate-800 pb-2 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-blue-400" /> Travel Schedule
+                </h4>
+
+                {/* Journey Date + Return Date */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Journey Date *</label>
+                    <CustomDatePicker
+                      value={formData.journey_date}
+                      onChange={(v) => handleChange('journey_date', v)}
+                      placeholder="Journey date"
+                    />
+                    {errors.journey_date && <p className="text-xs text-red-400">{errors.journey_date}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Return Date</label>
+                    <CustomDatePicker
+                      value={formData.return_date}
+                      onChange={(v) => handleChange('return_date', v)}
+                      placeholder="Return date"
+                      minDate={formData.journey_date}
+                    />
+                    {errors.return_date && <p className="text-xs text-red-400">{errors.return_date}</p>}
+                  </div>
+                </div>
+
+                {/* Times & Trip Type */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                      <Clock className="h-3 w-3 text-indigo-400" /> Start Time *
+                    </label>
+                    <CustomTimePicker
+                      value={formData.pickup_time}
+                      onChange={(v) => handleChange('pickup_time', v)}
+                    />
+                    {errors.pickup_time && <p className="text-xs text-red-400">{errors.pickup_time}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                      <Clock className="h-3 w-3 text-indigo-400" /> End Time *
+                    </label>
+                    <CustomTimePicker
+                      value={formData.end_time || ''}
+                      onChange={(v) => handleChange('end_time', v)}
+                    />
+                    {errors.end_time && <p className="text-xs text-red-400">{errors.end_time}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Start from garage before (in min) *</label>
+                    <input
+                      type="number"
+                      value={formData.start_garage_mins}
+                      onChange={(e) => handleChange('start_garage_mins', e.target.value ? parseInt(e.target.value) : 0)}
+                      className={inputCls('start_garage_mins')}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Trip Type</label>
+                    <CustomSelect
+                      value={formData.trip_type}
+                      onChange={(val) => handleChange('trip_type', val)}
+                      options={TRIP_TYPES}
+                      placeholder="-- Select Trip Type --"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Section 3: Financials & Status */}
@@ -1114,7 +1115,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                       </>
                     )}
                   </div>
-                  
+
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-300">Advance (₹)</label>
                     <input type="number" placeholder="0" value={formData.advance_amount}
@@ -1191,8 +1192,8 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
               <button
                 type="submit" disabled={isSubmitting}
                 className={`w-full py-3 font-bold text-sm tracking-wide rounded-xl transition shadow-lg flex items-center justify-center gap-2 ${editingId
-                    ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/25'
-                    : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/25'
+                  ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/25'
+                  : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/25'
                   } text-slate-50 disabled:opacity-50`}
               >
                 {isSubmitting ? (
@@ -1204,7 +1205,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                 )}
               </button>
             </div>
-            
+
           </div>
         </div>
       </form>
