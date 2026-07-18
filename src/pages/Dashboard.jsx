@@ -196,9 +196,9 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
                 )}
               </label>
               {isGuestVehicle ? (
-                <input 
-                  type="text" 
-                  value={selectedVehicle} 
+                <input
+                  type="text"
+                  value={selectedVehicle}
                   onChange={(e) => setSelectedVehicle(e.target.value.toUpperCase())}
                   placeholder="Enter Guest Vehicle No."
                   className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 text-slate-100 rounded-xl px-3 py-2.5 text-sm outline-none transition uppercase"
@@ -263,9 +263,9 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
                 )}
               </label>
               {isGuestDriver ? (
-                <input 
-                  type="text" 
-                  value={selectedDriver} 
+                <input
+                  type="text"
+                  value={selectedDriver}
                   onChange={(e) => setSelectedDriver(e.target.value)}
                   placeholder="Enter Guest Driver Name"
                   className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 text-slate-100 rounded-xl px-3 py-2.5 text-sm outline-none transition"
@@ -492,49 +492,57 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
 
   const plan = (plans || []).find(p => p.id === b.plan_id);
   const amount = plan ? plan.rate : (b.total_amount || 0);
+  const balanceDue = amount > 0 ? amount - (b.advance_amount || 0) : 0;
 
-  const InfoRow = ({ icon: Icon, label, value, valueClass = 'text-slate-100' }) => (
-    <div className="flex items-start gap-3">
-      <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700/60 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="h-4 w-4 text-slate-400" />
-      </div>
-      <div>
-        <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">{label}</div>
-        <div className={`text-sm font-semibold ${valueClass}`}>{value || '—'}</div>
-      </div>
+  const SectionTitle = ({ icon: Icon, title, color = 'text-indigo-400' }) => (
+    <div className="flex items-center gap-2 mb-3">
+      <Icon className={`h-4 w-4 ${color}`} />
+      <span className={`text-[11px] font-black uppercase tracking-widest ${color}`}>{title}</span>
+      <div className="flex-1 h-px bg-slate-700/50 ml-1" />
     </div>
+  );
+
+  const Field = ({ label, value, valueClass = 'text-slate-100', mono = false }) => (
+    value ? (
+      <div>
+        <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">{label}</div>
+        <div className={`text-sm font-semibold ${valueClass} ${mono ? 'font-mono' : ''}`}>{value}</div>
+      </div>
+    ) : null
   );
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
       style={{ animation: 'fadeInUp 0.25s ease-out both' }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-slate-900 border border-slate-700/60 rounded-3xl shadow-2xl shadow-black/60 overflow-hidden"
+      {/* Modal — wider, no scroll */}
+      <div className="relative w-full max-w-5xl flex flex-col bg-slate-900 border border-slate-700/60 rounded-3xl shadow-2xl shadow-black/60 overflow-hidden"
         style={{ animation: 'fadeInUp 0.3s ease-out both' }}>
 
         {/* Colored top accent */}
-        <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${borderColor}, ${borderColor}88)` }} />
+        <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${borderColor}, ${borderColor}44)` }} />
 
         {/* Header */}
-        <div className="shrink-0 px-6 pt-5 pb-4 border-b border-slate-800/60 flex items-start justify-between gap-4">
+        <div className="shrink-0 px-5 pt-4 pb-3.5 border-b border-slate-800/60 flex items-start justify-between gap-4 bg-slate-900/80">
           <div>
-            <div className="flex items-center gap-3 mb-1">
+            <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
               <span className="text-2xl font-black text-indigo-400 font-mono">
                 {b.booking_id ? `#${b.booking_id}` : '—'}
               </span>
-              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${bStatusColor}`}>{b.booking_status}</span>
-              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${paymentBadge[b.payment_status] || 'bg-slate-700 text-slate-300'}`}>{b.payment_status}</span>
-              {isToday && <span className="text-[10px] font-black text-white bg-indigo-600 px-2 py-0.5 rounded-full uppercase tracking-wider">Today</span>}
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${bStatusColor}`}>{b.booking_status}</span>
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${paymentBadge[b.payment_status] || 'bg-slate-700 text-slate-300'}`}>{b.payment_status}</span>
+              {isToday && <span className="text-[9px] font-black text-white bg-indigo-600 px-2 py-0.5 rounded-full uppercase tracking-wider">Today</span>}
+              {b.is_guest && <span className="text-[9px] font-black text-amber-900 bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full uppercase tracking-wider">Guest</span>}
             </div>
-            <div className="flex items-center gap-2 text-slate-400 text-sm">
-              <Calendar className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-2 text-slate-400 text-xs">
+              <Calendar className="h-3 w-3" />
               <span>{formatDate(b.journey_date)}</span>
-              {b.pickup_time && <><span className="text-slate-600">·</span><Clock className="h-3.5 w-3.5" /><span className="font-mono">{b.pickup_time}{b.end_time ? ` → ${b.end_time}` : ''}</span></>}
+              {b.pickup_time && <><span className="text-slate-600">·</span><Clock className="h-3 w-3" /><span className="font-mono">{b.pickup_time}{b.end_time ? ` → ${b.end_time}` : ''}</span></>}
+              {b.booking_date && <><span className="text-slate-600">·</span><span className="text-slate-600 text-[10px]">Booked: {b.booking_date}</span></>}
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white transition shrink-0">
@@ -542,95 +550,135 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
           </button>
         </div>
 
-        {/* Body */}
-        <div className="overflow-y-auto px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {/* Client */}
-          <InfoRow icon={User} label="Client Name" value={b.customer_name} valueClass="text-slate-100 font-bold" />
-          <InfoRow icon={Phone} label="Phone" value={b.customer_phone} valueClass="text-indigo-300 font-mono" />
+        {/* Body — 2 column grid, no scroll */}
+        <div className="px-5 py-4 grid grid-cols-2 gap-4">
 
-          {/* Trip Dates & Time — 3 cols (1 col mobile) */}
-          <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-800/30 border border-slate-700/40 rounded-2xl px-4 py-3">
-            <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700/60 flex items-center justify-center shrink-0 mt-0.5">
-                <Calendar className="h-3.5 w-3.5 text-indigo-400" />
-              </div>
-              <div>
-                <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Start Date</div>
-                <div className="text-sm font-bold text-slate-100">{b.journey_date ? formatDate(b.journey_date) : '—'}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2.5 border-y sm:border-y-0 sm:border-x border-slate-700/40 py-3 sm:py-0 px-0 sm:px-4">
-              <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700/60 flex items-center justify-center shrink-0 mt-0.5">
-                <Calendar className="h-3.5 w-3.5 text-violet-400" />
-              </div>
-              <div>
-                <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Return Date</div>
-                <div className="text-sm font-bold text-slate-100">{b.return_date ? formatDate(b.return_date) : '—'}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700/60 flex items-center justify-center shrink-0 mt-0.5">
-                <Clock className="h-3.5 w-3.5 text-emerald-400" />
-              </div>
-              <div>
-                <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Start Time</div>
-                <div className="text-sm font-bold text-indigo-300 font-mono">{b.pickup_time || '—'}</div>
-              </div>
-            </div>
-          </div>
+          {/* ── LEFT COLUMN ── */}
+          <div className="space-y-3">
 
-          {/* Route */}
-          <div className="sm:col-span-2 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700/60 flex items-center justify-center shrink-0 mt-0.5">
-              <Navigation className="h-4 w-4 text-emerald-400" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Route</div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-semibold text-slate-100">{b.pickup_address || b.pickup_location || '—'}</span>
-                {b.drop_location && (<>
-                  <ArrowRight className="h-4 w-4 text-slate-500 shrink-0" />
-                  <span className="text-sm font-semibold text-slate-100">{b.drop_location}</span>
-                </>)}
+            {/* Section 1: Passenger / Client Info */}
+            <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-3.5">
+              <SectionTitle icon={User} title="Passenger / Client Info" color="text-indigo-400" />
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Client Name" value={b.customer_name} valueClass="text-slate-100 font-bold" />
+                <Field label="Phone" value={b.customer_phone} valueClass="text-indigo-300" mono />
+                <Field label="Booked By" value={b.booked_by_name} valueClass="text-slate-300" />
               </div>
-              {b.trip_type && <span className="inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full bg-slate-700/60 border border-slate-600/40 text-slate-400 font-medium">{b.trip_type}</span>}
-            </div>
-          </div>
-
-          {/* Vehicle */}
-          <InfoRow icon={Car} label="Vehicle" value={<>{b.vehicle_number} {b.vehicle_type && <span className="text-slate-500 text-xs font-normal ml-1">({b.vehicle_type})</span>}</>} valueClass="text-sky-300 font-mono" />
-
-          {/* Driver */}
-          <InfoRow icon={UserCheck} label="Driver" value={<>{b.driver_name || 'Unassigned'} {b.passengers > 0 && <span className="text-slate-500 text-xs font-normal ml-1">· {b.passengers} pax</span>}</>} valueClass="text-violet-300" />
-
-          {/* Amount */}
-          <div className="sm:col-span-2 bg-slate-800/40 border border-slate-700/40 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="text-center flex flex-col items-center justify-center">
-              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1">Total Amount</div>
-              <div className="text-xl font-black text-emerald-400">{amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : '—'}</div>
-              {plan && (
-                <div className="text-[9px] font-semibold text-slate-300 mt-1.5 max-w-[140px] truncate bg-slate-700/50 px-2 py-0.5 rounded-full border border-slate-600/50">
-                  {plan.plan_name}
+              {b.passenger_details && b.passenger_details.length > 0 && b.passenger_details.some(p => p.name) && (
+                <div className="mt-2">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1">Passengers</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {b.passenger_details.map((p, i) => p.name ? (
+                      <div key={i} className="flex items-center gap-1 text-xs bg-slate-800 border border-slate-700/50 rounded-lg px-2 py-1">
+                        <span className="text-slate-100 font-semibold">{p.name}</span>
+                        {p.phone && <span className="text-slate-500 text-[10px]">· {p.phone}</span>}
+                      </div>
+                    ) : null)}
+                  </div>
                 </div>
               )}
             </div>
-            <div className="text-center border-y sm:border-y-0 sm:border-x border-slate-700/40 py-3 sm:py-0">
-              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1">Advance Paid</div>
-              <div className="text-xl font-black text-indigo-400">{b.advance_amount > 0 ? `₹${b.advance_amount.toLocaleString('en-IN')}` : '—'}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1">Balance Due</div>
-              <div className="text-xl font-black text-amber-400">
-                {(amount > 0 && b.advance_amount >= 0)
-                  ? `₹${(amount - (b.advance_amount || 0)).toLocaleString('en-IN')}`
-                  : '—'}
+
+            {/* Section 2: Trip Details */}
+            <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-3.5">
+              <SectionTitle icon={Navigation} title="Trip Details" color="text-emerald-400" />
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                <Field label="Journey Date" value={b.journey_date ? formatDate(b.journey_date) : null} valueClass="text-slate-100 font-bold" />
+                <Field label="Return Date" value={b.return_date ? formatDate(b.return_date) : null} valueClass="text-violet-300" />
+                <Field label="Reporting Time" value={b.pickup_time} valueClass="text-indigo-300" mono />
+                <Field label="End Time" value={b.end_time} valueClass="text-indigo-300" mono />
+                <Field label="Trip Type" value={b.trip_type} valueClass="text-amber-300" />
+                <Field label="Flight / Train No." value={b.flight_train_number} valueClass="text-slate-300" mono />
+              </div>
+              <div className="space-y-1.5">
+                {(b.pickup_address || b.pickup_location) && (
+                  <div className="flex items-start gap-2 bg-slate-800/40 rounded-xl px-2.5 py-2">
+                    <MapPin className="h-3 w-3 text-green-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Pickup</div>
+                      <div className="text-xs font-semibold text-slate-100">{b.pickup_address || b.pickup_location}</div>
+                    </div>
+                  </div>
+                )}
+                {(b.drop_address || b.drop_location) && (
+                  <div className="flex items-start gap-2 bg-slate-800/40 rounded-xl px-2.5 py-2">
+                    <MapPin className="h-3 w-3 text-rose-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Drop</div>
+                      <div className="text-xs font-semibold text-slate-100">{b.drop_address || b.drop_location}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+
           </div>
+
+          {/* ── RIGHT COLUMN ── */}
+          <div className="space-y-3">
+
+            {/* Section 3: Vehicle & Driver */}
+            <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-3.5">
+              <SectionTitle icon={Car} title="Vehicle & Driver" color="text-sky-400" />
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="Vehicle No." value={b.vehicle_number} valueClass="text-sky-300" mono />
+                <Field label="Vehicle Type" value={b.vehicle_type} valueClass="text-slate-300" />
+                <Field label="Vehicle Class" value={b.vehicle_class} valueClass="text-slate-300" />
+                <Field label="Driver Name" value={b.driver_name || 'Unassigned'} valueClass={b.driver_name ? 'text-violet-300' : 'text-slate-500 italic'} />
+                <Field label="Passengers" value={b.passengers > 0 ? `${b.passengers} pax` : null} valueClass="text-slate-300" />
+                {b.working_hours > 0 && <Field label="Working Hours" value={`${b.working_hours} hrs`} valueClass="text-slate-300" />}
+                {b.end_km > 0 && <Field label="End KM" value={`${b.end_km} km`} valueClass="text-slate-300" />}
+              </div>
+            </div>
+
+            {/* Section 4: Package & Financials */}
+            <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-3.5">
+              <SectionTitle icon={IndianRupee} title="Package & Financials" color="text-emerald-400" />
+              {plan && (
+                <div className="mb-2.5 flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/25 rounded-xl px-3 py-1.5">
+                  <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Package:</span>
+                  <span className="text-xs font-bold text-indigo-300 leading-tight">{plan.plan_name}</span>
+                </div>
+              )}
+              <div className="grid grid-cols-3 gap-2 mb-2.5">
+                <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 text-center">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Total</div>
+                  <div className="text-base font-black text-emerald-400">{amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : '—'}</div>
+                </div>
+                <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 text-center">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Advance</div>
+                  <div className="text-base font-black text-indigo-400">{b.advance_amount > 0 ? `₹${b.advance_amount.toLocaleString('en-IN')}` : '—'}</div>
+                </div>
+                <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 text-center">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Balance</div>
+                  <div className={`text-base font-black ${balanceDue > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>{amount > 0 ? `₹${balanceDue.toLocaleString('en-IN')}` : '—'}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {b.da_allowance > 0 && <Field label="DA Allowance" value={`₹${b.da_allowance}`} valueClass="text-slate-300" />}
+                {b.night_allowance > 0 && <Field label="Night Allowance" value={`₹${b.night_allowance}`} valueClass="text-slate-300" />}
+                {b.gst_rate > 0 && <Field label="GST Rate" value={`${b.gst_rate}%`} valueClass="text-slate-300" />}
+                {b.rate > 0 && <Field label="Rate" value={`₹${b.rate}`} valueClass="text-slate-300" />}
+              </div>
+            </div>
+
+            {/* Section 5: Remarks & Notes */}
+            {(b.remarks || b.note) && (
+              <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-3.5">
+                <SectionTitle icon={BookOpen} title="Remarks & Notes" color="text-amber-400" />
+                <div className="space-y-2">
+                  {b.remarks && <div><div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Remarks</div><p className="text-xs text-slate-300 leading-relaxed">{b.remarks}</p></div>}
+                  {b.note && <div><div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Note</div><p className="text-xs text-slate-300 leading-relaxed">{b.note}</p></div>}
+                </div>
+              </div>
+            )}
+
+          </div>
+
         </div>
 
         {/* Footer actions */}
-        <div className="shrink-0 px-6 py-4 border-t border-slate-800/60 bg-slate-900/50 flex items-center justify-between gap-3">
+        <div className="shrink-0 px-5 py-3.5 border-t border-slate-800/60 bg-slate-900/80 flex items-center justify-between gap-3">
           <div>
             {b.payment_status === 'Pending' && !['Dispatched', 'Completed', 'Cancelled'].includes(b.booking_status) && (
               <button
@@ -640,7 +688,7 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
               </button>
             )}
           </div>
-          <button onClick={onClose} className="px-4 py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition shadow-lg shadow-indigo-500/25">
+          <button onClick={onClose} className="px-5 py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition shadow-lg shadow-indigo-500/25">
             Close
           </button>
         </div>
@@ -649,6 +697,7 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
     </div>
   );
 }
+
 
 export default function Dashboard({ navigateTo, theme, setTheme }) {
   const confirm = useConfirm();
@@ -1186,10 +1235,9 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                 <tr className="border-b border-slate-700 bg-table-header text-slate-400 text-[10px] font-bold uppercase tracking-wider">
                   <th className="px-2.5 py-2">Booking ID</th>
                   <th className="px-2.5 py-2">Trip Date</th>
-                  <th className="px-2.5 py-2">Start Time</th>
-                  <th className="px-2.5 py-2">End Time</th>
-                  <th className="px-2.5 py-2">Client</th>
-                  <th className="px-2.5 py-2">Pickup → Drop</th>
+                  <th className="px-2.5 py-2">Reporting Time</th>
+                  <th className="px-2.5 py-2">Passenger Name</th>
+                  <th className="px-2.5 py-2">Pickup Address</th>
                   <th className="px-2.5 py-2">Package Name</th>
                   <th className="px-2.5 py-2">Vehicle</th>
                   <th className="px-2.5 py-2">Driver</th>
@@ -1234,22 +1282,25 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                           </div>
                         </td>
                         <td className="px-2.5 py-2 text-xs font-mono text-indigo-300 whitespace-nowrap">{b.pickup_time || '—'}</td>
-                        <td className="px-2.5 py-2 text-xs font-mono text-indigo-300 whitespace-nowrap">{b.end_time || '—'}</td>
                         <td className="px-2.5 py-2">
                           <div className="flex flex-col">
-                            <span className="text-slate-50 font-semibold text-xs truncate max-w-[130px]">{b.customer_name}</span>
-                            {b.customer_phone && <span className="text-slate-500 text-[10px]">{b.customer_phone}</span>}
+                            <span className="text-slate-50 font-semibold text-xs truncate max-w-[140px]">
+                              {(b.passenger_details && b.passenger_details[0]?.name) || b.customer_name || '—'}
+                            </span>
+                            {(b.passenger_details && b.passenger_details[0]?.phone) || b.customer_phone
+                              ? <span className="text-slate-500 text-[10px]">{(b.passenger_details && b.passenger_details[0]?.phone) || b.customer_phone}</span>
+                              : null
+                            }
                           </div>
                         </td>
                         <td className="px-2.5 py-2">
-                          <div className="flex items-center gap-1.5 text-xs max-w-[180px]">
-                            <MapPin className="h-3 w-3 text-green-400 shrink-0" />
-                            <span className="truncate text-slate-300">{b.pickup_address || b.pickup_location || '—'}</span>
-                            {b.drop_location && (<><ArrowRight className="h-2.5 w-2.5 text-slate-600 shrink-0" /><span className="truncate text-slate-300">{b.drop_location}</span></>)}
+                          <div className="flex items-start gap-1.5 text-xs max-w-[180px]">
+                            <MapPin className="h-3 w-3 text-green-400 shrink-0 mt-0.5" />
+                            <span className="text-slate-300 leading-tight line-clamp-2">{b.pickup_address || b.pickup_location || '—'}</span>
                           </div>
                         </td>
-                        <td className="px-2.5 py-2">
-                          <div className="text-[10px] leading-tight px-2 py-1.5 rounded-lg bg-slate-700/60 text-slate-300 border border-slate-600/40 font-medium max-w-[150px] line-clamp-2" title={plan ? plan.plan_name : ''}>
+                        <td className="px-2.5 py-2 min-w-[200px]">
+                          <div className="text-[10px] leading-tight px-2 py-1.5 rounded-lg bg-slate-700/60 text-slate-300 border border-slate-600/40 font-medium max-w-[200px] line-clamp-2" title={plan ? plan.plan_name : ''}>
                             {plan ? plan.plan_name : '—'}
                           </div>
                         </td>
