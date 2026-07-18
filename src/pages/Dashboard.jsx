@@ -1164,7 +1164,7 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                       <MapPin className="h-2.5 w-2.5 text-green-400 shrink-0" />
                       <span className="truncate">{b.pickup_address || b.pickup_location || '—'}</span>
                       {b.drop_location && (<><ArrowRight className="h-2 w-2 text-slate-600 shrink-0" /><span className="truncate">{b.drop_location}</span></>)}
-                      {plan && <span className="ml-auto shrink-0 px-1.5 py-0.5 rounded-full bg-slate-700/60 border border-slate-600/40 text-[9px] font-medium whitespace-nowrap">{plan.plan_name}</span>}
+                      {plan && <div className="ml-auto shrink-0 px-1.5 py-1 rounded-md bg-slate-700/60 border border-slate-600/40 text-[9px] font-medium max-w-[120px] line-clamp-2 leading-tight text-right" title={plan.plan_name}>{plan.plan_name}</div>}
                     </div>
                     <div className="flex items-center justify-between gap-2 text-[10px]">
                       <div className="flex items-center gap-2 text-indigo-300 font-mono">
@@ -1249,7 +1249,9 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                           </div>
                         </td>
                         <td className="px-2.5 py-2">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300 border border-slate-600/40 font-medium whitespace-nowrap">{plan ? plan.plan_name : '—'}</span>
+                          <div className="text-[10px] leading-tight px-2 py-1.5 rounded-lg bg-slate-700/60 text-slate-300 border border-slate-600/40 font-medium max-w-[150px] line-clamp-2" title={plan ? plan.plan_name : ''}>
+                            {plan ? plan.plan_name : '—'}
+                          </div>
                         </td>
                         <td className="px-2.5 py-2">
                           <div className="flex flex-col gap-0.5 text-xs">
