@@ -728,6 +728,17 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentEvent, setPaymentEvent] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
+
+  // Draggable FAB state
+  const [fabPos, setFabPos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dashboard_fab_pos');
+      return saved ? JSON.parse(saved) : { right: 32, bottom: 40 };
+    } catch { return { right: 32, bottom: 40 }; }
+  });
+  const fabDragging = React.useRef(false);
+  const fabOffset = React.useRef({ x: 0, y: 0 });
+  const fabRef = React.useRef(null);
   const [paymentIsSubmitting, setPaymentIsSubmitting] = useState(false);
 
   const fetchAll = async () => {
@@ -1419,7 +1430,63 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
         </div>
       )}
 
+      {/* ─── DRAGGABLE FAB ─── */}
+      <div
+        ref={fabRef}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          fabDragging.current = false;
+          const rect = fabRef.current.getBoundingClientRect();
+          fabOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+          fabRef.current.setPointerCapture(e.pointerId);
+          fabRef.current._startX = e.clientX;
+          fabRef.current._startY = e.clientY;
+        }}
+        onPointerMove={(e) => {
+          const dx = e.clientX - (fabRef.current._startX || e.clientX);
+          const dy = e.clientY - (fabRef.current._startY || e.clientY);
+          if (Math.abs(dx) > 4 || Math.abs(dy) > 4) fabDragging.current = true;
+          if (!fabDragging.current) return;
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          const btnW = fabRef.current.offsetWidth;
+          const btnH = fabRef.current.offsetHeight;
+          const newRight = Math.min(Math.max(vw - e.clientX - (btnW - fabOffset.current.x), 8), vw - btnW - 8);
+          const newBottom = Math.min(Math.max(vh - e.clientY - (btnH - fabOffset.current.y), 8), vh - btnH - 8);
+          setFabPos({ right: newRight, bottom: newBottom });
+        }}
+        onPointerUp={() => {
+          const wasDragging = fabDragging.current;
+          fabDragging.current = false;
+          if (wasDragging) {
+            try { localStorage.setItem('dashboard_fab_pos', JSON.stringify(fabPos)); } catch {}
+          }
+        }}
+        onClick={() => {
+          if (!fabDragging.current) navigateTo('booking-screen');
+        }}
+        style={{
+          position: 'fixed',
+          right: fabPos.right,
+          bottom: fabPos.bottom,
+          zIndex: 100,
+          userSelect: 'none',
+          touchAction: 'none',
+        }}
+        className="group flex items-center gap-2.5 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3.5 rounded-2xl shadow-2xl shadow-indigo-500/40 border border-indigo-500/50 transition-colors duration-150 cursor-grab active:cursor-grabbing select-none"
+        title="Add New Booking — drag to reposition"
+      >
+        <Plus className="h-5 w-5 shrink-0" />
+        <span className="text-sm font-black tracking-wide whitespace-nowrap">New Booking</span>
+        <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor" className="opacity-40 group-hover:opacity-70 transition-opacity ml-0.5 shrink-0">
+          <circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/>
+          <circle cx="2" cy="7" r="1.5"/><circle cx="8" cy="7" r="1.5"/>
+          <circle cx="2" cy="12" r="1.5"/><circle cx="8" cy="12" r="1.5"/>
+        </svg>
+      </div>
+
     </div>
   );
 }
+
 
