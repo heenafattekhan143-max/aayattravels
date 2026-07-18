@@ -1238,6 +1238,7 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                   <th className="px-2.5 py-2">Reporting Time</th>
                   <th className="px-2.5 py-2">Passenger Name</th>
                   <th className="px-2.5 py-2">Pickup Address</th>
+                  <th className="px-2.5 py-2">City</th>
                   <th className="px-2.5 py-2">Package Name</th>
                   <th className="px-2.5 py-2">Vehicle</th>
                   <th className="px-2.5 py-2">Driver</th>
@@ -1298,6 +1299,9 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                             <MapPin className="h-3 w-3 text-green-400 shrink-0 mt-0.5" />
                             <span className="text-slate-300 leading-tight line-clamp-2">{b.pickup_address || b.pickup_location || '—'}</span>
                           </div>
+                        </td>
+                        <td className="px-2.5 py-2">
+                          <span className="text-xs font-semibold text-emerald-300 whitespace-nowrap">{b.pickup_location || '—'}</span>
                         </td>
                         <td className="px-2.5 py-2 min-w-[200px]">
                           <div className="text-[10px] leading-tight px-2 py-1.5 rounded-lg bg-slate-700/60 text-slate-300 border border-slate-600/40 font-medium max-w-[200px] line-clamp-2" title={plan ? plan.plan_name : ''}>
