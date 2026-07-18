@@ -177,13 +177,13 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
                 onChange={setSelectedVehicle}
                 options={filteredVehicles.map(v => ({
                   value: v.vehicle_number,
-                  label: `${v.vehicle_number} (${v.ownership_type === 'Owner' ? 'Self' : 'Vendor'})`,
+                  label: `${v.vehicle_number} (${v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'})`,
                   dropdownLabel: (
                     <div className="flex flex-col w-full text-left">
                       <div className="flex items-center gap-2">
                         <span>{v.vehicle_number}</span>
                         <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${v.ownership_type === 'Owner' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
-                          {v.ownership_type === 'Owner' ? 'Self Owner' : 'Vendor'}
+                          {v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'}
                         </span>
                       </div>
                       <span className="text-[10px] text-slate-400 font-normal mt-0.5">
