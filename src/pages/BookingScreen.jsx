@@ -65,6 +65,7 @@ const emptyForm = {
   trip_type: 'One Way',
   vehicle_type: '',
   passengers: 1,
+  passenger_details: [],
   advance_amount: '',
   plan_id: '',
   payment_status: 'Pending',
@@ -620,7 +621,8 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
         ...formData,
         customer_name: finalName,
         customer_phone: finalPhone,
-        passengers: parseInt(formData.passengers) || 1,
+        passengers: formData.passenger_details?.length > 0 ? formData.passenger_details.length : (parseInt(formData.passengers) || 1),
+        passenger_details: formData.passenger_details || [],
         advance_amount: parseFloat(formData.advance_amount) || 0,
         total_amount: parseFloat(formData.total_amount) || 0,
         end_km: formData.end_km ? parseInt(formData.end_km) : null,
@@ -675,6 +677,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       trip_type: b.trip_type || 'One Way',
       vehicle_type: b.vehicle_type || '',
       passengers: b.passengers || 1,
+      passenger_details: b.passenger_details || [],
       advance_amount: b.advance_amount ?? '',
       plan_id: b.plan_id || '',
       payment_status: b.payment_status || 'Pending',
@@ -688,6 +691,29 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
     setEditingId(b.id || b._id || editingBookingId);
     setErrors({});
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const addPassenger = () => {
+    setFormData(prev => ({
+      ...prev,
+      passenger_details: [...(prev.passenger_details || []), { name: '', phone: '', email: '' }]
+    }));
+  };
+
+  const removePassenger = (index) => {
+    setFormData(prev => {
+      const newPassengers = [...(prev.passenger_details || [])];
+      newPassengers.splice(index, 1);
+      return { ...prev, passenger_details: newPassengers };
+    });
+  };
+
+  const handlePassengerChange = (index, field, value) => {
+    setFormData(prev => {
+      const newPassengers = [...(prev.passenger_details || [])];
+      newPassengers[index] = { ...newPassengers[index], [field]: value };
+      return { ...prev, passenger_details: newPassengers };
+    });
   };
 
   const handleDeleteRequest = (b) => setDeleteDialog({ open: true, id: b.id, name: b.customer_name });
@@ -879,6 +905,69 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                     className={inputCls('drop_address')}
                   />
                 </div>
+              </div>
+
+              {/* Passengers Section */}
+              <div className="space-y-3 pt-4 border-t border-slate-800">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <UserPlus className="h-3 w-3 text-indigo-400" /> Passenger Details (Optional)
+                  </label>
+                </div>
+                
+                {(formData.passenger_details || []).map((p, idx) => (
+                  <div key={idx} className="p-3 bg-slate-900/50 border border-slate-800 rounded-xl space-y-3 relative group">
+                    <button
+                      type="button"
+                      onClick={() => removePassenger(idx)}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition"
+                      title="Remove Passenger"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pr-8">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-400">Passenger Name</label>
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={p.name}
+                          onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-400">Passenger Phone Number</label>
+                        <input
+                          type="text"
+                          placeholder="Phone"
+                          value={p.phone}
+                          onChange={(e) => handlePassengerChange(idx, 'phone', e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-400">Passenger Email</label>
+                        <input
+                          type="email"
+                          placeholder="Email"
+                          value={p.email}
+                          onChange={(e) => handlePassengerChange(idx, 'email', e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={addPassenger}
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5" /> ADD ANOTHER PASSENGER
+                </button>
               </div>
             </div>
 

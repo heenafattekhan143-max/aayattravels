@@ -8,6 +8,10 @@ from datetime import datetime
 
 router = APIRouter(prefix="/api/bookings", tags=["bookings"])
 
+class PassengerDetail(BaseModel):
+    name: Optional[str] = ""
+    phone: Optional[str] = ""
+    email: Optional[str] = ""
 
 class BookingBase(BaseModel):
     booking_id: Optional[str] = ""
@@ -31,6 +35,7 @@ class BookingBase(BaseModel):
     trip_type: Optional[str] = "One Way"   # One Way / Round Trip / Local
     vehicle_type: Optional[str] = ""
     passengers: Optional[int] = 1
+    passenger_details: Optional[List[PassengerDetail]] = []
     advance_amount: Optional[float] = 0.0
     total_amount: Optional[float] = 0.0
     payment_status: Optional[str] = "Pending"   # Pending / Partial / Paid
@@ -73,6 +78,7 @@ class BookingUpdate(BaseModel):
     trip_type: Optional[str] = None
     vehicle_type: Optional[str] = None
     passengers: Optional[int] = None
+    passenger_details: Optional[List[PassengerDetail]] = None
     advance_amount: Optional[float] = None
     total_amount: Optional[float] = None
     payment_status: Optional[str] = None
@@ -118,6 +124,7 @@ def serialize_booking(doc) -> dict:
         "trip_type": doc.get("trip_type", "One Way"),
         "vehicle_type": doc.get("vehicle_type", ""),
         "passengers": doc.get("passengers", 1),
+        "passenger_details": doc.get("passenger_details", []),
         "advance_amount": doc.get("advance_amount", 0.0),
         "total_amount": doc.get("total_amount", 0.0),
         "payment_status": doc.get("payment_status", "Pending"),
