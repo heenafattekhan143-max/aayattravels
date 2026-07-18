@@ -137,7 +137,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
   return (
     <div ref={wrapRef} className="space-y-2">
       <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-        <Building2 className="h-3 w-3 text-indigo-400" /> Customer / Company (Optional)
+        <Building2 className="h-3 w-3 text-indigo-400" /> Customer / Company
       </label>
 
       {/* Search input */}
@@ -824,10 +824,10 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                 </div>
               </div>
 
-              {/* Booked By Name (Optional) */}
+              {/* Booked By Name */}
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <User className="h-3 w-3 text-sky-400" /> Booked By Name (Optional)
+                  <User className="h-3 w-3 text-sky-400" /> Booked By Name
                 </label>
                 <input
                   type="text"
