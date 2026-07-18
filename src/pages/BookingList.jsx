@@ -12,7 +12,7 @@ import CustomSelect from '../components/CustomSelect';
 const API = '/api';
 
 const TRIP_TYPES = ['One Way', 'Round Trip', 'Local'];
-const BOOKING_STATUSES = ['Confirmed', 'Cancelled', 'Completed'];
+const BOOKING_STATUSES = ['Unconfirmed', 'Confirmed', 'Cancelled', 'Completed'];
 const PAYMENT_STATUSES = ['Pending', 'Partial', 'Paid'];
 const VEHICLE_TYPES = ['Sedan', 'SUV', 'Mini Bus', 'Tempo Traveller', 'Luxury', 'Others'];
 
@@ -42,6 +42,7 @@ const emptyForm = {
 };
 
 const statusColor = {
+  Unconfirmed: 'bg-slate-500/15 text-slate-300 border border-slate-500/30',
   Confirmed: 'bg-blue-500/15 text-blue-400 border border-blue-500/30',
   Cancelled: 'bg-red-500/15 text-red-400 border border-red-500/30',
   Completed: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
