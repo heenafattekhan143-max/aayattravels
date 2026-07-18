@@ -81,6 +81,10 @@ export default function CustomSelect({
   // Close on scroll to prevent the fixed dropdown from detaching
   useEffect(() => {
     const handleScroll = (e) => {
+      // Don't close if scrolling inside the dropdown itself
+      if (e.target && e.target.closest && e.target.closest('.custom-select-portal-dropdown')) {
+        return;
+      }
       if (open) setOpen(false);
     };
     if (open) {
@@ -99,16 +103,17 @@ export default function CustomSelect({
           disabled ? 'border-slate-800 opacity-50 cursor-not-allowed' : open ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-800'
         } outline-none rounded-lg px-3 py-2.5 text-sm transition`}
       >
-        <span className={value !== '' && value !== null && value !== undefined ? 'text-slate-100 font-semibold truncate' : 'text-slate-500 truncate'}>
-          {selectedLabel}
-        </span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className="truncate flex-1 text-left text-slate-100 font-semibold">{selectedLabel}</span>
+        <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180 text-indigo-400' : ''}`} />
       </button>
 
       {open && !disabled && createPortal(
-        <div style={dropdownStyle} className="custom-select-portal-dropdown bg-slate-900 border border-slate-800 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden min-w-[max-content] flex flex-col">
+        <div 
+          style={dropdownStyle} 
+          className="custom-select-portal-dropdown fixed bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl shadow-black/80 flex flex-col z-[999999] overflow-hidden"
+        >
           {searchable && (
-            <div className="p-2 border-b border-slate-800/50">
+            <div className="p-2 border-b border-slate-800/80 bg-slate-900/50">
               <input
                 type="text"
                 autoFocus
@@ -116,7 +121,7 @@ export default function CustomSelect({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.stopPropagation()}
-                className="w-full bg-slate-950 border border-slate-700 outline-none rounded text-xs px-2 py-1.5 text-slate-100 focus:border-indigo-500"
+                className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 text-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none transition placeholder:text-slate-500"
               />
             </div>
           )}
@@ -151,7 +156,7 @@ export default function CustomSelect({
             })}
           </div>
           {actionButton && (
-            <div className="border-t border-slate-800 p-1">
+            <div className="border-t border-slate-700/80 bg-slate-900/80 p-2">
               <button
                 type="button"
                 onMouseDown={(e) => {
@@ -159,7 +164,7 @@ export default function CustomSelect({
                   setOpen(false);
                   actionButton.onClick();
                 }}
-                className="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition"
+                className="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white rounded-lg transition shadow-md"
               >
                 {actionButton.label}
               </button>
