@@ -8,6 +8,7 @@ import {
 import CustomDatePicker from '../components/CustomDatePicker';
 import CustomSelect from '../components/CustomSelect';
 import CreatePlanModal from '../components/CreatePlanModal';
+import CITIES from '../data/cities.json';
 
 const API = '/api';
 
@@ -46,13 +47,17 @@ const emptyForm = {
   booking_id: '',
   booking_date: new Date().toISOString().split('T')[0],
   customer_name: '',
+  booked_by_name: '',
   customer_phone: '',
   is_guest: false,
   pickup_location: '',
   drop_location: '',
   pickup_time: '',
   end_time: '',
+  start_garage_mins: 60,
   pickup_address: '',
+  drop_address: '',
+  flight_train_number: '',
   journey_date: '',
   return_date: '',
   vehicle_number: '',
@@ -132,7 +137,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
   return (
     <div ref={wrapRef} className="space-y-2">
       <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-        <Building2 className="h-3 w-3 text-indigo-400" /> Customer / Company *
+        <Building2 className="h-3 w-3 text-indigo-400" /> Customer / Company (Optional)
       </label>
 
       {/* Search input */}
@@ -250,6 +255,84 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
           <Phone className="h-3 w-3 text-indigo-400 shrink-0" />
           <span className="text-xs text-slate-300 font-mono">{phone}</span>
           <span className="text-xs text-slate-600 ml-auto">Auto-filled</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Reusable City Select ── */
+function CitySelect({ value, onChange, placeholder, error }) {
+  const [query, setQuery] = useState(value || '');
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  
+  useEffect(() => { setQuery(value || ''); }, [value]);
+
+  useEffect(() => {
+    const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filtered = query.trim().length === 0
+    ? CITIES
+    : CITIES.filter(c => c.toLowerCase().includes(query.toLowerCase()));
+
+  const handleSelect = (city) => {
+    setQuery(city);
+    setOpen(false);
+    onChange(city);
+  };
+
+  const handleInputChange = (e) => {
+    setQuery(e.target.value);
+    setOpen(true);
+    onChange(e.target.value); // Allow arbitrary input
+  };
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={query}
+          onFocus={() => setOpen(true)}
+          onChange={handleInputChange}
+          className={`w-full bg-slate-950 border ${error ? 'border-red-500' : 'border-slate-700'} outline-none rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-100 focus:border-indigo-500 transition placeholder-slate-600`}
+          autoComplete="off"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => { setQuery(''); onChange(''); setOpen(false); }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+      
+      {open && (
+        <div className="absolute z-40 mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+          <div className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-4 py-3 text-xs text-slate-500">Press enter or click outside to use custom city</div>
+            ) : (
+              filtered.map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onMouseDown={() => handleSelect(c)}
+                  className="w-full px-4 py-2 text-sm text-left text-slate-300 hover:bg-indigo-500/20 hover:text-indigo-300 transition"
+                >
+                  {c}
+                </button>
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -475,9 +558,6 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
 
     const validate = () => {
       const errs = {};
-      // If guest mode, validate guestName instead
-      const effectiveName = formData.is_guest ? guestName.trim() : formData.customer_name.trim();
-      if (!effectiveName) errs.customer_name = 'Customer name is required.';
       if (!formData.journey_date) errs.journey_date = 'Journey date is required.';
   
       // Validate return date is equal to or after journey date
@@ -576,13 +656,17 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       booking_id: b.booking_id || '',
       booking_date: b.booking_date || '',
       customer_name: wasGuest ? '' : (b.customer_name || ''),
+      booked_by_name: b.booked_by_name || '',
       customer_phone: wasGuest ? '' : (b.customer_phone || ''),
       is_guest: wasGuest,
       pickup_location: b.pickup_location || '',
       drop_location: b.drop_location || '',
       pickup_time: b.pickup_time || '',
       end_time: b.end_time || '',
+      start_garage_mins: b.start_garage_mins || 60,
       pickup_address: b.pickup_address || '',
+      drop_address: b.drop_address || '',
+      flight_train_number: b.flight_train_number || '',
       journey_date: b.journey_date || '',
       return_date: b.return_date || '',
       vehicle_number: b.vehicle_number || '',
@@ -722,40 +806,80 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                   <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                     <MapPin className="h-3 w-3 text-green-400" /> From (City)
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Departure city"
+                  <CitySelect
                     value={formData.pickup_location}
-                    onChange={(e) => handleChange('pickup_location', e.target.value)}
-                    className={inputCls('pickup_location')}
+                    onChange={(v) => handleChange('pickup_location', v)}
+                    placeholder="Departure city"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                     <MapPin className="h-3 w-3 text-red-400" /> To (City)
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Destination city"
+                  <CitySelect
                     value={formData.drop_location}
-                    onChange={(e) => handleChange('drop_location', e.target.value)}
-                    className={inputCls('drop_location')}
+                    onChange={(v) => handleChange('drop_location', v)}
+                    placeholder="Destination city"
                   />
                 </div>
               </div>
 
-              {/* Pickup Address */}
+              {/* Booked By Name (Optional) */}
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <MapPin className="h-3 w-3 text-indigo-400" /> Pickup Address / Location
+                  <User className="h-3 w-3 text-sky-400" /> Booked By Name (Optional)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Hotel name, landmark, full address..."
-                  value={formData.pickup_address}
-                  onChange={(e) => handleChange('pickup_address', e.target.value)}
-                  className={inputCls('pickup_address')}
+                  placeholder="Person who made the booking"
+                  value={formData.booked_by_name}
+                  onChange={(e) => handleChange('booked_by_name', e.target.value)}
+                  className={inputCls('booked_by_name')}
                 />
+              </div>
+
+              {/* Flight/Train Number (Optional) */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <BookOpen className="h-3 w-3 text-amber-400" /> Flight / Train Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. AI-302 or 12431"
+                  value={formData.flight_train_number}
+                  onChange={(e) => handleChange('flight_train_number', e.target.value)}
+                  className={inputCls('flight_train_number')}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Pickup Address */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3 text-indigo-400" /> Pickup Address
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Hotel name, landmark..."
+                    value={formData.pickup_address}
+                    onChange={(e) => handleChange('pickup_address', e.target.value)}
+                    className={inputCls('pickup_address')}
+                  />
+                </div>
+                
+                {/* Drop Address */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3 text-rose-400" /> Drop Address
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Airport terminal..."
+                    value={formData.drop_address}
+                    onChange={(e) => handleChange('drop_address', e.target.value)}
+                    className={inputCls('drop_address')}
+                  />
+                </div>
               </div>
             </div>
 
@@ -812,6 +936,19 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                     className={`${inputCls('end_time')} [color-scheme:dark]`}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">Start from garage before (in min) *</label>
+                  <input
+                    type="number"
+                    value={formData.start_garage_mins}
+                    onChange={(e) => handleChange('start_garage_mins', e.target.value ? parseInt(e.target.value) : 0)}
+                    className={inputCls('start_garage_mins')}
+                  />
+                </div>
+
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-300">Trip Type</label>
                   <CustomSelect

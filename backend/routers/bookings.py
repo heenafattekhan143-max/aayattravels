@@ -12,14 +12,18 @@ router = APIRouter(prefix="/api/bookings", tags=["bookings"])
 class BookingBase(BaseModel):
     booking_id: Optional[str] = ""
     booking_date: Optional[str] = ""
-    customer_name: str = Field(..., min_length=1)
+    customer_name: Optional[str] = ""
+    booked_by_name: Optional[str] = ""
     customer_phone: Optional[str] = ""
     is_guest: Optional[bool] = False
     pickup_location: Optional[str] = ""
     drop_location: Optional[str] = ""
     pickup_time: Optional[str] = ""
     end_time: Optional[str] = ""
+    start_garage_mins: Optional[int] = 60
     pickup_address: Optional[str] = ""
+    drop_address: Optional[str] = ""
+    flight_train_number: Optional[str] = ""
     journey_date: Optional[str] = ""
     return_date: Optional[str] = ""
     vehicle_number: Optional[str] = ""
@@ -51,13 +55,17 @@ class BookingUpdate(BaseModel):
     booking_id: Optional[str] = None
     booking_date: Optional[str] = None
     customer_name: Optional[str] = None
+    booked_by_name: Optional[str] = None
     customer_phone: Optional[str] = None
     is_guest: Optional[bool] = None
     pickup_location: Optional[str] = None
     drop_location: Optional[str] = None
     pickup_time: Optional[str] = None
     end_time: Optional[str] = None
+    start_garage_mins: Optional[int] = None
     pickup_address: Optional[str] = None
+    drop_address: Optional[str] = None
+    flight_train_number: Optional[str] = None
     journey_date: Optional[str] = None
     return_date: Optional[str] = None
     vehicle_number: Optional[str] = None
@@ -92,13 +100,17 @@ def serialize_booking(doc) -> dict:
         "booking_id": doc.get("booking_id", ""),
         "booking_date": doc.get("booking_date", ""),
         "customer_name": doc.get("customer_name", ""),
+        "booked_by_name": doc.get("booked_by_name", ""),
         "customer_phone": doc.get("customer_phone", ""),
         "is_guest": doc.get("is_guest", False),
         "pickup_location": doc.get("pickup_location", ""),
         "drop_location": doc.get("drop_location", ""),
         "pickup_time": doc.get("pickup_time", ""),
         "end_time": doc.get("end_time", ""),
+        "start_garage_mins": doc.get("start_garage_mins", 60),
         "pickup_address": doc.get("pickup_address", ""),
+        "drop_address": doc.get("drop_address", ""),
+        "flight_train_number": doc.get("flight_train_number", ""),
         "journey_date": doc.get("journey_date", ""),
         "return_date": doc.get("return_date", ""),
         "vehicle_number": doc.get("vehicle_number", ""),
