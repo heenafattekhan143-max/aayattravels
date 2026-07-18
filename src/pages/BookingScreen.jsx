@@ -906,69 +906,6 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                   />
                 </div>
               </div>
-
-              {/* Passengers Section */}
-              <div className="space-y-3 pt-4 border-t border-slate-800">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <UserPlus className="h-3 w-3 text-indigo-400" /> Passenger Details (Optional)
-                  </label>
-                </div>
-                
-                {(formData.passenger_details || []).map((p, idx) => (
-                  <div key={idx} className="p-3 bg-slate-900/50 border border-slate-800 rounded-xl space-y-3 relative group">
-                    <button
-                      type="button"
-                      onClick={() => removePassenger(idx)}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition"
-                      title="Remove Passenger"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pr-8">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-semibold text-slate-400">Passenger Name</label>
-                        <input
-                          type="text"
-                          placeholder="Name"
-                          value={p.name}
-                          onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-semibold text-slate-400">Passenger Phone Number</label>
-                        <input
-                          type="text"
-                          placeholder="Phone"
-                          value={p.phone}
-                          onChange={(e) => handlePassengerChange(idx, 'phone', e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-semibold text-slate-400">Passenger Email</label>
-                        <input
-                          type="email"
-                          placeholder="Email"
-                          value={p.email}
-                          onChange={(e) => handlePassengerChange(idx, 'email', e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <button
-                  type="button"
-                  onClick={addPassenger}
-                  className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5"
-                >
-                  <Plus className="h-3.5 w-3.5" /> ADD ANOTHER PASSENGER
-                </button>
-              </div>
             </div>
 
             {/* Section 2: Travel Schedule */}
@@ -1055,7 +992,66 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
           <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 flex flex-col justify-between">
             <div className="space-y-8">
               
+              {/* Passengers Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 border-b border-slate-800 pb-2 flex items-center gap-2">
+                  <UserPlus className="h-4 w-4 text-indigo-400" /> Passenger Details (Optional)
+                </h4>
+                
+                {(formData.passenger_details || []).map((p, idx) => (
+                  <div key={idx} className="p-3 bg-slate-900/50 border border-slate-800 rounded-xl space-y-3 relative group">
+                    <button
+                      type="button"
+                      onClick={() => removePassenger(idx)}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition"
+                      title="Remove Passenger"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pr-8">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-400">Passenger Name</label>
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={p.name}
+                          onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-400">Passenger Phone</label>
+                        <input
+                          type="text"
+                          placeholder="Phone"
+                          value={p.phone}
+                          onChange={(e) => handlePassengerChange(idx, 'phone', e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-400">Passenger Email</label>
+                        <input
+                          type="email"
+                          placeholder="Email"
+                          value={p.email}
+                          onChange={(e) => handlePassengerChange(idx, 'email', e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 outline-none rounded-lg px-2.5 py-2 text-xs text-slate-100 focus:border-indigo-500 transition placeholder-slate-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
 
+                <button
+                  type="button"
+                  onClick={addPassenger}
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5" /> ADD ANOTHER PASSENGER
+                </button>
+              </div>
 
               {/* Section 3: Financials & Status */}
               <div className="space-y-4">
