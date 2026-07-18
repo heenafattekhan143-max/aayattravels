@@ -152,24 +152,19 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
             <label className="text-xs font-semibold text-slate-400 uppercase flex items-center gap-1.5">
               <Car className="h-3 w-3" /> Vehicle Ownership
             </label>
-            <div className="flex gap-2">
-              {['All', 'Owner', 'Vendor'].map(type => (
-                <label key={type} className={`flex-1 flex items-center justify-center py-2 rounded-xl border cursor-pointer transition ${ownershipType === type ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-slate-950/60 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
-                  <input
-                    type="radio"
-                    name="ownershipType"
-                    value={type}
-                    checked={ownershipType === type}
-                    onChange={(e) => {
-                      setOwnershipType(e.target.value);
-                      setSelectedVehicle(''); // Reset selection when filter changes
-                    }}
-                    className="hidden"
-                  />
-                  <span className="text-xs font-bold">{type}</span>
-                </label>
-              ))}
-            </div>
+            <CustomSelect
+              value={ownershipType}
+              onChange={(val) => {
+                setOwnershipType(val);
+                setSelectedVehicle('');
+                setVehicleType('');
+              }}
+              options={[
+                { value: 'All', label: 'All' },
+                { value: 'Owner', label: 'Owner' },
+                { value: 'Vendor', label: 'Vendor' }
+              ]}
+            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -1064,7 +1059,7 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                         {b.booking_status === 'Dispatched' ? (
                           <button onClick={(e) => { e.stopPropagation(); setCloseBookingId(b.id); setCloseModalOpen(true); }} className="text-[9px] font-bold px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow border border-emerald-500 transition cursor-pointer">Close</button>
                         ) : ['Completed', 'Cancelled'].includes(b.booking_status) ? null : (
-                          <button onClick={(e) => { e.stopPropagation(); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow border border-indigo-500 transition cursor-pointer">Allotment</button>
+                          <button onClick={(e) => { e.stopPropagation(); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow border border-indigo-500 transition cursor-pointer">Allot</button>
                         )}
                       </div>
                     </div>
@@ -1194,7 +1189,7 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                           {b.booking_status === 'Dispatched' ? (
                             <button onClick={(e) => { e.stopPropagation(); setCloseBookingId(b.id); setCloseModalOpen(true); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow border border-emerald-500 transition cursor-pointer">Close</button>
                           ) : ['Completed', 'Cancelled'].includes(b.booking_status) ? null : (
-                            <button onClick={(e) => { e.stopPropagation(); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow border border-indigo-500 transition cursor-pointer">Allotment</button>
+                            <button onClick={(e) => { e.stopPropagation(); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow border border-indigo-500 transition cursor-pointer">Allot</button>
                           )}
                         </td>
                       </tr>
