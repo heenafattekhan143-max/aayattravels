@@ -62,13 +62,27 @@ export default function AddDriver({ navigateTo }) {
     setIsSubmitting(true);
     setSuccessMsg('');
     try {
-      await axios.post('/api/drivers', formData);
+      const payload = {
+        ...formData,
+        basic_salary: formData.basic_salary ? parseFloat(formData.basic_salary) : 0,
+        da_local: formData.da_local ? parseFloat(formData.da_local) : 0,
+        da_outstation: formData.da_outstation ? parseFloat(formData.da_outstation) : 0,
+      };
+      await axios.post('/api/drivers', payload);
       setSuccessMsg('Driver added successfully!');
       resetForm();
       setTimeout(() => navigateTo('driver-list'), 1500);
     } catch (err) {
       console.error(err);
-      setErrors({ api: err.response?.data?.detail || 'An error occurred while adding driver.' });
+      let errorMsg = 'An error occurred while adding driver.';
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          errorMsg = err.response.data.detail.map(e => e.msg).join(', ');
+        } else {
+          errorMsg = err.response.data.detail;
+        }
+      }
+      setErrors({ api: errorMsg });
     } finally {
       setIsSubmitting(false);
     }
