@@ -737,6 +737,7 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
     } catch { return { right: 32, bottom: 40 }; }
   });
   const fabDragging = useRef(false);
+  const fabWasDragged = useRef(false);
   const fabOffset = useRef({ x: 0, y: 0 });
   const fabRef = useRef(null);
   const [paymentIsSubmitting, setPaymentIsSubmitting] = useState(false);
@@ -1436,6 +1437,7 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
         onPointerDown={(e) => {
           e.preventDefault();
           fabDragging.current = false;
+          fabWasDragged.current = false;
           const rect = fabRef.current.getBoundingClientRect();
           fabOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
           fabRef.current.setPointerCapture(e.pointerId);
@@ -1456,14 +1458,19 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
           setFabPos({ right: newRight, bottom: newBottom });
         }}
         onPointerUp={() => {
-          const wasDragging = fabDragging.current;
-          fabDragging.current = false;
-          if (wasDragging) {
+          if (fabDragging.current) {
+            fabWasDragged.current = true;
+            fabDragging.current = false;
             try { localStorage.setItem('dashboard_fab_pos', JSON.stringify(fabPos)); } catch {}
           }
         }}
         onClick={() => {
-          if (!fabDragging.current) navigateTo('booking-screen');
+          if (fabWasDragged.current) {
+            // suppress navigation after a drag
+            fabWasDragged.current = false;
+            return;
+          }
+          navigateTo('booking-screen');
         }}
         style={{
           position: 'fixed',
