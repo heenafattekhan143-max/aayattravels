@@ -97,6 +97,20 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
     });
   }, [vehicles, ownershipType, allBookings, booking.journey_date, booking.id]);
 
+  // Filter drivers based on availability
+  const filteredDrivers = React.useMemo(() => {
+    if (!drivers) return [];
+    return drivers.filter(d => {
+      const isAllocated = (allBookings || []).some(b =>
+        b.journey_date === booking.journey_date &&
+        b.driver_name === d.name &&
+        b.id !== booking.id &&
+        ['Confirmed', 'Dispatched', 'Dispatch Pending', 'Pending'].includes(b.booking_status)
+      );
+      return !isAllocated;
+    });
+  }, [drivers, allBookings, booking.journey_date, booking.id]);
+
   // Auto-fill vehicle type when vehicle changes
   useEffect(() => {
     if (selectedVehicle) {
@@ -215,7 +229,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
               <CustomSelect
                 value={selectedDriver}
                 onChange={setSelectedDriver}
-                options={drivers.map(d => ({ value: d.name, label: d.name }))}
+                options={filteredDrivers.map(d => ({ value: d.name, label: d.name }))}
                 placeholder="-- Select Driver --"
               />
             </div>
