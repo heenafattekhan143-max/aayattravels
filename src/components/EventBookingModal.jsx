@@ -16,7 +16,8 @@ export default function EventBookingModal({
   defaultCustomerPhone,
   defaultDate,
   defaultDropLocation,
-  initialData
+  initialData,
+  plans = []
 }) {
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -29,6 +30,7 @@ export default function EventBookingModal({
     vehicle_class: '',
     driver_name: '',
     trip_type: 'Local',
+    selected_plan_id: '',
     rate: '',
     da_allowance: '',
     night_allowance: '',
@@ -61,6 +63,7 @@ export default function EventBookingModal({
             vehicle_class: '',
             driver_name: '',
             trip_type: 'Local',
+            selected_plan_id: '',
             rate: '',
             da_allowance: '',
             night_allowance: '',
@@ -93,6 +96,21 @@ export default function EventBookingModal({
       }
       return next;
     });
+  };
+
+  const handlePlanChange = (planId) => {
+    const p = plans.find(x => x.id === planId);
+    if (p) {
+      setFormData(prev => ({ 
+        ...prev, 
+        selected_plan_id: planId, 
+        rate: p.rate || '',
+        da_allowance: p.da_allowance || '',
+        night_allowance: p.night_allowance || ''
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, selected_plan_id: '' }));
+    }
   };
 
   const handleSave = () => {
@@ -141,14 +159,14 @@ export default function EventBookingModal({
               <label className="text-xs font-semibold text-slate-300">Customer Name</label>
               <input type="text" value={formData.customer_name} onChange={(e) => handleChange('customer_name', e.target.value)} 
                 placeholder="Enter customer name"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />
             </div>
 
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">Vehicle *</label>
               <input type="text" value={formData.vehicle_number} onChange={(e) => handleChange('vehicle_number', e.target.value)}
                 placeholder="Enter vehicle number"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />
             </div>
             
             <div className="space-y-1">
@@ -166,7 +184,7 @@ export default function EventBookingModal({
               <label className="text-xs font-semibold text-slate-300">Driver *</label>
               <input type="text" value={formData.driver_name} onChange={(e) => handleChange('driver_name', e.target.value)}
                 placeholder="Enter driver name"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />
             </div>
 
             <div className="space-y-1">
@@ -176,48 +194,61 @@ export default function EventBookingModal({
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">Pickup Time</label>
               <input type="time" value={formData.pickup_time} onChange={(e) => handleChange('pickup_time', e.target.value)} 
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none [color-scheme:dark]" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none [color-scheme:dark]" />
             </div>
             
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">Pickup Location *</label>
               <input type="text" value={formData.pickup_location} onChange={(e) => handleChange('pickup_location', e.target.value)} 
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">Drop Location</label>
               <input type="text" value={formData.drop_location} onChange={(e) => handleChange('drop_location', e.target.value)} 
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />
             </div>
             
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">Trip Type</label>
               <CustomSelect value={formData.trip_type} onChange={(v) => handleChange('trip_type', v)} options={TRIP_TYPES} />
             </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-300">Select Package (Optional)</label>
+              <CustomSelect
+                value={formData.selected_plan_id}
+                onChange={handlePlanChange}
+                options={plans.map(p => ({ value: p.id, label: `${p.plan_name} - ₹${p.rate}` }))}
+                placeholder="-- Select Package --"
+                searchable={true}
+              />
+            </div>
+            
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">Rate (₹) *</label>
               <input type="number" value={formData.rate} onChange={(e) => handleChange('rate', e.target.value)}
                 placeholder="e.g. 3000"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />
             </div>
 
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">DA Allowance (₹)</label>
               <input type="number" value={formData.da_allowance} onChange={(e) => handleChange('da_allowance', e.target.value)}
                 placeholder="e.g. 500"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">Night Allowance (₹)</label>
               <input type="number" value={formData.night_allowance} onChange={(e) => handleChange('night_allowance', e.target.value)}
                 placeholder="e.g. 300"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none" />
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />
             </div>
 
             <div className="space-y-1 sm:col-span-2">
               <label className="text-xs font-semibold text-slate-300">Remarks</label>
               <textarea value={formData.remarks} onChange={(e) => handleChange('remarks', e.target.value)} rows="2"
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 outline-none resize-none" />
+                placeholder="Any additional notes..."
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none resize-none" />
             </div>
           </div>
         </div>

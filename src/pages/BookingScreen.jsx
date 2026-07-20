@@ -645,7 +645,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       setErrors({});
       setTimeout(() => {
         setSuccessMsg('');
-        navigateTo('booking-list');
+        navigateTo('dashboard');
       }, 1500);
     } catch (err) {
       console.error('Error saving booking:', err);
@@ -737,7 +737,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
     if (setEditingBookingId) setEditingBookingId(null);
     setEditingId(null);
     setErrors({});
-    navigateTo('booking-list');
+    navigateTo('dashboard');
   };
 
   const filteredBookings = bookings.filter(b => {

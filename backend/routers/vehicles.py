@@ -10,7 +10,6 @@ router = APIRouter(prefix="/api/vehicles", tags=["vehicles"])
 class VehicleBase(BaseModel):
     vehicle_number: str = Field(..., min_length=1)
     model: Optional[str] = ""
-    driver_name: Optional[str] = ""
     vehicle_type: str = Field(..., pattern="^(Sedan|Ertiga|SUV)$")
     status: str = Field(..., pattern="^(Active|Maintenance|Inactive)$")
     ownership_type: str = Field(default="Owner", pattern="^(Owner|Vendor)$")
@@ -32,7 +31,6 @@ class VehicleCreate(VehicleBase):
 class VehicleUpdate(BaseModel):
     vehicle_number: Optional[str] = None
     model: Optional[str] = None
-    driver_name: Optional[str] = None
     vehicle_type: Optional[str] = None
     status: Optional[str] = None
     ownership_type: Optional[str] = None

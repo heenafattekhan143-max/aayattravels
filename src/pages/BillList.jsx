@@ -34,7 +34,7 @@ const formatDate = (dateStr) => {
   return dateStr;
 };
 
-export default function BillList({ navigateTo, setEditingBillId }) {
+export default function BillList({ navigateTo, setEditingBillId, viewingBillId, setViewingBillId }) {
   const confirm = useConfirm();
   const { user } = useAuth();
   // Dynamic business info from user profile
@@ -79,7 +79,16 @@ export default function BillList({ navigateTo, setEditingBillId }) {
     try {
       const res = await axios.get('/api/bills');
       // Main bill list shows only Sales invoices; Purchase goes to the Purchase screen
-      setBills(res.data.filter(b => b.bill_type === 'Sales'));
+      const salesBills = res.data.filter(b => b.bill_type === 'Sales');
+      setBills(salesBills);
+
+      if (viewingBillId) {
+        const billToView = salesBills.find(b => b.id === viewingBillId);
+        if (billToView) {
+          setSelectedBill(billToView);
+          if (setViewingBillId) setViewingBillId(null);
+        }
+      }
     } catch (err) {
       console.error(err);
       setError('Failed to fetch bills.');
@@ -774,7 +783,7 @@ export default function BillList({ navigateTo, setEditingBillId }) {
 
             {/* Body */}
             <div className="p-4 overflow-y-auto flex-1 bg-slate-950/50">
-              <div id="invoice-print-area" className="bg-white text-slate-900 p-6 md:p-8 rounded-xl text-left print-border min-h-[11in] flex flex-col justify-between">
+              <div id="invoice-print-area" className="invoice-theme bg-white text-slate-900 p-6 md:p-8 rounded-xl text-left print-border min-h-[11in] flex flex-col justify-between">
 
                 <div>
 

@@ -150,10 +150,10 @@ export default function AddVehicle({ navigateTo }) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5 items-stretch">
-          
+
           {/* ── LEFT COLUMN (CARD 1) ── */}
           <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 space-y-6">
-            
+
             {/* Header */}
             <div className="flex items-center gap-2 mb-2 border-b border-slate-800 pb-2">
               <Car className="h-5 w-5 text-indigo-400" />
@@ -218,7 +218,7 @@ export default function AddVehicle({ navigateTo }) {
           {/* ── RIGHT COLUMN (CARD 2) ── */}
           <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 flex flex-col justify-between">
             <div className="space-y-6">
-              
+
               {/* Header */}
               <div className="flex items-center gap-2 mb-2 border-b border-slate-800 pb-2">
                 <Sparkles className="h-5 w-5 text-indigo-400" />
@@ -299,7 +299,7 @@ export default function AddVehicle({ navigateTo }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
-            
+
             {/* Maintenance Threshold */}
             <div className="space-y-4 bg-slate-800/20 p-5 rounded-xl border border-slate-700/50">
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Maintenance</h4>
@@ -314,17 +314,17 @@ export default function AddVehicle({ navigateTo }) {
                 />
               </div>
             </div>
-            
+
             {/* Insurance */}
             <div className="space-y-4 bg-slate-800/20 p-5 rounded-xl border border-slate-700/50">
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Insurance</h4>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase">Expiry Date</label>
-                <input type="date" value={vehicle.insurance_expiry} onChange={(e) => setVehicle({...vehicle, insurance_expiry: e.target.value})} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition [color-scheme:dark]" />
+                <input type="date" value={vehicle.insurance_expiry} onChange={(e) => setVehicle({ ...vehicle, insurance_expiry: e.target.value })} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition [color-scheme:dark]" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase">Notify Before (Days)</label>
-                <input type="number" min="0" placeholder="e.g. 15" value={vehicle.insurance_notify_days} onChange={(e) => setVehicle({...vehicle, insurance_notify_days: e.target.value})} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition" />
+                <input type="number" min="0" placeholder="e.g. 15" value={vehicle.insurance_notify_days} onChange={(e) => setVehicle({ ...vehicle, insurance_notify_days: e.target.value })} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition" />
               </div>
             </div>
 
@@ -333,11 +333,11 @@ export default function AddVehicle({ navigateTo }) {
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Road Tax</h4>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase">Expiry Date</label>
-                <input type="date" value={vehicle.road_tax_expiry} onChange={(e) => setVehicle({...vehicle, road_tax_expiry: e.target.value})} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition [color-scheme:dark]" />
+                <input type="date" value={vehicle.road_tax_expiry} onChange={(e) => setVehicle({ ...vehicle, road_tax_expiry: e.target.value })} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition [color-scheme:dark]" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase">Notify Before (Days)</label>
-                <input type="number" min="0" placeholder="e.g. 15" value={vehicle.road_tax_notify_days} onChange={(e) => setVehicle({...vehicle, road_tax_notify_days: e.target.value})} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition" />
+                <input type="number" min="0" placeholder="e.g. 15" value={vehicle.road_tax_notify_days} onChange={(e) => setVehicle({ ...vehicle, road_tax_notify_days: e.target.value })} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition" />
               </div>
             </div>
 
@@ -346,11 +346,11 @@ export default function AddVehicle({ navigateTo }) {
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Permit</h4>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase">Expiry Date</label>
-                <input type="date" value={vehicle.permit_expiry} onChange={(e) => setVehicle({...vehicle, permit_expiry: e.target.value})} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition [color-scheme:dark]" />
+                <input type="date" value={vehicle.permit_expiry} onChange={(e) => setVehicle({ ...vehicle, permit_expiry: e.target.value })} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition [color-scheme:dark]" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase">Notify Before (Days)</label>
-                <input type="number" min="0" placeholder="e.g. 15" value={vehicle.permit_notify_days} onChange={(e) => setVehicle({...vehicle, permit_notify_days: e.target.value})} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition" />
+                <input type="number" min="0" placeholder="e.g. 15" value={vehicle.permit_notify_days} onChange={(e) => setVehicle({ ...vehicle, permit_notify_days: e.target.value })} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition" />
               </div>
             </div>
 
@@ -359,11 +359,11 @@ export default function AddVehicle({ navigateTo }) {
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Authorization</h4>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase">Expiry Date</label>
-                <input type="date" value={vehicle.authorization_expiry} onChange={(e) => setVehicle({...vehicle, authorization_expiry: e.target.value})} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition [color-scheme:dark]" />
+                <input type="date" value={vehicle.authorization_expiry} onChange={(e) => setVehicle({ ...vehicle, authorization_expiry: e.target.value })} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition [color-scheme:dark]" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase">Notify Before (Days)</label>
-                <input type="number" min="0" placeholder="e.g. 15" value={vehicle.authorization_notify_days} onChange={(e) => setVehicle({...vehicle, authorization_notify_days: e.target.value})} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition" />
+                <input type="number" min="0" placeholder="e.g. 15" value={vehicle.authorization_notify_days} onChange={(e) => setVehicle({ ...vehicle, authorization_notify_days: e.target.value })} className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none transition" />
               </div>
             </div>
 

@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   BookOpen, Plus, Search, Edit2, Trash2, CheckCircle,
   AlertTriangle, X, Car, User, MapPin, Calendar,
-  Phone, CreditCard, Clock, ArrowRight, RefreshCw, Loader2, Building2, UserPlus
+  Phone, CreditCard, Clock, ArrowRight, RefreshCw, Loader2, Building2, UserPlus, FileText
 } from 'lucide-react';
 import { useConfirm } from '../context/ConfirmContext';
 import CustomDatePicker from '../components/CustomDatePicker';
@@ -265,7 +265,7 @@ function ConfirmDialog({ open, title, message, onConfirm, onCancel }) {
 /* ══════════════════════════════════════════════════════ */
 /*                   MAIN COMPONENT                       */
 /* ══════════════════════════════════════════════════════ */
-export default function BookingList({ navigateTo, setEditingBookingId }) {
+export default function BookingList({ navigateTo, setEditingBookingId, setViewingBillId }) {
   const [bookings, setBookings] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -402,8 +402,24 @@ export default function BookingList({ navigateTo, setEditingBookingId }) {
     }
   };
 
-  const handleEdit = (b) => {
-    setEditingBookingId(b.id);
+  const handleViewBill = async (bookingId) => {
+    try {
+      const res = await axios.get(`${API}/bills?_t=${Date.now()}`);
+      const bill = res.data.find(b => b.booking_ref === bookingId);
+      if (bill) {
+        if (setViewingBillId) setViewingBillId(bill.id);
+        navigateTo('bill-list');
+      } else {
+        alert("Bill not generated for this booking yet.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch bill details.");
+    }
+  };
+
+  const handleEdit = (booking) => {
+    setEditingBookingId(booking.id);
     navigateTo('booking-screen');
   };
 
@@ -708,7 +724,7 @@ export default function BookingList({ navigateTo, setEditingBookingId }) {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                          <div className="flex items-center justify-center gap-2 transition">
                             {b.payment_status === 'Pending' && b.booking_status !== 'Cancelled' && (
                               <button onClick={() => handleMarkPaid(b)} className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition" title="Mark Paid">
                                 <CheckCircle className="h-4 w-4" />
@@ -717,6 +733,11 @@ export default function BookingList({ navigateTo, setEditingBookingId }) {
                             {!['Completed', 'Cancelled', 'Dispatched'].includes(b.booking_status) && (
                               <button onClick={() => handleEdit(b)} className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition" title="Edit">
                                 <Edit2 className="h-4 w-4" />
+                              </button>
+                            )}
+                            {b.booking_status === 'Completed' && (
+                              <button onClick={() => handleViewBill(b.id)} className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition" title="View/Download Bill PDF">
+                                <FileText className="h-4 w-4" />
                               </button>
                             )}
                           </div>

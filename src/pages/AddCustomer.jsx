@@ -22,7 +22,9 @@ export default function AddCustomer({ navigateTo }) {
     gst_type: 'Unregistered',
     billing_address: '',
     state: 'Maharashtra',
-    email: ''
+    email: '',
+    pan: '',
+    default_due_date_days: 15
   });
 
   const [errors, setErrors] = useState({});
@@ -146,7 +148,9 @@ export default function AddCustomer({ navigateTo }) {
         gst_type: 'Unregistered',
         billing_address: '',
         state: 'Maharashtra',
-        email: ''
+        email: '',
+        pan: '',
+        default_due_date_days: 15
       });
 
       setTimeout(() => {
@@ -313,6 +317,33 @@ export default function AddCustomer({ navigateTo }) {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">PAN <span className="text-slate-500 font-normal normal-case">(optional)</span></label>
+                  <input
+                    type="text"
+                    name="pan"
+                    placeholder="e.g. ABCDE1234F"
+                    maxLength={10}
+                    value={formData.pan}
+                    onChange={handleChange}
+                    className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none rounded-xl px-4 py-2.5 text-sm text-slate-100 transition uppercase"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">Default due date after (days)</label>
+                  <input
+                    type="number"
+                    name="default_due_date_days"
+                    placeholder="15"
+                    min="0"
+                    value={formData.default_due_date_days}
+                    onChange={handleChange}
+                    className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none rounded-xl px-4 py-2.5 text-sm text-slate-100 transition"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
                   State <span className="text-rose-500">*</span>
@@ -322,6 +353,7 @@ export default function AddCustomer({ navigateTo }) {
                   value={formData.state}
                   onChange={(val) => handleChange({ target: { name: 'state', value: val } })}
                   options={INDIAN_STATES}
+                  searchable={true}
                 />
               </div>
 

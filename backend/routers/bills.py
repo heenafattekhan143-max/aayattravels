@@ -51,6 +51,7 @@ class BillBase(BaseModel):
     paid_amount: Optional[float] = 0.0
     status: str = Field(default="Pending", pattern="^(Pending|Paid|Cancelled|Partial)$")
     profit: Optional[float] = 0.0
+    booking_ref: Optional[str] = ""
 
 class BillCreate(BillBase):
     pass
@@ -94,7 +95,8 @@ def serialize_bill(doc) -> dict:
         "paid_amount": doc.get("paid_amount", 0.0),
         "status": doc.get("status", "Pending"),
         "profit": doc.get("profit", 0.0),
-        "created_at": created_at_str
+        "created_at": created_at_str,
+        "booking_ref": doc.get("booking_ref", "")
     }
 
 @router.post("", response_model=BillResponse, status_code=status.HTTP_201_CREATED)

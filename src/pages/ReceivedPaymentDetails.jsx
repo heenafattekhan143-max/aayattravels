@@ -4,6 +4,7 @@ import CustomSelect from '../components/CustomSelect';
 import { IndianRupee, ArrowLeft, History, FileText, Calendar, Plus, Clock, CheckCircle, Trash2, Filter } from 'lucide-react';
 import CustomDatePicker from '../components/CustomDatePicker';
 import { useConfirm } from '../context/ConfirmContext';
+import PartyLedgerModal from '../components/PartyLedgerModal';
 
 export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
   const confirm = useConfirm();
@@ -11,6 +12,7 @@ export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
   const [bills, setBills] = useState([]);
   const [receivedPayments, setReceivedPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isLedgerOpen, setIsLedgerOpen] = useState(false);
 
   // Filters
   const [startDate, setStartDate] = useState('');
@@ -42,8 +44,7 @@ export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
       // Fetch all bills to filter sales for this customer
       const billsRes = await axios.get('/api/bills');
       const customerBills = billsRes.data.filter(b =>
-        b.bill_type === 'Sales' &&
-        b.customer_name === customerRes.data.name
+        b.bill_type === 'Sales' && b.customer_name === customerRes.data.name
       );
       setBills(customerBills);
 
@@ -165,8 +166,9 @@ export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
   
   const globalTotalSales = useMemo(() => bills.reduce((sum, b) => sum + (b.final_bill_amount || 0), 0), [bills]);
   const globalTotalPaid = useMemo(() => receivedPayments.reduce((sum, p) => sum + (p.amount || 0), 0), [receivedPayments]);
+  
   const globalTotalPending = globalTotalSales - globalTotalPaid;
-
+  
   const isFiltered = startDate !== '' || endDate !== '';
 
   if (loading) {
@@ -232,17 +234,33 @@ export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl">
-          <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Overall Pending Balance</p>
-          <div className="text-3xl font-bold text-rose-400 font-mono">₹{globalTotalPending.toLocaleString('en-IN')}</div>
-          {globalTotalPending > 0 && (
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Pending Balance</p>
+            <div className="text-3xl font-bold font-mono text-emerald-400">
+              ₹{globalTotalPending.toLocaleString('en-IN')}
+            </div>
+            <p className="text-xs mt-2 font-semibold text-emerald-500">
+              Receivable from Customer
+            </p>
+          </div>
+          <div className="flex gap-2 mt-4">
             <button
-              onClick={() => setIsModalOpen(true)}
-              className="mt-4 w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25"
+              onClick={() => setIsLedgerOpen(true)}
+              className="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2"
             >
-              <Plus className="h-4 w-4" /> Record Received Payment
+              <FileText className="h-4 w-4" /> View Ledger
             </button>
-          )}
+            {globalTotalPending > 0 && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                title="Record Received Payment"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-bold transition flex items-center justify-center shadow-lg shadow-indigo-500/25"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl">
@@ -293,7 +311,7 @@ export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
                       </div>
                       <button
                         onClick={() => handleDeletePayment(pay.id)}
-                        className="text-rose-400/50 hover:text-rose-400 hover:bg-rose-400/10 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                        className="text-rose-400/50 hover:text-rose-400 hover:bg-rose-400/10 p-1.5 rounded-lg transition-all"
                         title="Delete Payment"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -455,6 +473,16 @@ export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
           </div>
         </div>
       )}
+
+      <PartyLedgerModal
+        isOpen={isLedgerOpen}
+        onClose={() => setIsLedgerOpen(false)}
+        partyName={customer.name}
+        salesBills={bills}
+        receivedPayments={receivedPayments}
+        purchaseBills={[]}
+        vendorPayments={[]}
+      />
     </div>
   );
 }

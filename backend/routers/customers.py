@@ -17,6 +17,8 @@ class EntityBase(BaseModel):
     billing_address: Optional[str] = ""
     state: str = Field(..., min_length=1)
     email: Optional[str] = ""
+    pan: Optional[str] = ""
+    default_due_date_days: Optional[int] = 15
 
 class EntityCreate(EntityBase):
     pass
@@ -30,6 +32,8 @@ class EntityUpdate(BaseModel):
     billing_address: Optional[str] = None
     state: Optional[str] = None
     email: Optional[str] = None
+    pan: Optional[str] = None
+    default_due_date_days: Optional[int] = None
 
 class EntityResponse(EntityBase):
     id: str
@@ -46,7 +50,9 @@ def serialize_entity(doc) -> dict:
         "gst_type": doc.get("gst_type"),
         "billing_address": doc.get("billing_address"),
         "state": doc.get("state"),
-        "email": doc.get("email")
+        "email": doc.get("email"),
+        "pan": doc.get("pan"),
+        "default_due_date_days": doc.get("default_due_date_days", 15)
     }
 
 @router.post("", response_model=EntityResponse, status_code=status.HTTP_201_CREATED)

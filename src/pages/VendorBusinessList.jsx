@@ -9,20 +9,24 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const [receivedPayments, setReceivedPayments] = useState([]);
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const [venRes, billsRes, payRes] = await Promise.all([
+      const [venRes, billsRes, payRes, recPayRes] = await Promise.all([
         axios.get('/api/customers?entity_type=vendor'),
         axios.get('/api/bills'),
-        axios.get('/api/payments')
+        axios.get('/api/payments'),
+        axios.get('/api/received-payments')
       ]);
       setVendors(venRes.data);
-      setBills(billsRes.data.filter(b => b.bill_type === 'Purchase'));
+      setBills(billsRes.data);
       setPayments(payRes.data);
+      setReceivedPayments(recPayRes.data);
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {
@@ -32,25 +36,29 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
 
   const vendorBalances = React.useMemo(() => {
     const balances = {};
-    // Index by both id and name for lookup
     vendors.forEach(v => {
-      balances[v.id] = { name: v.name, totalBill: 0, totalPaid: 0, pending: 0 };
+      balances[v.id] = { name: v.name, totalPurchases: 0, totalSales: 0, totalPaid: 0, totalReceived: 0, pendingPayable: 0, pendingReceivable: 0, netBalance: 0 };
     });
 
-    // Build name→id map for quick lookup
     const nameToId = {};
     vendors.forEach(v => { nameToId[v.name.toLowerCase()] = v.id; });
 
-    // Match bills by vendor_name field (the actual vendor on the bill)
     bills.forEach(b => {
-      const vendorName = (b.vendor_name || '').toLowerCase();
-      const vendorId = nameToId[vendorName];
-      if (vendorId && balances[vendorId]) {
-        balances[vendorId].totalBill += (b.final_bill_amount || 0);
+      if (b.bill_type === 'Purchase') {
+        const vendorName = (b.vendor_name || '').toLowerCase();
+        const vendorId = nameToId[vendorName];
+        if (vendorId && balances[vendorId]) {
+          balances[vendorId].totalPurchases += (b.final_bill_amount || 0);
+        }
+      } else if (b.bill_type === 'Sales') {
+        const vendorName = (b.customer_name || '').toLowerCase();
+        const vendorId = nameToId[vendorName];
+        if (vendorId && balances[vendorId]) {
+          balances[vendorId].totalSales += (b.final_bill_amount || 0);
+        }
       }
     });
 
-    // Match payments by vendor_name (stored on the payment record)
     payments.forEach(p => {
       const vendorName = (p.vendor_name || '').toLowerCase();
       const vendorId = nameToId[vendorName];
@@ -59,12 +67,23 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
       }
     });
 
+    receivedPayments.forEach(p => {
+      const vendorName = (p.customer_name || '').toLowerCase();
+      const vendorId = nameToId[vendorName];
+      if (vendorId && balances[vendorId]) {
+        balances[vendorId].totalReceived += (p.amount || 0);
+      }
+    });
+
     Object.keys(balances).forEach(id => {
-      balances[id].pending = balances[id].totalBill - balances[id].totalPaid;
+      const bal = balances[id];
+      bal.pendingPayable = bal.totalPurchases - bal.totalPaid;
+      bal.pendingReceivable = bal.totalSales - bal.totalReceived;
+      bal.netBalance = bal.pendingReceivable - bal.pendingPayable;
     });
 
     return balances;
-  }, [vendors, bills, payments]);
+  }, [vendors, bills, payments, receivedPayments]);
 
   const handleVendorClick = (vendorId) => {
     setVendorForPayment(vendorId);
@@ -104,11 +123,9 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
                   <th className="p-4">Type</th>
                   <th className="p-4">Name</th>
                   <th className="p-4">Phone</th>
-                  <th className="p-4">GST Mode</th>
-                  <th className="p-4">State</th>
-                  <th className="p-4 text-right">Total Bill</th>
-                  <th className="p-4 text-right">Total Paid</th>
-                  <th className="p-4 text-right">Balance</th>
+                  <th className="p-4 text-right">Pending Sales</th>
+                  <th className="p-4 text-right">Pending Purchases</th>
+                  <th className="p-4 text-right">Net Balance</th>
                   <th className="p-4 text-center">Actions</th>
                 </tr>
               </thead>
@@ -120,8 +137,7 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
                 ) : (
                   filteredVendors.map((vendor) => {
                     const balance = vendorBalances[vendor.id];
-                    const pending = balance?.pending || 0;
-                    const isAdvance = pending < 0;
+                    const net = balance?.netBalance || 0;
 
                     return (
                       <tr key={vendor.id} className="hover:bg-slate-800/20 transition group">
@@ -132,19 +148,19 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
                         </td>
                         <td className="p-4 font-semibold text-slate-50 group-hover:text-indigo-400 transition">{vendor.name}</td>
                         <td className="p-4">{vendor.phone}</td>
-                        <td className="p-4 text-slate-400">{vendor.gst_type}</td>
-                        <td className="p-4">{vendor.state}</td>
-                        <td className="p-4 text-right font-medium text-slate-300">
-                          ₹{(balance?.totalBill || 0).toLocaleString('en-IN')}
-                        </td>
                         <td className="p-4 text-right font-medium text-emerald-400">
-                          ₹{(balance?.totalPaid || 0).toLocaleString('en-IN')}
+                          ₹{(balance?.pendingReceivable || 0).toLocaleString('en-IN')}
                         </td>
-                        <td className="p-4 text-right font-bold">
-                          {isAdvance ? (
-                            <span className="text-emerald-400">Advance: ₹{Math.abs(pending).toLocaleString('en-IN')}</span>
+                        <td className="p-4 text-right font-medium text-rose-400">
+                          ₹{(balance?.pendingPayable || 0).toLocaleString('en-IN')}
+                        </td>
+                        <td className="p-4 text-right font-black">
+                          {net > 0 ? (
+                            <span className="text-emerald-400">₹{net.toLocaleString('en-IN')} (Receivable)</span>
+                          ) : net < 0 ? (
+                            <span className="text-rose-400">₹{Math.abs(net).toLocaleString('en-IN')} (Payable)</span>
                           ) : (
-                            <span className="text-rose-400">₹{pending.toLocaleString('en-IN')}</span>
+                            <span className="text-slate-400">₹0</span>
                           )}
                         </td>
                         <td className="p-4 text-center">

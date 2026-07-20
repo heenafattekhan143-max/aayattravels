@@ -56,8 +56,8 @@ import AddDriver from './pages/AddDriver';
 import DriverList from './pages/DriverList';
 import DriverSalary from './pages/DriverSalary';
 import BookingScreen from './pages/BookingScreen';
-import VendorPaymentsList from './pages/VendorPaymentsList';
-import VendorPaymentDetails from './pages/VendorPaymentDetails';
+import VendorBusinessList from './pages/VendorBusinessList';
+import VendorBusinessDetails from './pages/VendorBusinessDetails';
 import ReceivedPaymentsList from './pages/ReceivedPaymentsList';
 import ReceivedPaymentDetails from './pages/ReceivedPaymentDetails';
 import EventBilling from './pages/EventBilling';
@@ -68,67 +68,68 @@ import BusinessProfile from './pages/BusinessProfile';
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: 'dashboard' },
-  { 
-    id: 'booking', label: 'Bookings', 
+  {
+    id: 'booking', label: 'Bookings',
     items: [
       { path: 'booking-screen', label: 'New Booking', icon: Plus },
-      { path: 'booking-list', label: 'Booking List', icon: List }
+      { path: 'booking-list', label: 'Booking List', icon: List },
+      { path: 'add-gst', label: 'Add GST', icon: Percent }
     ]
   },
-  { 
-    id: 'billing', label: 'Bills', 
-    items: [
-      { path: 'add-gst', label: 'Add GST', icon: Percent },
-      { path: 'generate-bill', label: 'Generate Bill', icon: Plus },
-      { path: 'bill-list', label: 'Bill List', icon: List }
-    ]
-  },
-  { 
-    id: 'events', label: 'Event Management', 
+
+  {
+    id: 'events', label: 'Event Management',
     items: [
       { path: 'event-billing', label: 'Event Billing', icon: Plus },
       { path: 'event-list', label: 'Event List', icon: List }
     ]
   },
-  { 
-    id: 'payments', label: 'Payments', 
+  {
+    id: 'payments', label: 'Payments',
     items: [
-      { path: 'vendor-payments', label: 'Vendor Payments', icon: IndianRupee },
-      { path: 'received-vendor-payment', label: 'Received Payment', icon: IndianRupee }
+      { path: 'vendor-business', label: 'Vendor Business', icon: IndianRupee },
+      // { path: 'received-vendor-payment', label: 'Received Payment', icon: IndianRupee }
     ]
   },
-  { 
-    id: 'company', label: 'Company / Vendors', 
+  {
+    id: 'company', label: 'Company / Vendors',
     items: [
       { path: 'add-customer', label: 'Add Customer', icon: Plus },
       { path: 'customer-list', label: 'Customer / Vendor List', icon: List }
     ]
   },
-  { 
-    id: 'plans', label: 'Packages', 
+  {
+    id: 'plans', label: 'Packages',
     items: [
       { path: 'add-plan', label: 'Create Package', icon: Plus },
       { path: 'plan-list', label: 'Package List', icon: List }
     ]
   },
-  { 
-    id: 'vehicle', label: 'Vehicle', 
+  {
+    id: 'vehicle', label: 'Vehicle',
     items: [
       { path: 'add-vehicle', label: 'Add Vehicle', icon: Plus },
       { path: 'vehicle-maintenance', label: 'Vehicle Maintenance', icon: Wrench },
       { path: 'vehicle-list', label: 'Vehicle List', icon: List }
     ]
   },
-  { 
-    id: 'driver', label: 'Driver', 
+  {
+    id: 'driver', label: 'Driver',
     items: [
       { path: 'add-driver', label: 'Add Driver', icon: Plus },
       { path: 'driver-list', label: 'Driver List', icon: List },
       { path: 'driver-salary', label: 'Salary', icon: IndianRupee }
     ]
   },
-  { 
-    id: 'business', label: 'Business', 
+  {
+    id: 'billing', label: 'Custom Bills',
+    items: [
+      { path: 'generate-bill', label: 'Generate Bill', icon: Plus },
+      { path: 'bill-list', label: 'Custom Bill List', icon: List }
+    ]
+  },
+  {
+    id: 'business', label: 'Business',
     items: [
       { path: 'all-sale', label: 'All Sale', icon: FileText },
       { path: 'purchase', label: 'Purchase', icon: List },
@@ -142,13 +143,15 @@ function AppContent() {
   const confirm = useConfirm();
   const { user, isLoggedIn, authLoading, logout, hasPermission } = useAuth();
   const [authRoute, setAuthRoute] = useState('landing'); // 'landing' | 'login' | 'register'
-  const [currentPage, setCurrentPage] = useState('dashboard');
+
   const [vendorForPayment, setVendorForPayment] = useState(null);
   const [customerForReceivedPayment, setCustomerForReceivedPayment] = useState(null);
+  const [viewingBillId, setViewingBillId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
@@ -357,13 +360,13 @@ function AppContent() {
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard':
-        return user?.role === 'staff' ? 
-          <BasicPlanDashboard navigateTo={setCurrentPage} /> : 
-          <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} />;
+        return user?.role === 'staff' ?
+          <BasicPlanDashboard navigateTo={setCurrentPage} /> :
+          <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} />;
       case 'generate-bill':
         return <GenerateBill navigateTo={setCurrentPage} editingBillId={editingBillId} setEditingBillId={setEditingBillId} gstRates={gstRates} />;
       case 'bill-list':
-        return <BillList navigateTo={setCurrentPage} setEditingBillId={setEditingBillId} />;
+        return <BillList navigateTo={setCurrentPage} setEditingBillId={setEditingBillId} viewingBillId={viewingBillId} setViewingBillId={setViewingBillId} />;
       case 'add-customer':
         return <AddCustomer navigateTo={setCurrentPage} />;
       case 'customer-list':
@@ -387,12 +390,12 @@ function AppContent() {
       case 'booking-screen':
         return <BookingScreen navigateTo={setCurrentPage} editingBookingId={editingBookingId} setEditingBookingId={setEditingBookingId} />;
       case 'booking-list':
-        return <BookingList navigateTo={setCurrentPage} setEditingBookingId={setEditingBookingId} />;
+        return <BookingList navigateTo={setCurrentPage} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} />;
       case 'payments':
-      case 'vendor-payments':
-        return <VendorPaymentsList navigateTo={setCurrentPage} setVendorForPayment={setVendorForPayment} />;
+      case 'vendor-business':
+        return <VendorBusinessList navigateTo={setCurrentPage} setVendorForPayment={setVendorForPayment} />;
       case 'payment-details':
-        return <VendorPaymentDetails navigateTo={setCurrentPage} vendorId={vendorForPayment} />;
+        return <VendorBusinessDetails navigateTo={setCurrentPage} vendorId={vendorForPayment} />;
       case 'received-vendor-payment':
         return <ReceivedPaymentsList navigateTo={setCurrentPage} setCustomerForPayment={setCustomerForReceivedPayment} />;
       case 'received-payment-details':
@@ -706,7 +709,7 @@ function AppContent() {
         return <MyVehicleSalesScreen />;
 
       default:
-        return <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} />;
+        return <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} />;
     }
   };
 
@@ -786,11 +789,10 @@ function AppContent() {
                 <>
                   <button
                     onClick={() => toggleSubmenu(section.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-xl group ${
-                      submenuOpen[section.id] 
-                        ? 'text-indigo-400 bg-indigo-500/10 shadow-sm' 
-                        : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
-                    }`}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-xl group ${submenuOpen[section.id]
+                      ? 'text-indigo-400 bg-indigo-500/10 shadow-sm'
+                      : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                      }`}
                   >
                     <span className="group-hover:translate-x-1 transition-transform duration-300 flex items-center gap-2">
                       {section.icon && <section.icon className="h-4 w-4" />}
@@ -800,28 +802,26 @@ function AppContent() {
                       <ChevronDown className="h-3.5 w-3.5" />
                     </div>
                   </button>
-                  
-                  <div 
-                    className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-                      submenuOpen[section.id] ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                    }`}
+
+                  <div
+                    className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${submenuOpen[section.id] ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                      }`}
                   >
                     <div className="overflow-hidden">
                       <div className="pl-2 space-y-1 ml-4 mt-1 mb-2 border-l-2 border-slate-700/50">
                         {section.items.map(item => {
-                          const isActive = currentPage === item.path || 
-                            (item.path === 'vendor-payments' && currentPage === 'payment-details') ||
+                          const isActive = currentPage === item.path ||
+                            (item.path === 'vendor-business' && currentPage === 'payment-details') ||
                             (item.path === 'received-vendor-payment' && currentPage === 'received-payment-details');
-                          
+
                           return (
                             <button
                               key={item.path}
                               onClick={() => navigate(item.path)}
-                              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-300 group relative overflow-hidden ${
-                                isActive 
-                                  ? 'text-indigo-400 font-bold bg-indigo-500/20 shadow-sm before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-indigo-500 before:rounded-r' 
-                                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
-                              }`}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-300 group relative overflow-hidden ${isActive
+                                ? 'text-indigo-400 font-bold bg-indigo-500/20 shadow-sm before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-indigo-500 before:rounded-r'
+                                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
+                                }`}
                             >
                               <item.icon className={`h-4 w-4 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
                               <span className={`transition-transform duration-300 ${isActive ? 'translate-x-0' : 'group-hover:translate-x-1'}`}>
@@ -837,11 +837,10 @@ function AppContent() {
               ) : (
                 <button
                   onClick={() => navigate(section.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group ${
-                    currentPage === section.path
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 border-l-4 border-slate-100'
-                      : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group ${currentPage === section.path
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 border-l-4 border-slate-100'
+                    : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/50'
+                    }`}
                 >
                   <section.icon className={`h-5 w-5 transition-transform duration-300 ${currentPage === section.path ? 'scale-110' : 'group-hover:scale-110'}`} />
                   <span className="group-hover:translate-x-1 transition-transform duration-300">{section.label}</span>
@@ -866,9 +865,7 @@ function AppContent() {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider hidden sm:block">
-              Service Registry: <span className="text-indigo-400 font-mono">127.0.0.1:8000</span>
-            </div>
+            <div id="header-actions-portal" className="hidden sm:flex items-center"></div>
           </div>
 
           <div className="flex items-center gap-4">
@@ -888,7 +885,7 @@ function AppContent() {
 
             {/* Profile Dropdown */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                 className="flex items-center justify-center h-9 w-9 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 hover:text-indigo-300 transition"
               >
@@ -903,20 +900,20 @@ function AppContent() {
                       <div className="text-sm font-bold text-slate-100 truncate">{user?.name || 'Admin User'}</div>
                       <div className="text-xs text-slate-400 truncate">{user?.email || 'admin@purvitravels.com'}</div>
                     </div>
-                    <button 
+                    <button
                       onClick={() => { navigate('business-profile'); setProfileDropdownOpen(false); }}
                       className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 flex items-center gap-3 transition"
                     >
                       <Building2 className="h-4 w-4 text-indigo-400" /> Business Profile
                     </button>
-                    <button 
+                    <button
                       onClick={() => { setShowPasswordModal(true); setProfileDropdownOpen(false); }}
                       className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 flex items-center gap-3 transition"
                     >
                       <Lock className="h-4 w-4 text-amber-400" /> Change Password
                     </button>
                     <div className="border-t border-slate-700/50 my-1"></div>
-                    <button 
+                    <button
                       onClick={() => { logout(); setProfileDropdownOpen(false); }}
                       className="w-full text-left px-4 py-2.5 text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 flex items-center gap-3 transition"
                     >

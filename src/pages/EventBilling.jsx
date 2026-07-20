@@ -41,6 +41,7 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
   const [allCustomers, setAllCustomers] = useState([]);
   const [allVehicles, setAllVehicles] = useState([]);
   const [allDrivers, setAllDrivers] = useState([]);
+  const [allPlans, setAllPlans] = useState([]);
 
   // Basic Info
   const [clientName, setClientName] = useState('');
@@ -157,14 +158,16 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
   useEffect(() => {
     async function loadData() {
       try {
-        const [custRes, vehRes, driRes] = await Promise.all([
+        const [custRes, vehRes, driRes, plansRes] = await Promise.all([
           axios.get('/api/customers'),
           axios.get('/api/vehicles'),
-          axios.get('/api/drivers')
+          axios.get('/api/drivers'),
+          axios.get('/api/plans')
         ]);
         setAllCustomers(custRes.data);
         setAllVehicles(vehRes.data);
         setAllDrivers(driRes.data);
+        setAllPlans(plansRes.data);
       } catch (err) {
         console.error("Error loading event billing master data:", err);
       }
@@ -967,6 +970,7 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
       {/* Event Booking Modal */}
       <EventBookingModal
         isOpen={isBookingModalOpen}
+        plans={allPlans}
         onClose={() => {
           setIsBookingModalOpen(false);
           setEditingBookingIndex(null);

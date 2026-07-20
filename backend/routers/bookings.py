@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from bson import ObjectId
 from backend.dependencies import get_current_user
-from backend.config import bookings_collection, plans_collection, bills_collection, get_next_sequence_value, vehicles_collection
+from backend.config import bookings_collection, plans_collection, bills_collection, get_next_sequence_value, vehicles_collection, entities_collection
 from datetime import datetime
 
 router = APIRouter(prefix="/api/bookings", tags=["bookings"])
@@ -166,6 +166,10 @@ def create_booking(booking: BookingCreate, user_email: str = Depends(get_current
     
     result = bookings_collection.insert_one(booking_dict)
     booking_dict["_id"] = result.inserted_id
+    
+    # Auto-generate provisional bills for vendor business
+    sync_provisional_bills(booking_dict, user_email)
+    
     return serialize_booking(booking_dict)
 
 
@@ -207,7 +211,157 @@ def get_booking(booking_id: str, user_email: str = Depends(get_current_user)):
 
     return serialize_booking(doc)
 
-def generate_bill_for_booking(booking_doc, user_email: str = Depends(get_current_user)):
+def sync_provisional_bills(booking_doc, user_email: str):
+    """
+    Called on booking create/update.
+    Generates or updates a Sales bill if the customer is a vendor.
+    Generates or updates a Purchase bill if the vehicle belongs to a vendor.
+    If conditions are no longer met, deletes the corresponding provisional bill.
+    """
+    booking_ref = str(booking_doc["_id"])
+    customer_phone = booking_doc.get("customer_phone", "").strip()
+    customer_name = booking_doc.get("customer_name", "").strip()
+    vehicle_number = booking_doc.get("vehicle_number", "").strip()
+    
+    plan_id = booking_doc.get("plan_id")
+    base_rate = 0.0
+    da_allowance = 0.0
+    night_allowance = 0.0
+    gst_rate = float(booking_doc.get("gst_rate") or 0.0)
+    plan_name = ""
+    
+    plan = None
+    if plan_id:
+        plan = plans_collection.find_one({"_id": ObjectId(plan_id), "user_email": user_email})
+        if plan:
+            base_rate = float(plan.get("rate") or 0.0)
+            da_allowance = float(plan.get("da_allowance") or 0.0)
+            night_allowance = float(plan.get("night_allowance") or 0.0)
+            plan_name = plan.get("plan_name", "")
+
+    end_km = float(booking_doc.get("end_km") or 0.0)
+    working_hours = float(booking_doc.get("working_hours") or 0.0)
+    extra_km_charge = 0.0
+    extra_hours_charge = 0.0
+    
+    if plan:
+        base_km = float(plan.get("base_km") or 0.0)
+        base_hours = float(plan.get("base_hours") or 0.0)
+        extra_km = max(0.0, end_km - base_km)
+        extra_km_rate = float(plan.get("extra_km_rate") or 0.0)
+        extra_km_charge = extra_km * extra_km_rate
+        extra_hours = max(0.0, working_hours - base_hours)
+        extra_hours_rate = float(plan.get("extra_hours_rate") or 0.0)
+        extra_hours_charge = extra_hours * extra_hours_rate
+    
+    amount_without_gst = base_rate + extra_km_charge + extra_hours_charge + da_allowance + night_allowance
+    amount_with_gst = amount_without_gst
+    if gst_rate > 0:
+        amount_with_gst = round(amount_without_gst * (1 + gst_rate / 100), 2)
+        
+    advance = float(booking_doc.get("advance_amount") or 0.0)
+    
+    table_item = {
+        "plan_id": plan_id if plan_id else "",
+        "plan_name": plan_name,
+        "rate": base_rate,
+        "date": booking_doc.get("journey_date", ""),
+        "total_distance_km": end_km,
+        "extra_km": max(0.0, end_km - (float(plan.get("base_km") or 0) if plan else 0)),
+        "total_hours": working_hours,
+        "extra_hours": max(0.0, working_hours - (float(plan.get("base_hours") or 0) if plan else 0)),
+        "da_allowance": da_allowance,
+        "night_allowance": night_allowance,
+        "amount_without_gst": amount_without_gst,
+        "gst_rate": gst_rate,
+        "amount_with_gst": amount_with_gst
+    }
+    
+    base_bill = {
+        "gst_enabled": gst_rate > 0,
+        "customer_id": "",
+        "customer_name": booking_doc.get("customer_name", ""),
+        "phone_number": booking_doc.get("customer_phone", ""),
+        "guest_name": booking_doc.get("customer_name", "") if booking_doc.get("is_guest") else "",
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "vendor_name": "", 
+        "vehicle_number": booking_doc.get("vehicle_number", ""),
+        "driver_name": booking_doc.get("driver_name", ""),
+        "source": booking_doc.get("pickup_location", ""),
+        "destination": booking_doc.get("drop_location", ""),
+        "travel_distance": end_km,
+        "table_items": [table_item],
+        "toll_amount": 0.0,
+        "parking_amount": 0.0,
+        "final_bill_amount": amount_with_gst,
+        "final_bill_words": "",
+        "profit": amount_with_gst,
+        "user_email": user_email
+    }
+    
+    # 1. Sales Bill (if customer is a Vendor)
+    customer = None
+    if customer_phone:
+        customer = entities_collection.find_one({"phone": customer_phone, "user_email": user_email})
+    if not customer and customer_name:
+        customer = entities_collection.find_one({"name": customer_name, "user_email": user_email})
+        
+    is_vendor_customer = customer and customer.get("entity_type") == "vendor"
+    
+    if is_vendor_customer:
+        sales_bill = bills_collection.find_one({"booking_ref": booking_ref, "bill_type": "Sales", "user_email": user_email})
+        
+        status = "Pending"
+        if advance >= amount_without_gst and amount_without_gst > 0:
+            status = "Paid"
+        elif advance > 0:
+            status = "Partial"
+            
+        sales_data = base_bill.copy()
+        sales_data["bill_type"] = "Sales"
+        sales_data["party_type"] = "customer"
+        sales_data["customer_id"] = str(customer["_id"])
+        sales_data["status"] = status
+        sales_data["paid_amount"] = advance
+        
+        if sales_bill:
+            bills_collection.update_one({"_id": sales_bill["_id"]}, {"$set": sales_data})
+        else:
+            seq_val = get_next_sequence_value("nongst_bills")
+            sales_data["bill_no"] = f"INV-{seq_val:04d}"
+            sales_data["booking_ref"] = booking_ref
+            sales_data["created_at"] = datetime.now()
+            bills_collection.insert_one(sales_data)
+
+    # 2. Purchase Bill (if vehicle belongs to Vendor)
+    vehicle = None
+    if vehicle_number:
+        vehicle = vehicles_collection.find_one({"vehicle_number": {"$regex": f"^{vehicle_number}$", "$options": "i"}, "user_email": user_email})
+    
+    if vehicle and vehicle.get("ownership_type") == "Vendor":
+        purchase_bill = bills_collection.find_one({"booking_ref": booking_ref, "bill_type": "Purchase", "user_email": user_email})
+        
+        purchase_data = base_bill.copy()
+        purchase_data["bill_type"] = "Purchase"
+        purchase_data["party_type"] = "vendor"
+        purchase_data["vendor_name"] = vehicle.get("owner_name")
+        purchase_data["status"] = "Pending"
+        purchase_data["paid_amount"] = 0.0
+        purchase_data["profit"] = 0.0
+        
+        if purchase_bill:
+            bills_collection.update_one({"_id": purchase_bill["_id"]}, {"$set": purchase_data})
+        else:
+            seq_val = get_next_sequence_value("nongst_bills")
+            purchase_data["bill_no"] = f"PUR-{seq_val:04d}"
+            purchase_data["booking_ref"] = booking_ref
+            purchase_data["created_at"] = datetime.now()
+            bills_collection.insert_one(purchase_data)
+    else:
+        # If no vendor vehicle, delete any existing provisional Purchase bill for this booking
+        bills_collection.delete_one({"booking_ref": booking_ref, "bill_type": "Purchase", "user_email": user_email})
+
+def generate_bill_for_booking(booking_doc, user_email: str):
     plan_id = booking_doc.get("plan_id")
     if not plan_id:
         return
@@ -292,10 +446,16 @@ def generate_bill_for_booking(booking_doc, user_email: str = Depends(get_current
         "status": status,
         "profit": amount_with_gst,
         "created_at": datetime.now(),
-        "booking_ref": str(booking_doc["_id"])
+        "booking_ref": str(booking_doc["_id"]),
+        "user_email": user_email
     }
     
-    bills_collection.insert_one(bill_dict)
+    # Check if Sales bill already exists (from sync_provisional_bills)
+    existing_sales = bills_collection.find_one({"booking_ref": str(booking_doc["_id"]), "bill_type": "Sales", "user_email": user_email})
+    if existing_sales:
+        bills_collection.update_one({"_id": existing_sales["_id"]}, {"$set": bill_dict})
+    else:
+        bills_collection.insert_one(bill_dict)
     
     vehicle_num = booking_doc.get("vehicle_number")
     if vehicle_num and end_km > 0:
@@ -328,9 +488,12 @@ def update_booking(booking_id: str, booking_update: BookingUpdate, user_email: s
     if not result:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    # Auto-generate bill on booking completion
+    # Auto-generate or update provisional bills for vendor business on every update
+    sync_provisional_bills(result, user_email)
+
+    # Auto-generate final bill on booking completion
     if update_data.get("booking_status") == "Completed" and old_doc.get("booking_status") != "Completed":
-        generate_bill_for_booking(result)
+        generate_bill_for_booking(result, user_email)
 
     return serialize_booking(result)
 

@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import {
   Users, FileText, DollarSign, BookOpen, MapPin, Clock, Calendar,
   User, RefreshCw, Car, ArrowRight, ShoppingCart, Search, Filter,
   X, CheckCircle, AlertTriangle, Truck, Ban, CheckSquare, Receipt,
   TrendingUp, ChevronDown, Sun, Moon, Phone, CreditCard, Navigation,
-  Hash, UserCheck, IndianRupee, Plus
+  Hash, UserCheck, IndianRupee, Plus, Settings, MoreVertical,
+  Edit2, Printer, UserPlus, Tag, RotateCcw
 } from 'lucide-react';
 import CustomDatePicker from '../components/CustomDatePicker';
 import { useConfirm } from '../context/ConfirmContext';
+import DutySlipSidebar from '../components/DutySlipSidebar';
 
 const API = '/api';
 
@@ -89,29 +92,14 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
     if (!vehicles) return [];
     return vehicles.filter(v => {
       if (ownershipType !== 'All' && v.ownership_type !== ownershipType) return false;
-      const isAllocated = (allBookings || []).some(b =>
-        b.journey_date === booking.journey_date &&
-        b.vehicle_number === v.vehicle_number &&
-        b.id !== booking.id &&
-        ['Confirmed', 'Dispatch Pending', 'Pending'].includes(b.booking_status)
-      );
-      return !isAllocated;
+      return true;
     });
-  }, [vehicles, ownershipType, allBookings, booking.journey_date, booking.id]);
+  }, [vehicles, ownershipType]);
 
   // Filter drivers based on availability
   const filteredDrivers = React.useMemo(() => {
-    if (!drivers) return [];
-    return drivers.filter(d => {
-      const isAllocated = (allBookings || []).some(b =>
-        b.journey_date === booking.journey_date &&
-        b.driver_name === d.name &&
-        b.id !== booking.id &&
-        ['Confirmed', 'Dispatched', 'Dispatch Pending', 'Pending'].includes(b.booking_status)
-      );
-      return !isAllocated;
-    });
-  }, [drivers, allBookings, booking.journey_date, booking.id]);
+    return drivers || [];
+  }, [drivers]);
 
   // Auto-fill vehicle type when vehicle changes
   useEffect(() => {
@@ -208,6 +196,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
                 <CustomSelect
                   value={selectedVehicle}
                   onChange={setSelectedVehicle}
+                  searchable={true}
                   options={filteredVehicles.map(v => ({
                     value: v.vehicle_number,
                     label: `${v.vehicle_number} (${v.ownership_type === 'Owner' ? 'Owner' : 'Vendor'})`,
@@ -275,6 +264,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
                 <CustomSelect
                   value={selectedDriver}
                   onChange={setSelectedDriver}
+                  searchable={true}
                   options={filteredDrivers.map(d => ({ value: d.name, label: d.name }))}
                   placeholder="-- Select Driver --"
                   actionButton={{
@@ -699,7 +689,7 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
 }
 
 
-export default function Dashboard({ navigateTo, theme, setTheme }) {
+export default function Dashboard({ navigateTo, theme, setTheme, setEditingBookingId, setViewingBillId }) {
   const confirm = useConfirm();
   const [stats, setStats] = useState({ totalSalesAmount: 0, totalPurchaseAmount: 0, totalEntities: 0, upcomingCount: 0 });
   const [allBookings, setAllBookings] = useState([]);
@@ -741,6 +731,26 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
   const fabOffset = useRef({ x: 0, y: 0 });
   const fabRef = useRef(null);
   const [paymentIsSubmitting, setPaymentIsSubmitting] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const [printingBooking, setPrintingBooking] = useState(null);
+
+  const handleViewBill = async (bookingId) => {
+    try {
+      const res = await axios.get(`${API}/bills?_t=${Date.now()}`);
+      const bill = res.data.find(b => b.booking_ref === bookingId);
+      if (bill) {
+        if (setViewingBillId) setViewingBillId(bill.id);
+        navigateTo('bill-list');
+      } else {
+        alert("Bill not generated for this booking yet.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch bill details.");
+    }
+  };
 
   const fetchAll = async () => {
     try {
@@ -863,6 +873,18 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
     }
   };
 
+  const handleUnconfirmBooking = async (bookingId) => {
+    try {
+      await axios.put(`${API}/bookings/${bookingId}`, {
+        booking_status: 'Unconfirmed'
+      });
+      setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, booking_status: 'Unconfirmed' } : b));
+    } catch (err) {
+      console.error("Failed to unconfirm booking:", err);
+      alert("Failed to unconfirm booking. Please try again.");
+    }
+  };
+
   const handleSaveAllotment = async (bookingId, updateData) => {
     try {
       await axios.put(`${API}/bookings/${bookingId}`, updateData);
@@ -933,21 +955,56 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
       />
 
       {/* ─── FILTER CARD ─── */}
-      <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-4 space-y-3">
-        {/* Booking Type Toggle */}
-        <div className="flex gap-2 p-1 bg-slate-900 border border-slate-700/50 rounded-xl w-fit">
-          {['Regular', 'Event'].map(type => (
-            <button key={type} onClick={() => setBookingTypeFilter(type)}
-              className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${bookingTypeFilter === type ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>
-              {type === 'Regular' ? 'Regular Bookings' : 'Event Bookings'}
+      <div className={`transition-all duration-300 ${showFilters ? 'glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-4 space-y-3 mb-4' : 'mb-0'}`}>
+        {/* Booking Type Toggle — Moved to Header Portal if available */}
+        {document.getElementById('header-actions-portal') ? (
+          createPortal(
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1.5 p-1 bg-slate-900 border border-slate-700/50 rounded-xl w-fit shadow-inner">
+                {['Regular', 'Event'].map(type => (
+                  <button key={type} onClick={() => setBookingTypeFilter(type)}
+                    className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all ${bookingTypeFilter === type ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
+                    {type === 'Regular' ? 'Regular Bookings' : 'Event Bookings'}
+                  </button>
+                ))}
+              </div>
+              <button 
+                onClick={() => setShowFilters(s => !s)}
+                className={`p-1.5 rounded-lg border transition-all ${showFilters ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-slate-200'}`}
+                title="Toggle Filters"
+              >
+                <Filter className="h-4 w-4" />
+              </button>
+            </div>,
+            document.getElementById('header-actions-portal')
+          )
+        ) : (
+          <div className={`flex items-center gap-3 ${!showFilters && 'mb-4'}`}>
+            <div className="flex gap-2 p-1 bg-slate-900 border border-slate-700/50 rounded-xl w-fit">
+              {['Regular', 'Event'].map(type => (
+                <button key={type} onClick={() => setBookingTypeFilter(type)}
+                  className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${bookingTypeFilter === type ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>
+                  {type === 'Regular' ? 'Regular Bookings' : 'Event Bookings'}
+                </button>
+              ))}
+            </div>
+            <button 
+              onClick={() => setShowFilters(s => !s)}
+              className={`p-2 rounded-xl border transition-all ${showFilters ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-slate-200'}`}
+              title="Toggle Filters"
+            >
+              <Filter className="h-4 w-4" />
             </button>
-          ))}
-        </div>
+          </div>
+        )}
+
+        {showFilters && (
+          <div className="space-y-3 animate-fade-in-up">
 
         {/* Row 1: Status Filters + Search */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-center gap-3">
           {/* Search (Column 1) */}
-          <div className="flex items-center bg-slate-800/60 border border-slate-700 rounded-xl overflow-hidden px-3 py-2.5 gap-2 focus-within:border-indigo-500/60 transition w-full lg:w-1/3 shrink-0">
+          <div className="flex items-center bg-slate-800/60 border border-slate-700 rounded-xl overflow-hidden px-3 py-2.5 gap-2 focus-within:border-indigo-500/60 transition w-full xl:w-64 shrink-0">
             <Search className="h-4 w-4 text-slate-400 shrink-0" />
             <input
               type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
@@ -1021,6 +1078,8 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
             <span className="text-[11px] text-slate-500 font-medium">
               Showing all <span className="text-slate-300 font-bold">{eventBills.length}</span> event{eventBills.length !== 1 ? 's' : ''}
             </span>
+          </div>
+        )}
           </div>
         )}
       </div>
@@ -1282,7 +1341,7 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                     return (
                       <tr key={b.id}
                         onClick={() => setSelectedBooking(b)}
-                        className={`transition cursor-pointer ${rowBg}`}
+                        className={`transition cursor-pointer ${rowBg} ${openDropdownId === b.id ? 'relative z-50' : 'relative z-0'}`}
                         style={{
                           borderLeft: `3px solid ${statusBorderColor[b.booking_status] || '#475569'}`,
                           animation: `fadeInUp 0.35s ease-out ${i * 0.04}s both`,
@@ -1335,13 +1394,116 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
                         <td className="px-2.5 py-2 text-center">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${bStatusColor}`}>{b.booking_status}</span>
                         </td>
-                        <td className="px-2.5 py-2 text-center">
-                          {b.booking_status === 'Dispatched' ? (
-                            <button onClick={(e) => { e.stopPropagation(); setCloseBookingId(b.id); setCloseModalOpen(true); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow border border-emerald-500 transition cursor-pointer">Close</button>
-                          ) : b.booking_status === 'Unconfirmed' ? (
-                            <button onClick={(e) => { e.stopPropagation(); handleConfirmBooking(b.id); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow border border-blue-500 transition cursor-pointer">Confirm</button>
-                          ) : ['Completed', 'Cancelled'].includes(b.booking_status) ? null : (
-                            <button onClick={(e) => { e.stopPropagation(); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} className="text-[10px] font-bold px-4 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow border border-indigo-500 transition cursor-pointer">Allot</button>
+                        <td className="px-2.5 py-2 text-center relative">
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              if (openDropdownId === b.id) {
+                                setOpenDropdownId(null);
+                              } else {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setDropdownPos({
+                                  top: rect.bottom,
+                                  right: window.innerWidth - rect.right
+                                });
+                                setOpenDropdownId(b.id);
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+                          
+                          {openDropdownId === b.id && createPortal(
+                            <div className="fixed inset-0 z-[9999]" onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); }}>
+                              <div 
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  position: 'fixed',
+                                  top: dropdownPos.top + 4,
+                                  right: dropdownPos.right
+                                }}
+                                className="w-52 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-1.5 text-left animate-in fade-in zoom-in-95 duration-100 origin-top-right"
+                              >
+                                
+                                <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setSelectedBooking(b); }} 
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors">
+                                  <FileText className="h-4 w-4 text-slate-400" />
+                                  <span className="font-medium">Details</span>
+                                </button>
+
+                                {b.booking_status === 'Unconfirmed' && (
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleConfirmBooking(b.id); }} 
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 rounded-lg transition-colors mt-0.5">
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span className="font-medium">Confirm duty</span>
+                                  </button>
+                                )}
+                                
+                                {b.booking_status === 'Confirmed' && (
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleUnconfirmBooking(b.id); }} 
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 rounded-lg transition-colors mt-0.5">
+                                    <RotateCcw className="h-4 w-4" />
+                                    <span className="font-medium">Unconfirm duty</span>
+                                  </button>
+                                )}
+                                
+                                {b.booking_status === 'Dispatched' && (
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setCloseBookingId(b.id); setCloseModalOpen(true); }} 
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 rounded-lg transition-colors mt-0.5">
+                                    <CheckSquare className="h-4 w-4" />
+                                    <span className="font-medium">Close duty</span>
+                                  </button>
+                                )}
+                                
+                                {b.booking_status === 'Completed' && (
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }} 
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
+                                    <FileText className="h-4 w-4" />
+                                    <span className="font-medium">View/Download Bill PDF</span>
+                                  </button>
+                                )}
+
+                                {!['Completed', 'Cancelled', 'Dispatched'].includes(b.booking_status) && (
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} 
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
+                                    <UserPlus className="h-4 w-4" />
+                                    <span className="font-medium">Allot duty</span>
+                                  </button>
+                                )}
+                                
+                                <button onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setOpenDropdownId(null); 
+                                  if (setEditingBookingId) setEditingBookingId(b.id); 
+                                  navigateTo('booking-screen'); 
+                                }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors mt-0.5">
+                                  <Edit2 className="h-4 w-4 text-slate-400" />
+                                  <span className="font-medium">Edit duty</span>
+                                </button>
+                                
+                                <button onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenDropdownId(null);
+                                  setPrintingBooking(b);
+                                }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors mt-0.5">
+                                  <Printer className="h-4 w-4 text-slate-400" />
+                                  <span className="font-medium">Print duty slip</span>
+                                </button>
+
+                                {!['Cancelled', 'Completed'].includes(b.booking_status) && (
+                                  <>
+                                    <div className="h-px bg-slate-700/50 my-1.5 mx-1" />
+                                    <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleCancelBooking(b.id); }} 
+                                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-lg transition-colors">
+                                      <Ban className="h-4 w-4" />
+                                      <span className="font-medium">Cancel Duty</span>
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>,
+                            document.body
                           )}
                         </td>
                       </tr>
@@ -1491,6 +1653,13 @@ export default function Dashboard({ navigateTo, theme, setTheme }) {
           <circle cx="2" cy="12" r="1.5"/><circle cx="8" cy="12" r="1.5"/>
         </svg>
       </div>
+      <DutySlipSidebar 
+        isOpen={!!printingBooking} 
+        onClose={() => setPrintingBooking(null)} 
+        booking={printingBooking} 
+        plans={plans} 
+        formatDate={formatDate}
+      />
 
     </div>
   );

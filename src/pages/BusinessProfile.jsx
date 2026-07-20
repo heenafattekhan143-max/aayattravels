@@ -71,12 +71,12 @@ export default function BusinessProfile({ navigateTo }) {
     }
 
     const result = await updateUser({ ...form, logo: logoBase64 });
-    
+
     if (result && !result.success) {
       setError(result.error || 'Failed to update profile.');
       return;
     }
-    
+
     setSuccess('Business profile updated successfully!');
     setTimeout(() => setSuccess(''), 3500);
   };
@@ -227,6 +227,23 @@ export default function BusinessProfile({ navigateTo }) {
                       placeholder="e.g. 27-Maharashtra" className={inputIconCls} />
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Billing Settings */}
+        <div className="glass-panel rounded-2xl border border-slate-700/50 p-6 space-y-4">
+          <h2 className="text-sm font-bold text-slate-200 flex items-center gap-2">
+            <FileImage className="h-4 w-4 text-rose-400" /> Billing & Invoicing
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Invoice's default due date after (days)</label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input type="number" name="defaultDueDateDays" value={form.defaultDueDateDays} onChange={handleChange}
+                  placeholder="e.g. 15" min="0" className={inputIconCls} />
               </div>
             </div>
           </div>
