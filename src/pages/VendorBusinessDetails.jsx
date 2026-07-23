@@ -403,8 +403,8 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Type</th>
                 <th className="px-4 py-3">Ref / Notes</th>
-                <th className="px-4 py-3 text-right text-emerald-400">Charge (+)</th>
-                <th className="px-4 py-3 text-right text-rose-400">Credit (-)</th>
+                <th className="px-4 py-3 text-right text-rose-400">Charge (+)</th>
+                <th className="px-4 py-3 text-right text-emerald-400">Credit (-)</th>
                 <th className="px-4 py-3 text-right">Balance</th>
                 <th className="px-4 py-3 text-center">Action</th>
               </tr>
@@ -427,10 +427,10 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
                       {txn.type === 'Vendor Payment' && <span className="text-rose-400 flex items-center gap-1.5"><ArrowRightCircle className="h-3.5 w-3.5"/> Paid</span>}
                     </td>
                     <td className="px-4 py-3 text-slate-400 max-w-[300px] text-xs leading-relaxed" title={txn.ref}>{txn.ref}</td>
-                    <td className="px-4 py-3 text-right font-mono text-emerald-400">
+                    <td className="px-4 py-3 text-right font-mono text-rose-400">
                       {txn.charge > 0 ? `₹${txn.charge.toLocaleString()}` : '—'}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono text-rose-400">
+                    <td className="px-4 py-3 text-right font-mono text-emerald-400">
                       {txn.credit > 0 ? `₹${txn.credit.toLocaleString()}` : '—'}
                     </td>
                     <td className={`px-4 py-3 text-right font-mono font-bold ${txn.balance < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>

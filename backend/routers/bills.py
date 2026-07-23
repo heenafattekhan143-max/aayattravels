@@ -13,6 +13,7 @@ router = APIRouter(prefix="/api/bills", tags=["bills"])
 class BillItem(BaseModel):
     plan_id: str
     plan_name: str
+    vehicle_number: Optional[str] = ""
     rate: Optional[float] = 0.0
     date: str
     end_date: Optional[str] = ""
@@ -43,6 +44,7 @@ class BillBase(BaseModel):
     source: Optional[str] = ""
     destination: Optional[str] = ""
     travel_distance: float = 0.0
+    description: Optional[str] = ""
     table_items: List[BillItem]
     toll_amount: float
     parking_amount: float = 0.0
@@ -87,6 +89,8 @@ def serialize_bill(doc) -> dict:
         "driver_name": doc.get("driver_name", ""),
         "source": doc.get("source", ""),
         "destination": doc.get("destination", ""),
+        "travel_distance": doc.get("travel_distance", 0.0),
+        "description": doc.get("description", ""),
         "table_items": doc.get("table_items", []),
         "toll_amount": doc.get("toll_amount", 0.0),
         "parking_amount": doc.get("parking_amount", 0.0),

@@ -902,13 +902,21 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
 
                   </div>
 
+                  {selectedBill.description && (
+                    <div className="bg-white border-x border-b border-slate-400 p-2.5 text-[10px] text-slate-800">
+                      <div className="font-bold uppercase text-slate-600 mb-1.5 tracking-wider">DESCRIPTION:</div>
+                      <div className="whitespace-pre-wrap font-medium leading-relaxed pl-1 text-slate-700">{selectedBill.description}</div>
+                    </div>
+                  )}
+
                   <div className="mb-2"></div>
 
                   {/* Table Ledger items */}
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse border border-slate-400">
                       <colgroup>
-                        <col style={{ width: '25%' }} />
+                        <col style={{ width: '22%' }} />
+                        <col style={{ width: '10%' }} />
                         <col style={{ width: '8%' }} />
                         <col />
                         <col style={{ width: '9%' }} />
@@ -922,6 +930,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                       <thead>
                         <tr className="border-b border-slate-300 text-slate-700 bg-slate-50 uppercase text-[9px] tracking-wider">
                           <th className="p-1.5 font-bold border border-slate-400">Rental Package Plan</th>
+                          <th className="p-1.5 font-bold border border-slate-400 text-center">Vehicle No</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Rate</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Date</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Total Distance</th>
@@ -937,6 +946,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                         {(selectedBill.table_items || []).map((item, idx) => (
                           <tr key={idx} className="hover:bg-slate-50 transition">
                             <td className="p-1.5 font-semibold text-slate-900 text-[9px] leading-tight border border-slate-400 break-words">{item.plan_name}</td>
+                            <td className="p-1.5 text-center font-medium text-slate-800 whitespace-nowrap border border-slate-400">{item.vehicle_number || '-'}</td>
                             <td className="p-1.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">₹{(item.rate || 0).toLocaleString('en-IN')}</td>
                             <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">
                               {item.end_date

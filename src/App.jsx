@@ -69,21 +69,28 @@ import BusinessProfile from './pages/BusinessProfile';
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: 'dashboard' },
   {
-    id: 'booking', label: 'Bookings',
+    id: 'billing', label: 'Bills',
     items: [
-      { path: 'booking-screen', label: 'New Booking', icon: Plus },
-      { path: 'booking-list', label: 'Booking List', icon: List },
-      { path: 'add-gst', label: 'Add GST', icon: Percent }
+      { path: 'generate-bill', label: 'Generate Bill', icon: Plus },
+      { path: 'bill-list', label: 'Bill List', icon: List }
     ]
   },
+  // {
+  //   id: 'booking', label: 'Bookings',
+  //   items: [
+  //     { path: 'booking-screen', label: 'New Booking', icon: Plus },
+  //     { path: 'booking-list', label: 'Booking List', icon: List },
+  //     { path: 'add-gst', label: 'Add GST', icon: Percent }
+  //   ]
+  // },
 
-  {
-    id: 'events', label: 'Event Management',
-    items: [
-      { path: 'event-billing', label: 'Event Billing', icon: Plus },
-      { path: 'event-list', label: 'Event List', icon: List }
-    ]
-  },
+  // {
+  //   id: 'events', label: 'Event Management',
+  //   items: [
+  //     { path: 'event-billing', label: 'Event Billing', icon: Plus },
+  //     { path: 'event-list', label: 'Event List', icon: List }
+  //   ]
+  // },
   {
     id: 'payments', label: 'Payments',
     items: [
@@ -119,13 +126,6 @@ const MENU_ITEMS = [
       { path: 'add-driver', label: 'Add Driver', icon: Plus },
       { path: 'driver-list', label: 'Driver List', icon: List },
       { path: 'driver-salary', label: 'Salary', icon: IndianRupee }
-    ]
-  },
-  {
-    id: 'billing', label: 'Custom Bills',
-    items: [
-      { path: 'generate-bill', label: 'Generate Bill', icon: Plus },
-      { path: 'bill-list', label: 'Custom Bill List', icon: List }
     ]
   },
   {
@@ -360,9 +360,7 @@ function AppContent() {
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard':
-        return user?.role === 'staff' ?
-          <BasicPlanDashboard navigateTo={setCurrentPage} /> :
-          <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} />;
+        return <BasicPlanDashboard navigateTo={setCurrentPage} />;
       case 'generate-bill':
         return <GenerateBill navigateTo={setCurrentPage} editingBillId={editingBillId} setEditingBillId={setEditingBillId} gstRates={gstRates} />;
       case 'bill-list':

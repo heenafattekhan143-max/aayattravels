@@ -43,6 +43,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
   const [driverName, setDriverName] = useState('');
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
+  const [travelDistance, setTravelDistance] = useState('');
+  const [description, setDescription] = useState('');
 
   // Dropdown options loaded from API
   const [allCustomers, setAllCustomers] = useState([]);
@@ -69,6 +71,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
       plan_id: '',
       plan_name: '',
       plan_type: '',
+      vehicle_number: '',
       date: new Date().toISOString().split('T')[0],
       total_distance_km: 0,
       extra_km: 0,
@@ -135,6 +138,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         setDriverName(bill.driver_name || '');
         setSource(bill.source || '');
         setDestination(bill.destination || '');
+        setTravelDistance(bill.travel_distance || '');
+        setDescription(bill.description || '');
         setVehicleSearch(bill.vehicle_number);
         setTollAmount(bill.toll_amount > 0 ? bill.toll_amount.toString() : '');
         setParkingAmount(bill.parking_amount > 0 ? bill.parking_amount.toString() : '');
@@ -162,6 +167,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             plan_id: item.plan_id,
             plan_name: item.plan_name,
             plan_type: matchedPlan ? matchedPlan.plan_type : '',
+            vehicle_number: item.vehicle_number || '',
             date: item.date,
             end_date: item.end_date || '',
             total_distance_km: item.total_distance_km.toString(),
@@ -434,7 +440,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         driver_name: driverName,
         source: source,
         destination: destination,
-        travel_distance: tableItems.reduce((acc, item) => acc + (parseFloat(item.total_distance_km) || 0), 0),
+        travel_distance: parseFloat(travelDistance) || tableItems.reduce((acc, item) => acc + (parseFloat(item.total_distance_km) || 0), 0),
+        description: description,
         toll_amount: parseFloat(tollAmount) || 0,
         parking_amount: parseFloat(parkingAmount) || 0,
       };
@@ -443,6 +450,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
       const saleTableItems = tableItems.map(item => ({
         plan_id: item.plan_id,
         plan_name: item.plan_name,
+        vehicle_number: item.vehicle_number || "",
         rate: parseFloat(item.rate) || 0,
         date: item.date,
         end_date: item.end_date,
@@ -504,6 +512,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
           return {
             plan_id: selectedPurchasePlan.id,
             plan_name: selectedPurchasePlan.plan_name,
+            vehicle_number: item.vehicle_number || "",
             rate: baseRate,
             date: item.date,
             end_date: item.end_date,
@@ -1018,6 +1027,18 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
           );
         })()}
 
+        {/* Additional Description Row */}
+        <div className="glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-3">
+          <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Description / Notes (Optional)</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Add any additional details or remarks for this bill..."
+            rows="2"
+            className="w-full bg-slate-950/60 border border-slate-700 focus:border-indigo-500 outline-none rounded-xl px-4 py-3 text-sm text-slate-100 transition resize-none"
+          />
+        </div>
+
         {/* PART C: Dynamic Billing Table (Matrix) */}
         <div className="relative z-30 glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-4" style={{ zIndex: 1 }}>
           <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1150,6 +1171,16 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                       </div>
                     )}
                     <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Vehicle No.</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. MH15"
+                        value={item.vehicle_number}
+                        onChange={(e) => handleRowChange(idx, 'vehicle_number', e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-500 transition"
+                      />
+                    </div>
+                    <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-400 uppercase">Base Rate (₹)</label>
                       <input
                         type="text"
@@ -1274,6 +1305,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             <table className="w-full text-left border-collapse min-w-[1200px]">
               <colgroup>
                 <col style={{ width: '200px' }} />
+                <col style={{ width: '100px' }} />
                 <col style={{ width: '90px' }} />
                 <col style={{ width: '150px' }} />
                 <col style={{ width: '100px' }} />
@@ -1287,6 +1319,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
               <thead>
                 <tr className="border-b border-slate-700 text-slate-400 text-[11px] font-semibold uppercase tracking-wider bg-table-header">
                   <th className="p-2 align-bottom">Description (Plan)</th>
+                  <th className="p-2 align-bottom">Vehicle No.</th>
                   <th className="p-2 align-bottom text-center">Rate</th>
                   <th className="p-2 align-bottom">Date</th>
                   <th className="p-2 leading-tight align-bottom text-center">Total Dist<br />(KM)</th>
@@ -1367,6 +1400,17 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                               )}
                             </div>
                           )}
+                        </td>
+
+                        {/* Vehicle No */}
+                        <td className="p-3">
+                          <input
+                            type="text"
+                            placeholder="e.g. MH15"
+                            value={item.vehicle_number}
+                            onChange={(e) => handleRowChange(idx, 'vehicle_number', e.target.value)}
+                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-indigo-500 transition"
+                          />
                         </td>
 
                         {/* Rate */}

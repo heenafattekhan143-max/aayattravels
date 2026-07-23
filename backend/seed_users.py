@@ -33,6 +33,16 @@ mock_users = [
     "businessName": "Purvi Travels",
     "businessType": "Car-rental company",
     "city": "Nashik",
+  },
+  {
+    "email": "ravisable099@gmail.com",
+    "password": "Ravisable",
+    "name": "Ravi Sable",
+    "phone": "9876543211",
+    "role": "superadmin",
+    "businessName": "Miracrest Group",
+    "businessType": "Car-rental company",
+    "city": "Mumbai"
   }
 ]
 
