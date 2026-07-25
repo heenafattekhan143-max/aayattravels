@@ -1,5 +1,16 @@
 import React, { forwardRef } from 'react';
 
+const getAdjustedReportingTime = (timeStr) => {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  if (parts.length !== 2) return timeStr;
+  let h = parseInt(parts[0], 10);
+  const m = parts[1];
+  h -= 1;
+  if (h < 0) h = 23;
+  return `${h.toString().padStart(2, '0')}:${m}`;
+};
+
 const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate }, ref) => {
   if (!booking) return null;
 
@@ -40,22 +51,22 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate }, ref
         </div>
       )}
 
-      <div className="border-y-2 border-black py-1 text-center font-bold text-lg tracking-[0.2em] uppercase mb-6">
+      <div className="border-y-2 border-black py-1 text-center font-bold text-lg tracking-[0.2em] uppercase mb-12">
         DUTY SLIP
       </div>
 
       <div className="grid grid-cols-2 gap-x-12 gap-y-10 text-[12px] font-semibold mb-10">
         <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-[120px_1fr]"><span className="text-gray-900">Customer:</span> <span>{customerName}</span></div>
+          <div className="grid grid-cols-[120px_1fr]"><span className="text-gray-900">Company:</span> <span>{customerName}</span></div>
           {bookedBy && <div className="grid grid-cols-[120px_1fr]"><span className="text-gray-900">Booked By:</span> <span>{bookedBy}</span></div>}
           <div className="grid grid-cols-[120px_1fr]"><span className="text-gray-900">Passenger:</span> <span>{getPassengers()}</span></div>
           <div className="grid grid-cols-[120px_1fr]"><span className="text-gray-900">Date:</span> <span>{getDates()}</span></div>
-          <div className="grid grid-cols-[120px_1fr]"><span className="text-gray-900">Reporting Time:</span> <span>{booking.pickup_time || ''}</span></div>
+          <div className="grid grid-cols-[120px_1fr]"><span className="text-gray-900">Reporting Time:</span> <span>{getAdjustedReportingTime(booking.pickup_time)}</span></div>
           {config?.addGarageStartTime && (
             <div className="grid grid-cols-[120px_1fr]"><span className="text-gray-900">Garage Start:</span> <span></span></div>
           )}
         </div>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 mb-10">
           <div className="grid grid-cols-[130px_1fr]"><span className="text-gray-900">Booking Id:</span> <span>#{booking.booking_id}</span></div>
           {!config?.hideDutyTypeName && (
             <div className="grid grid-cols-[130px_1fr]"><span className="text-gray-900">Duty Type:</span> <span>{planName}</span></div>
@@ -71,7 +82,7 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate }, ref
       </div>
 
       {/* Main Table 1 */}
-      <table className="w-full border-collapse border-2 border-black text-[11px] mb-6 text-center">
+      <table className="w-full border-collapse border-2 border-black text-[11px] mb-12 mt-20 text-center">
         <thead>
           <tr className='p-3'>
             <th className="border border-black p-3 align-middle" rowSpan={2}>Reporting Date</th>
@@ -121,7 +132,7 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate }, ref
       </table>
 
       {/* Table 2: Items */}
-      <table className="w-full border-collapse border border-black text-[11px] font-bold mb-6">
+      <table className="w-full border-collapse border border-black text-[11px] font-bold mb-12">
         <thead>
           <tr className="border-b border-black p-3">
             <th className="p-3 border-r border-black w-2/3">Item</th>
@@ -142,7 +153,7 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate }, ref
 
       {/* Table 3: Customer Entered */}
       {config?.addReleasedKmTime && (
-        <table className="w-full border-collapse border border-black text-[11px] font-bold mb-6 text-left">
+        <table className="w-full border-collapse border border-black text-[11px] font-bold mb-12 text-left">
           <thead>
             <tr className="border-b border-black text-center bg-gray-50 text-black p-3">
               <th className="p-3" colSpan={5}>[To be entered by customer]</th>

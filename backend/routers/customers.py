@@ -77,7 +77,7 @@ def create_entity(entity: EntityCreate, user_email: str = Depends(get_current_us
 def get_entities(entity_type: Optional[str] = None, user_email: str = Depends(get_current_user)):
     query = {"user_email": user_email}
     if entity_type:
-        query["entity_type"] = entity_type
+        query["entity_type"] = {"$regex": f"^{entity_type}$", "$options": "i"}
     
     docs = list(entities_collection.find(query))
     return [serialize_entity(doc) for doc in docs]

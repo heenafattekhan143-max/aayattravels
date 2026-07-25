@@ -918,7 +918,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                           <th className="p-2.5 font-bold border border-slate-400">Rental Package Plan</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Rate</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Date</th>
-                          <th className="p-2.5 font-bold text-center border border-slate-400">Total Distance</th>
+                          <th className="p-2.5 font-bold text-center border border-slate-400">Total KM</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Extra KMs</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Total Hours</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Extra Hours</th>

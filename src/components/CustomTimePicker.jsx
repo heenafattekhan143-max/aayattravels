@@ -117,7 +117,7 @@ export default function CustomTimePicker({
           </div>
           
           <div className="flex h-48">
-            <div className="flex-1 overflow-y-auto no-scrollbar border-r border-slate-700">
+            <div className="flex-1 h-full overflow-y-auto border-r border-slate-700">
               {hoursList.map(hr => (
                 <button
                   key={`h-${hr}`}
@@ -129,7 +129,7 @@ export default function CustomTimePicker({
                 </button>
               ))}
             </div>
-            <div className="flex-1 overflow-y-auto no-scrollbar border-r border-slate-700">
+            <div className="flex-1 h-full overflow-y-auto border-r border-slate-700">
               {minutesList.map(min => (
                 <button
                   key={`m-${min}`}
@@ -141,7 +141,7 @@ export default function CustomTimePicker({
                 </button>
               ))}
             </div>
-            <div className="flex-1 overflow-y-auto no-scrollbar">
+            <div className="flex-1 h-full overflow-y-auto no-scrollbar">
               {ampmList.map(ampm => (
                 <button
                   key={`a-${ampm}`}

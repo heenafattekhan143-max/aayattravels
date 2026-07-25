@@ -735,7 +735,7 @@ export default function BookingList({ navigateTo, setEditingBookingId, setViewin
                                 <Edit2 className="h-4 w-4" />
                               </button>
                             )}
-                            {b.booking_status === 'Completed' && (
+                            {b.booking_status !== 'Cancelled' && (
                               <button onClick={() => handleViewBill(b.id)} className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition" title="View/Download Bill PDF">
                                 <FileText className="h-4 w-4" />
                               </button>

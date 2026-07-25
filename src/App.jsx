@@ -78,7 +78,7 @@ const MENU_ITEMS = [
   },
 
   {
-    id: 'events', label: 'Event Management',
+    id: 'events', label: 'Events',
     items: [
       { path: 'event-billing', label: 'Event Billing', icon: Plus },
       { path: 'event-list', label: 'Event List', icon: List }
@@ -121,21 +121,21 @@ const MENU_ITEMS = [
       { path: 'driver-salary', label: 'Salary', icon: IndianRupee }
     ]
   },
-  {
-    id: 'billing', label: 'Custom Bills',
-    items: [
-      { path: 'generate-bill', label: 'Generate Bill', icon: Plus },
-      { path: 'bill-list', label: 'Custom Bill List', icon: List }
-    ]
-  },
-  {
-    id: 'business', label: 'Business',
-    items: [
-      { path: 'all-sale', label: 'All Sale', icon: FileText },
-      { path: 'purchase', label: 'Purchase', icon: List },
-      { path: 'my-sale', label: 'My Vehicle Sale', icon: Car }
-    ]
-  },
+  // {
+  //   id: 'billing', label: 'Custom Bills',
+  //   items: [
+  //     { path: 'generate-bill', label: 'Generate Bill', icon: Plus },
+  //     { path: 'bill-list', label: 'Custom Bill List', icon: List }
+  //   ]
+  // },
+  // {
+  //   id: 'business', label: 'Business',
+  //   items: [
+  //     { path: 'all-sale', label: 'All Sale', icon: FileText },
+  //     { path: 'purchase', label: 'Purchase', icon: List },
+  //     { path: 'my-sale', label: 'My Vehicle Sale', icon: Car }
+  //   ]
+  // },
   { id: 'quotation', label: 'Quotation', icon: FileText, path: 'quotation' }
 ];
 
@@ -362,7 +362,7 @@ function AppContent() {
       case 'dashboard':
         return user?.role === 'staff' ?
           <BasicPlanDashboard navigateTo={setCurrentPage} /> :
-          <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} />;
+          <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} setEditingEventBillId={setEditingEventBillId} />;
       case 'generate-bill':
         return <GenerateBill navigateTo={setCurrentPage} editingBillId={editingBillId} setEditingBillId={setEditingBillId} gstRates={gstRates} />;
       case 'bill-list':
@@ -709,7 +709,7 @@ function AppContent() {
         return <MyVehicleSalesScreen />;
 
       default:
-        return <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} />;
+        return <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} setEditingEventBillId={setEditingEventBillId} />;
     }
   };
 

@@ -75,7 +75,7 @@ function formatDate(d) {
 import PortalDropdown from '../components/PortalDropdown';
 import CustomSelect from '../components/CustomSelect';
 
-function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookings }) {
+function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, vendors, allBookings }) {
   const [selectedVehicle, setSelectedVehicle] = useState(booking?.vehicle_number || '');
   const [vehicleType, setVehicleType] = useState(booking?.vehicle_type || '');
   const [selectedDriver, setSelectedDriver] = useState(booking?.driver_name || '');
@@ -83,6 +83,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
   const [pickupTime, setPickupTime] = useState(booking?.pickup_time || '');
   const [note, setNote] = useState(booking?.note || '');
   const [ownershipType, setOwnershipType] = useState('All');
+  const [selectedVendor, setSelectedVendor] = useState('');
   const [isGuestVehicle, setIsGuestVehicle] = useState(false);
   const [isGuestDriver, setIsGuestDriver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,9 +93,10 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
     if (!vehicles) return [];
     return vehicles.filter(v => {
       if (ownershipType !== 'All' && v.ownership_type !== ownershipType) return false;
+      if (ownershipType === 'Vendor' && selectedVendor && v.owner_name !== selectedVendor) return false;
       return true;
     });
-  }, [vehicles, ownershipType]);
+  }, [vehicles, ownershipType, selectedVendor]);
 
   // Filter drivers based on availability
   const filteredDrivers = React.useMemo(() => {
@@ -164,6 +166,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
                 setOwnershipType(val);
                 setSelectedVehicle('');
                 setVehicleType('');
+                setSelectedVendor('');
               }}
               options={[
                 { value: 'All', label: 'All' },
@@ -172,6 +175,25 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, allBookin
               ]}
             />
           </div>
+
+          {ownershipType === 'Vendor' && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-400 uppercase flex items-center gap-1.5">
+                <Users className="h-3 w-3" /> Select Vendor
+              </label>
+              <CustomSelect
+                value={selectedVendor}
+                onChange={(val) => {
+                  setSelectedVendor(val);
+                  setSelectedVehicle('');
+                  setVehicleType('');
+                }}
+                options={(vendors || []).map(v => ({ value: v.name, label: v.name }))}
+                placeholder="-- Select Vendor --"
+                searchable={true}
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-1.5">
@@ -353,7 +375,7 @@ function CloseBookingModal({ booking, onClose, onSave }) {
       }
 
       const hours = diffHr + (diffMin / 60);
-      setWorkingHours(Math.ceil(hours) + 1); // Add 1 additional hour as requested
+      setWorkingHours(Math.ceil(hours) + 2); // Add 2 additional hours as requested
     }
   }, [closeTime, booking?.pickup_time]);
 
@@ -408,7 +430,7 @@ function CloseBookingModal({ booking, onClose, onSave }) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400 uppercase">Working Hours (+1 hr)</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase">Working Hours (+2 hr)</label>
               <input
                 type="number"
                 min="0"
@@ -689,10 +711,11 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
 }
 
 
-export default function Dashboard({ navigateTo, theme, setTheme, setEditingBookingId, setViewingBillId }) {
+export default function Dashboard({ navigateTo, theme, setTheme, setEditingBookingId, setViewingBillId, setEditingEventBillId }) {
   const confirm = useConfirm();
   const [stats, setStats] = useState({ totalSalesAmount: 0, totalPurchaseAmount: 0, totalEntities: 0, upcomingCount: 0 });
   const [allBookings, setAllBookings] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [eventBills, setEventBills] = useState([]);
   const [availableVehicles, setAvailableVehicles] = useState([]);
   const [availableDrivers, setAvailableDrivers] = useState([]);
@@ -768,6 +791,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
 
       setAvailableVehicles(vehiclesRes.data);
       setAvailableDrivers(driversRes.data);
+      setVendors((entitiesRes.data || []).filter(c => c.entity_type && c.entity_type.toLowerCase() === 'vendor'));
       setPlans(plansRes.data);
       setEventBills(eventBillsRes.data || []);
 
@@ -927,6 +951,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
           onSave={handleSaveAllotment}
           vehicles={availableVehicles}
           drivers={availableDrivers}
+          vendors={vendors}
           allBookings={allBookings}
         />
       )}
@@ -1120,6 +1145,9 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                           <span className="text-sm font-black text-slate-50">{ev.event_name}</span>
                           <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">#{ev.bill_no}</span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColor}`}>{ev.status}</span>
+                          {evBookings.length > 0 && evBookings.every(b => b.booking_status === 'Completed' || b.booking_status === 'Cancelled') && (
+                            <span className="text-[10px] font-bold text-slate-300 bg-slate-700/50 border border-slate-600 px-2 py-0.5 rounded-full uppercase tracking-wider">Event Closed</span>
+                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
                           <span className="flex items-center gap-1"><User className="h-3 w-3 text-slate-500" />{ev.client_name}</span>
@@ -1176,6 +1204,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                 <th className="px-4 py-2">Driver</th>
                                 <th className="px-4 py-2 text-right">Rate</th>
                                 <th className="px-4 py-2 text-center">Status</th>
+                                <th className="px-4 py-2 text-center">Action</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/60">
@@ -1213,6 +1242,111 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                     </td>
                                     <td className="px-4 py-2.5 text-center">
                                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${bStatusColor}`}>{b.booking_status}</span>
+                                    </td>
+                                    <td className="px-4 py-2.5 text-center relative">
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const rect = e.currentTarget.getBoundingClientRect();
+                                          setDropdownPos({ top: rect.bottom, right: window.innerWidth - rect.right });
+                                          setOpenDropdownId(openDropdownId === b.id ? null : b.id);
+                                        }}
+                                        className="p-1.5 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-slate-200 transition-colors"
+                                      >
+                                        <MoreVertical className="h-4 w-4" />
+                                      </button>
+                                      
+                                      {openDropdownId === b.id && createPortal(
+                                        <div className="fixed inset-0 z-[9999]" onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); }}>
+                                          <div 
+                                            onClick={(e) => e.stopPropagation()}
+                                            style={{
+                                              position: 'fixed',
+                                              top: dropdownPos.top + 4,
+                                              right: dropdownPos.right
+                                            }}
+                                            className="w-52 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-1.5 text-left animate-in fade-in zoom-in-95 duration-100 origin-top-right"
+                                          >
+                                            
+                                            <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setSelectedBooking(b); }} 
+                                              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors">
+                                              <FileText className="h-4 w-4 text-slate-400" />
+                                              <span className="font-medium">Details</span>
+                                            </button>
+
+                                            {b.booking_status === 'Unconfirmed' && (
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleConfirmBooking(b.id); }} 
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 rounded-lg transition-colors mt-0.5">
+                                                <CheckCircle className="h-4 w-4" />
+                                                <span className="font-medium">Confirm duty</span>
+                                              </button>
+                                            )}
+                                            
+                                            {b.booking_status === 'Confirmed' && (
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleUnconfirmBooking(b.id); }} 
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 rounded-lg transition-colors mt-0.5">
+                                                <RotateCcw className="h-4 w-4" />
+                                                <span className="font-medium">Unconfirm duty</span>
+                                              </button>
+                                            )}
+                                            
+                                            {b.booking_status === 'Dispatched' && (
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setCloseBookingId(b.id); setCloseModalOpen(true); }} 
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 rounded-lg transition-colors mt-0.5">
+                                                <CheckSquare className="h-4 w-4" />
+                                                <span className="font-medium">Close duty</span>
+                                              </button>
+                                            )}
+                                            
+                                            {b.booking_status !== 'Cancelled' && (
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }} 
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
+                                                <FileText className="h-4 w-4" />
+                                                <span className="font-medium">View/Download Bill PDF</span>
+                                              </button>
+                                            )}
+
+                                            {!['Completed', 'Cancelled', 'Dispatched'].includes(b.booking_status) && (
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} 
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
+                                                <UserPlus className="h-4 w-4" />
+                                                <span className="font-medium">Allot duty</span>
+                                              </button>
+                                            )}
+                                            
+                                            <button onClick={(e) => { 
+                                              e.stopPropagation(); 
+                                              setOpenDropdownId(null); 
+                                              if (setEditingBookingId) setEditingBookingId(b.id); 
+                                              navigateTo('booking-screen'); 
+                                            }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors mt-0.5">
+                                              <Edit2 className="h-4 w-4 text-slate-400" />
+                                              <span className="font-medium">Edit duty</span>
+                                            </button>
+                                            
+                                            <button onClick={(e) => {
+                                              e.stopPropagation();
+                                              setOpenDropdownId(null);
+                                              setPrintingBooking(b);
+                                            }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors mt-0.5">
+                                              <Printer className="h-4 w-4 text-slate-400" />
+                                              <span className="font-medium">Print duty slip</span>
+                                            </button>
+
+                                            {!['Cancelled', 'Completed'].includes(b.booking_status) && (
+                                              <>
+                                                <div className="h-px bg-slate-700/50 my-1.5 mx-1" />
+                                                <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleCancelBooking(b.id); }} 
+                                                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-lg transition-colors">
+                                                  <Ban className="h-4 w-4" />
+                                                  <span className="font-medium">Cancel Duty</span>
+                                                </button>
+                                              </>
+                                            )}
+                                          </div>
+                                        </div>,
+                                        document.body
+                                      )}
                                     </td>
                                   </tr>
                                 );
@@ -1456,7 +1590,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                   </button>
                                 )}
                                 
-                                {b.booking_status === 'Completed' && (
+                                {b.booking_status !== 'Cancelled' && (
                                   <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }} 
                                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
                                     <FileText className="h-4 w-4" />
@@ -1579,7 +1713,9 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                       fetchAll();
                     } catch (err) {
                       console.error("Payment update failed", err);
-                      alert("Failed to update payment");
+                      const detail = err.response?.data?.detail;
+                      const msg = typeof detail === 'string' ? detail : JSON.stringify(detail || err.message);
+                      alert("Failed to update payment: " + msg);
                     }
                     setPaymentIsSubmitting(false);
                   }}

@@ -253,6 +253,20 @@ def sync_provisional_bills(booking_doc, user_email: str):
         extra_hours = max(0.0, working_hours - base_hours)
         extra_hours_rate = float(plan.get("extra_hours_rate") or 0.0)
         extra_hours_charge = extra_hours * extra_hours_rate
+    else:
+        base_rate = float(booking_doc.get("rate") or 0.0)
+        da_allowance = float(booking_doc.get("da_allowance") or 0.0)
+        night_allowance = float(booking_doc.get("night_allowance") or 0.0)
+        plan_name = "Event Plan"
+        
+        base_km = float(booking_doc.get("base_km") or 0.0)
+        base_hours = float(booking_doc.get("base_hours") or 0.0)
+        extra_km = max(0.0, end_km - base_km)
+        extra_km_rate = float(booking_doc.get("extra_km_rate") or 0.0)
+        extra_km_charge = extra_km * extra_km_rate
+        extra_hours = max(0.0, working_hours - base_hours)
+        extra_hours_rate = float(booking_doc.get("extra_hours_rate") or 0.0)
+        extra_hours_charge = extra_hours * extra_hours_rate
     
     amount_without_gst = base_rate + extra_km_charge + extra_hours_charge + da_allowance + night_allowance
     amount_with_gst = amount_without_gst
@@ -267,9 +281,9 @@ def sync_provisional_bills(booking_doc, user_email: str):
         "rate": base_rate,
         "date": booking_doc.get("journey_date", ""),
         "total_distance_km": end_km,
-        "extra_km": max(0.0, end_km - (float(plan.get("base_km") or 0) if plan else 0)),
+        "extra_km": extra_km,
         "total_hours": working_hours,
-        "extra_hours": max(0.0, working_hours - (float(plan.get("base_hours") or 0) if plan else 0)),
+        "extra_hours": extra_hours,
         "da_allowance": da_allowance,
         "night_allowance": night_allowance,
         "amount_without_gst": amount_without_gst,
@@ -363,30 +377,38 @@ def sync_provisional_bills(booking_doc, user_email: str):
 
 def generate_bill_for_booking(booking_doc, user_email: str):
     plan_id = booking_doc.get("plan_id")
-    if not plan_id:
-        return
-
-    plan = plans_collection.find_one({"_id": ObjectId(plan_id), "user_email": user_email})
-    if not plan:
+    plan = None
+    if plan_id:
+        plan = plans_collection.find_one({"_id": ObjectId(plan_id), "user_email": user_email})
+        
+    if not plan and not booking_doc.get("event_id"):
         return
 
     end_km = float(booking_doc.get("end_km") or 0.0)
     working_hours = float(booking_doc.get("working_hours") or 0.0)
     
-    base_km = float(plan.get("base_km") or 0.0)
-    base_hours = float(plan.get("base_hours") or 0.0)
-    
+    if plan:
+        base_km = float(plan.get("base_km") or 0.0)
+        base_hours = float(plan.get("base_hours") or 0.0)
+        extra_km_rate = float(plan.get("extra_km_rate") or 0.0)
+        extra_hours_rate = float(plan.get("extra_hours_rate") or 0.0)
+        base_rate = float(plan.get("rate") or 0.0)
+        da_allowance = float(plan.get("da_allowance") or 0.0)
+        night_allowance = float(plan.get("night_allowance") or 0.0)
+    else:
+        base_km = float(booking_doc.get("base_km") or 0.0)
+        base_hours = float(booking_doc.get("base_hours") or 0.0)
+        extra_km_rate = float(booking_doc.get("extra_km_rate") or 0.0)
+        extra_hours_rate = float(booking_doc.get("extra_hours_rate") or 0.0)
+        base_rate = float(booking_doc.get("rate") or 0.0)
+        da_allowance = float(booking_doc.get("da_allowance") or 0.0)
+        night_allowance = float(booking_doc.get("night_allowance") or 0.0)
+        
     extra_km = max(0.0, end_km - base_km)
-    extra_km_rate = float(plan.get("extra_km_rate") or 0.0)
     extra_km_charge = extra_km * extra_km_rate
     
     extra_hours = max(0.0, working_hours - base_hours)
-    extra_hours_rate = float(plan.get("extra_hours_rate") or 0.0)
     extra_hours_charge = extra_hours * extra_hours_rate
-    
-    base_rate = float(plan.get("rate") or 0.0)
-    da_allowance = float(plan.get("da_allowance") or 0.0)
-    night_allowance = float(plan.get("night_allowance") or 0.0)
     
     amount_without_gst = base_rate + extra_km_charge + extra_hours_charge + da_allowance + night_allowance
     
@@ -396,8 +418,8 @@ def generate_bill_for_booking(booking_doc, user_email: str):
         amount_with_gst = round(amount_without_gst * (1 + gst_rate / 100), 2)
     
     table_item = {
-        "plan_id": str(plan["_id"]),
-        "plan_name": plan.get("plan_name", ""),
+        "plan_id": str(plan["_id"]) if plan else "",
+        "plan_name": plan.get("plan_name", "") if plan else "Event Plan",
         "rate": base_rate,
         "date": booking_doc.get("journey_date", ""),
         "total_distance_km": end_km,

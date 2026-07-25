@@ -15,7 +15,7 @@ export default function AddPlan({ navigateTo }) {
   const [formData, setFormData] = useState({
     plan_name: '',
     rate: '',
-    vehicle_type: 'Sedan',
+    vehicle_type: '',
     extra_km_rate: '',
     extra_hours_rate: '',
     plan_type: 'Local',
@@ -65,6 +65,10 @@ export default function AddPlan({ navigateTo }) {
 
   const validate = () => {
     const tempErrors = {};
+
+    if (!formData.vehicle_type) {
+      tempErrors.vehicle_type = "Vehicle class is required.";
+    }
 
     if (!formData.plan_name.trim()) {
       tempErrors.plan_name = "Plan name is required.";
@@ -222,6 +226,17 @@ export default function AddPlan({ navigateTo }) {
                   <span className="text-sm font-semibold">Outstation</span>
                 </label>
               </div>
+            </div>
+
+            {/* Vehicle Class */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-400">Vehicle Class <span className="text-rose-500">*</span></label>
+              <CustomSelect
+                options={VEHICLE_TYPES}
+                value={formData.vehicle_type}
+                onChange={(val) => setFormData(p => ({ ...p, vehicle_type: val }))}
+              />
+              {errors.vehicle_type && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.vehicle_type}</p>}
             </div>
 
             {/* Plan Name */}
