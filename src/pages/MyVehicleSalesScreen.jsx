@@ -102,7 +102,7 @@ export default function MyVehicleSalesScreen() {
       fetchData(); // Reload bills to update status
     } catch (err) {
       console.error("Failed to update status:", err);
-      alert("Failed to mark transaction as paid.");
+      alert(`Failed to mark transaction as paid. Error: ${err.response?.data?.detail || err.message}`);
     }
   };
 

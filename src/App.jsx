@@ -143,6 +143,12 @@ function AppContent() {
   const confirm = useConfirm();
   const { user, isLoggedIn, authLoading, logout, hasPermission } = useAuth();
   const [authRoute, setAuthRoute] = useState('landing'); // 'landing' | 'login' | 'register'
+  const [authParams, setAuthParams] = useState({});
+
+  const handleAuthNavigate = (route, params = {}) => {
+    setAuthRoute(route);
+    setAuthParams(params);
+  };
 
   const [vendorForPayment, setVendorForPayment] = useState(null);
   const [customerForReceivedPayment, setCustomerForReceivedPayment] = useState(null);
@@ -727,9 +733,10 @@ function AppContent() {
 
   // Auth pages — shown when not logged in
   if (!isLoggedIn) {
-    if (authRoute === 'login') return <LoginPage onNavigate={setAuthRoute} />;
-    if (authRoute === 'register') return <RegisterPage onNavigate={setAuthRoute} />;
-    return <LandingPage onNavigate={setAuthRoute} />;
+    if (authLoading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>;
+    if (authRoute === 'login') return <LoginPage onNavigate={handleAuthNavigate} />;
+    if (authRoute === 'register') return <RegisterPage onNavigate={handleAuthNavigate} selectedPlan={authParams.plan_id || 'free'} />;
+    return <LandingPage onNavigate={handleAuthNavigate} />;
   }
 
   // Filter menu by role
@@ -767,7 +774,12 @@ function AppContent() {
             )}
             <div className="min-w-0">
               <span className="font-extrabold text-slate-50 text-md tracking-tight block truncate">{user?.businessName || 'My Business'}</span>
-              <span className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase block">Rental System</span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase block">Rental System</span>
+                {user?.plan_status === 'trial' && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-widest leading-none">Trial</span>
+                )}
+              </div>
             </div>
           </div>
           <button

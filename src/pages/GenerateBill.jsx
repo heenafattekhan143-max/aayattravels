@@ -14,11 +14,13 @@ import {
   Check,
   Search,
   Calculator,
-  Sparkles
+  Sparkles,
+  Edit
 } from 'lucide-react';
 import CustomDatePicker from '../components/CustomDatePicker';
 import CustomSelect from '../components/CustomSelect';
 import PortalDropdown from '../components/PortalDropdown';
+import RowModal from '../components/RowModal';
 import { convertNumberToWords } from '../utils/numberToWords';
 
 export default function GenerateBill({ navigateTo, editingBillId, setEditingBillId, gstRates = [0, 5, 12, 18] }) {
@@ -57,8 +59,12 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const [rowPlanSearch, setRowPlanSearch] = useState({}); // rowIdx -> search term
   const [showPlanDropdown, setShowPlanDropdown] = useState({}); // rowIdx -> bool
+
+  // Modal State
+  const [isRowModalOpen, setIsRowModalOpen] = useState(false);
+  const [editingRowIndex, setEditingRowIndex] = useState(null);
+  const [currentRowData, setCurrentRowData] = useState(null);
 
   // Purchase Plan (vendor plan) dropdown state
   const [purchasePlanSearch, setPurchasePlanSearch] = useState('');
@@ -66,29 +72,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
   const [showPurchasePlanDropdown, setShowPurchasePlanDropdown] = useState(false);
 
   // Table items state
-  const [tableItems, setTableItems] = useState([
-    {
-      plan_id: '',
-      plan_name: '',
-      plan_type: '',
-      vehicle_number: '',
-      date: new Date().toISOString().split('T')[0],
-      total_distance_km: 0,
-      extra_km: 0,
-      total_hours: 0,
-      extra_hours: 0,
-      da_allowance: '',
-      night_allowance: '',
-      rate: 0,
-      extra_km_rate: 0,
-      extra_hours_rate: 0,
-      base_km: 0,
-      base_hours: 0,
-      amount_without_gst: 0,
-      gst_rate: 12, // default 12%
-      amount_with_gst: 0
-    }
-  ]);
+  const [tableItems, setTableItems] = useState([]);
 
   // Footpanel fields
   const [tollAmount, setTollAmount] = useState('');
@@ -314,11 +298,13 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
 
   }, [tableItems, gstEnabled, tollAmount, parkingAmount, billType, selectedPurchasePlan]);
 
-  const addRow = () => {
-    setShowPlanDropdown({}); // Close any open dropdowns
-    setTableItems(prev => [
-      ...prev,
-      {
+  const openRowModal = (index = null) => {
+    if (index !== null) {
+      setEditingRowIndex(index);
+      setCurrentRowData(tableItems[index]);
+    } else {
+      setEditingRowIndex(null);
+      setCurrentRowData({
         plan_id: '',
         plan_name: '',
         plan_type: '',
@@ -335,48 +321,53 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         base_km: 0,
         base_hours: 0,
         amount_without_gst: 0,
-        gst_rate: 12,
-        amount_with_gst: 0
-      }
-    ]);
+        gst_rate: 5,
+        amount_with_gst: 0,
+        vehicle_number: ''
+      });
+    }
+    setIsRowModalOpen(true);
+  };
+
+  const saveRowModal = (data) => {
+    if (editingRowIndex !== null) {
+      setTableItems(prev => {
+        const next = [...prev];
+        next[editingRowIndex] = data;
+        return next;
+      });
+    } else {
+      setTableItems(prev => [...prev, data]);
+    }
+    setIsRowModalOpen(false);
+    setEditingRowIndex(null);
+    setCurrentRowData(null);
   };
 
   const removeRow = (index) => {
-    if (tableItems.length === 1) return; // Keep at least 1 row
     setTableItems(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleRowChange = (index, field, value) => {
+  // Inline edit helper — updates a field in a row and recalculates amounts
+  const updateTableItemField = (idx, field, value) => {
     setTableItems(prev => {
       const next = [...prev];
-      next[index] = {
-        ...next[index],
-        [field]: value
-      };
+      const row = { ...next[idx], [field]: value };
+      const baseRate = parseFloat(row.rate) || 0;
+      const extraKmR = parseFloat(row.extra_km_rate) || 0;
+      const extraHrR = parseFloat(row.extra_hours_rate) || 0;
+      const extraKm = parseFloat(row.extra_km) || 0;
+      const extraHrs = parseFloat(row.extra_hours) || 0;
+      const da = parseFloat(row.da_allowance) || 0;
+      const night = parseFloat(row.night_allowance) || 0;
+      const amtExcl = baseRate + extraKm * extraKmR + extraHrs * extraHrR + da + night;
+      const gstR = parseFloat(row.gst_rate) || 5;
+      const amtIncl = gstEnabled ? amtExcl + amtExcl * (gstR / 100) : amtExcl;
+      row.amount_without_gst = amtExcl;
+      row.amount_with_gst = amtIncl;
+      next[idx] = row;
       return next;
     });
-  };
-
-  const selectPlanForRow = (index, plan) => {
-    setTableItems(prev => {
-      const next = [...prev];
-      next[index] = {
-        ...next[index],
-        plan_id: plan.id,
-        plan_name: plan.plan_name,
-        plan_type: plan.plan_type || '',
-        rate: plan.rate,
-        extra_km_rate: plan.extra_km_rate,
-        extra_hours_rate: plan.extra_hours_rate,
-        base_km: plan.base_km,
-        base_hours: plan.base_hours
-      };
-      return next;
-    });
-
-    // Close dropdown
-    setShowPlanDropdown(prev => ({ ...prev, [index]: false }));
-    setRowPlanSearch(prev => ({ ...prev, [index]: undefined }));
   };
 
   const handleSelectCustomer = (cust) => {
@@ -801,7 +792,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
           </div>
         </div>
 
-        <div className="relative z-40 glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-6" style={{ zIndex: 9999 }}>
+        <div className="relative z-40 glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-6">
           <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
             <Car className="h-5 w-5 text-indigo-400" />
             <h2 className="text-lg font-bold text-slate-50 uppercase tracking-wider text-sm">Part B: Vehicle Details</h2>
@@ -809,7 +800,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Vehicle Number Search */}
-            <div className="space-y-1 relative z-50" ref={vehicleWrapRef} style={{ zIndex: 99999 }}>
+            <div className="space-y-1 relative z-50" ref={vehicleWrapRef}>
               <label className="text-sm font-semibold text-slate-300">Vehicle Number <span className="text-rose-500">*</span></label>
               <div className="relative">
                 <input
@@ -845,7 +836,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
               >
                 {allVehicles
                   .filter(v => {
-                    const matchesSearch = v.vehicle_number.toLowerCase().includes(vehicleSearch.toLowerCase());
+                    const matchesSearch = (v.vehicle_number || '').toLowerCase().includes(vehicleSearch.toLowerCase());
                     const matchesType = billType === 'Purchase' ? v.ownership_type === 'Vendor' : true;
                     return matchesSearch && matchesType;
                   })
@@ -856,7 +847,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                 ) : (
                   allVehicles
                     .filter(v => {
-                      const matchesSearch = v.vehicle_number.toLowerCase().includes(vehicleSearch.toLowerCase());
+                      const matchesSearch = (v.vehicle_number || '').toLowerCase().includes(vehicleSearch.toLowerCase());
                       const matchesType = billType === 'Purchase' ? v.ownership_type === 'Vendor' : true;
                       return matchesSearch && matchesType;
                     })
@@ -923,7 +914,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             ? allCustomers.find(c => c.entity_type === 'vendor' && c.name === selectedVehicle.owner_name)
             : null;
           const vendorFilteredPlans = allPlans.filter(p => {
-            const matchesSearch = p.plan_name.toLowerCase().includes(purchasePlanSearch.toLowerCase());
+            const matchesSearch = (p.plan_name || '').toLowerCase().includes(purchasePlanSearch.toLowerCase());
             // Show plans linked to this vehicle's vendor, OR global plans (no customer_id)
             const matchesVendor = vehicleVendor
               ? (p.customer_id === vehicleVendor.id || !p.customer_id)
@@ -1040,7 +1031,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         </div>
 
         {/* PART C: Dynamic Billing Table (Matrix) */}
-        <div className="relative z-30 glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-4" style={{ zIndex: 1 }}>
+        <div className="relative z-30 glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-4">
           <div className="flex justify-between items-center border-b border-slate-800 pb-3">
             <h2 className="text-lg font-bold text-slate-50 uppercase tracking-wider text-sm flex items-center gap-2">
               <Receipt className="h-5 w-5 text-indigo-400" />
@@ -1048,7 +1039,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             </h2>
             <button
               type="button"
-              onClick={addRow}
+              onClick={() => openRowModal(null)}
               className="flex items-center gap-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-400 text-xs font-bold px-3 py-1.5 rounded-lg transition"
             >
               <Plus className="h-4.5 w-4.5" /> Add Entry Row
@@ -1057,525 +1048,202 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
 
           {/* Mobile view: entry card list (stacked inputs) */}
           <div className="block md:hidden space-y-4">
-            {tableItems.map((item, idx) => {
-              const searchVal = rowPlanSearch[idx] !== undefined ? rowPlanSearch[idx] : item.plan_name;
-              const plansDropdownOpen = !!showPlanDropdown[idx];
-
-              // Filter plans dynamically
-              const filteredPlans = allPlans.filter(p => {
-                const matchesSearch = p.plan_name.toLowerCase().includes(searchVal.toLowerCase());
-                const matchesParty = selectedCustomer
-                  ? (p.customer_id === selectedCustomer.id || !p.customer_id)
-                  : true;
-                return matchesSearch && matchesParty;
-              });
-
-              return (
-                <div key={idx} className="glass-panel p-4 rounded-xl border border-slate-700/40 bg-slate-950/20 space-y-3 relative">
-
-                  {/* Card Header */}
-                  <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
-                    <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Ledger Entry #{idx + 1}</span>
-                    <button
-                      type="button"
-                      disabled={tableItems.length === 1}
-                      onClick={() => removeRow(idx)}
-                      className="text-rose-500 hover:bg-rose-500/10 p-1.5 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
-                      title="Remove Row"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  {/* Plan search dropdown */}
-                  <div className="space-y-1 relative plan-dropdown-container z-50">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Description (Plan)</label>
-                    <input
-                      type="text"
-                      placeholder="Type plan e.g. 8 Hr..."
-                      value={searchVal}
-                      onFocus={() => setShowPlanDropdown(prev => ({ ...prev, [idx]: true }))}
-                      onChange={(e) => {
-                        setRowPlanSearch(prev => ({ ...prev, [idx]: e.target.value }));
-                        if (item.plan_id && e.target.value !== item.plan_name) {
-                          handleRowChange(idx, 'plan_id', '');
-                        }
-                      }}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-500 transition"
-                    />
-                    {plansDropdownOpen && (
-                      <div className="absolute z-50 left-0 right-0 mt-1 bg-[#0f172a] border border-slate-700 rounded-xl max-h-48 overflow-y-auto shadow-[0_10px_40px_rgba(0,0,0,0.8)] divide-y divide-slate-800">
-                        {filteredPlans.length === 0 ? (
-                          <div className="p-2 text-xs text-slate-500 text-center font-medium">No plans matched.</div>
-                        ) : (
-                          filteredPlans.map(plan => (
-                            <div
-                              key={plan.id}
-                              onClick={() => selectPlanForRow(idx, plan)}
-                              className="p-2.5 text-xs text-slate-200 hover:bg-indigo-600/30 hover:text-white cursor-pointer transition flex flex-col gap-1.5"
-                            >
-                              <div className="flex items-baseline gap-1.5 flex-wrap">
-                                <span className="font-bold text-slate-50 leading-tight break-words">{plan.plan_name}</span>
-                                <span className="text-slate-400">({plan.vehicle_type})</span>
-                              </div>
-                              <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center">
-                                  {plan.plan_name.toLowerCase().includes('outstation') || plan.plan_type === 'Outstation' ? (
-                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
-                                      Outstation
-                                    </span>
-                                  ) : (
-                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
-                                      Local
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="font-semibold text-indigo-400 font-mono">₹{plan.rate}</span>
-                              </div>
-                            </div>
-                          ))
-                        )}
+            {tableItems.length === 0 ? (
+              <div className="glass-panel p-8 rounded-xl border border-slate-700/40 bg-slate-950/20 text-center space-y-3">
+                <p className="text-slate-400 text-sm">No billing entries yet.</p>
+                <button
+                  type="button"
+                  onClick={() => openRowModal(null)}
+                  className="text-indigo-400 text-sm font-bold hover:text-indigo-300 transition"
+                >
+                  + Add your first entry
+                </button>
+              </div>
+            ) : (
+              tableItems.map((item, idx) => {
+                return (
+                  <div key={idx} className="glass-panel p-4 rounded-xl border border-slate-700/40 bg-slate-950/20 space-y-3 relative">
+                    <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
+                      <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Ledger Entry #{idx + 1}</span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openRowModal(idx)}
+                          className="text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 p-1.5 rounded-lg transition"
+                          title="Edit Row"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeRow(idx)}
+                          className="text-rose-500 hover:bg-rose-500/10 p-1.5 rounded-lg transition"
+                          title="Remove Row"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* Date & Rate */}
-                  <div className="grid grid-cols-1 gap-3">
-                    {((item.plan_name || '').toLowerCase().includes('outstation') || item.plan_type === 'Outstation') ? (
-                      <div className="space-y-2">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase">Journey Start Date</label>
-                          <CustomDatePicker
-                            value={item.date}
-                            onChange={(dateString) => handleRowChange(idx, 'date', dateString)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-3 pr-8 py-2 text-xs text-slate-100 outline-none cursor-pointer"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase">Journey End Date</label>
-                          <CustomDatePicker
-                            value={item.end_date || item.date}
-                            onChange={(dateString) => handleRowChange(idx, 'end_date', dateString)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-3 pr-8 py-2 text-xs text-slate-100 outline-none cursor-pointer"
-                          />
-                        </div>
-                      </div>
-                    ) : (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Plan</span>
+                      <div className="text-sm font-bold text-slate-200">{item.plan_name || '—'}</div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">Service Date</label>
-                        <CustomDatePicker
-                          value={item.date}
-                          onChange={(dateString) => handleRowChange(idx, 'date', dateString)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-3 pr-8 py-2 text-xs text-slate-100 outline-none cursor-pointer"
-                        />
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Vehicle No.</span>
+                        <div className="text-xs font-mono text-slate-300">{item.vehicle_number || '—'}</div>
                       </div>
-                    )}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Vehicle No.</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. MH15"
-                        value={item.vehicle_number}
-                        onChange={(e) => handleRowChange(idx, 'vehicle_number', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-500 transition"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Base Rate (₹)</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 1500"
-                        value={item.rate}
-                        onChange={(e) => handleRowChange(idx, 'rate', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-500 transition font-semibold text-emerald-300 text-center"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Distance Details: Total Dist & Extra KM */}
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Total Distance (KM)</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 100"
-                        value={item.total_distance_km}
-                        onChange={(e) => handleRowChange(idx, 'total_distance_km', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Extra KM (Autofill)</label>
-                      <input
-                        type="text"
-                        readOnly
-                        value={item.extra_km}
-                        className="w-full bg-slate-950/45 border border-slate-800 text-slate-400 rounded-lg px-3 py-2 text-xs outline-none text-center font-bold"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Hours Details: Total Hours & Extra Hours */}
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Total Hours</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 9"
-                        value={item.total_hours}
-                        onChange={(e) => handleRowChange(idx, 'total_hours', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Extra Hours (Autofill)</label>
-                      <input
-                        type="text"
-                        readOnly
-                        value={item.extra_hours}
-                        className="w-full bg-slate-950/45 border border-slate-800 text-slate-400 rounded-lg px-3 py-2 text-xs outline-none text-center font-bold"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Allowances: DA & Night */}
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">DA Allowance (₹)</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 300"
-                        value={item.da_allowance}
-                        onChange={(e) => handleRowChange(idx, 'da_allowance', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center font-semibold text-amber-300"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Night Allowance (₹)</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 200"
-                        value={item.night_allowance}
-                        onChange={(e) => handleRowChange(idx, 'night_allowance', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center font-semibold text-purple-300"
-                      />
-                    </div>
-                  </div>
-
-                  {/* GST settings & Calculations */}
-                  <div className="border-t border-slate-800/80 pt-3 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Excl. GST Amount:</span>
-                      <span className="text-xs text-slate-300 font-bold font-mono">₹{(item.amount_without_gst || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">GST Rate:</span>
-                      <div className="w-24">
-                        <CustomSelect
-                          disabled={!gstEnabled}
-                          value={item.gst_rate}
-                          onChange={(val) => handleRowChange(idx, 'gst_rate', val)}
-                          options={gstRates.map(rate => ({ value: rate, label: `${rate}%` }))}
-                        />
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date</span>
+                        <div className="text-xs text-slate-300">{item.date} {item.end_date ? `to ${item.end_date}` : ''}</div>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dist / Extra</span>
+                        <div className="text-xs text-slate-300">{item.total_distance_km}km / <span className="text-rose-400">{item.extra_km}km</span></div>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Hrs / Extra</span>
+                        <div className="text-xs text-slate-300">{item.total_hours}h / <span className="text-rose-400">{item.extra_hours}h</span></div>
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-start pt-1 border-t border-slate-900">
-                      <div>
-                        <span className="text-[10px] font-bold text-indigo-400 uppercase">Incl. GST:</span>
-                        {gstEnabled && item.amount_with_gst > item.amount_without_gst && (
-                          <div className="text-[9px] text-slate-500 font-medium leading-normal mt-0.5">
-                            CGST ({(item.gst_rate / 2)}%): ₹{((item.amount_with_gst - item.amount_without_gst) / 2).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            <br />
-                            SGST ({(item.gst_rate / 2)}%): ₹{((item.amount_with_gst - item.amount_without_gst) / 2).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </div>
-                        )}
+                    {/* GST settings & Calculations */}
+                    <div className="border-t border-slate-800/80 pt-3 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Excl. GST:</span>
+                        <span className="text-xs text-slate-300 font-bold font-mono">₹{(item.amount_without_gst || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
-                      <span className="text-xs text-indigo-400 font-extrabold font-mono">₹{(item.amount_with_gst || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+
+                      <div className="flex justify-between items-start pt-1 border-t border-slate-900">
+                        <div>
+                          <span className="text-[10px] font-bold text-indigo-400 uppercase">Incl. GST ({item.gst_rate}%):</span>
+                        </div>
+                        <span className="text-xs text-indigo-400 font-extrabold font-mono">₹{(item.amount_with_gst || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {/* Desktop view: overflow table (scrollable) */}
           <div className="hidden md:block overflow-x-auto pb-8">
-            <table className="w-full text-left border-collapse min-w-[1200px]">
-              <colgroup>
-                <col style={{ width: '200px' }} />
-                <col style={{ width: '100px' }} />
-                <col style={{ width: '90px' }} />
-                <col style={{ width: '150px' }} />
-                <col style={{ width: '100px' }} />
-                <col style={{ width: '80px' }} />
-                <col style={{ width: '90px' }} />
-                <col style={{ width: '80px' }} />
-                <col style={{ width: '90px' }} />
-                <col style={{ width: '110px' }} />
-                <col style={{ width: '44px' }} />
-              </colgroup>
+            <table className="w-full text-left border-collapse min-w-[950px]">
+
               <thead>
                 <tr className="border-b border-slate-700 text-slate-400 text-[11px] font-semibold uppercase tracking-wider bg-table-header">
-                  <th className="p-2 align-bottom">Description (Plan)</th>
-                  <th className="p-2 align-bottom">Vehicle No.</th>
-                  <th className="p-2 align-bottom text-center">Rate</th>
-                  <th className="p-2 align-bottom">Date</th>
-                  <th className="p-2 leading-tight align-bottom text-center">Total Dist<br />(KM)</th>
-                  <th className="p-2 leading-tight align-bottom text-center">Extra<br />KM</th>
-                  <th className="p-2 leading-tight align-bottom text-center">Total<br />Hours</th>
-                  <th className="p-2 leading-tight align-bottom text-center">Extra<br />Hours</th>
-                  <th className="p-2 leading-tight align-bottom text-center">DA<br />(₹)</th>
-                  <th className="p-2 leading-tight align-bottom text-center">Night<br />Allowance</th>
-                  <th className="p-2 text-center align-bottom"></th>
+                  <th className="px-2 py-1.5 align-middle">Description (Plan)</th>
+                  <th className="px-2 py-1.5 align-middle text-center">Vehicle No.</th>
+                  <th className="px-2 py-1.5 align-middle text-center">Date</th>
+                  <th className="px-2 py-1.5 align-middle text-center">Rate</th>
+                  <th className="px-2 py-1.5 align-middle text-center">Distance (KM)</th>
+                  <th className="px-2 py-1.5 align-middle text-center">Extra KM</th>
+                  <th className="px-2 py-1.5 align-middle text-center">Hours</th>
+                  <th className="px-2 py-1.5 align-middle text-center">Extra Hrs</th>
+                  <th className="px-2 py-1.5 align-middle text-center">DA (₹)</th>
+                  <th className="px-2 py-1.5 align-middle text-center">Night Allowance.</th>
+                  <th className="px-2 py-1.5 align-middle text-center"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {tableItems.map((item, idx) => {
-                  const searchVal = rowPlanSearch[idx] !== undefined ? rowPlanSearch[idx] : item.plan_name;
-                  const plansDropdownOpen = !!showPlanDropdown[idx];
-
-                  // Filter plans dynamically
-                  const filteredPlans = allPlans.filter(p => {
-                    const matchesSearch = p.plan_name.toLowerCase().includes(searchVal.toLowerCase());
-                    const matchesParty = selectedCustomer
-                      ? (p.customer_id === selectedCustomer.id || !p.customer_id)
-                      : true;
-                    return matchesSearch && matchesParty;
-                  });
-
-                  return (
-                    <React.Fragment key={idx}>
-                      <tr className="hover:bg-slate-800/10 transition border-t border-slate-700/50">
-                        {/* Plan Search Selector */}
-                        <td className="p-3 relative plan-dropdown-container">
-                          <div className="relative">
+                {tableItems.length === 0 ? (
+                  <tr>
+                    <td colSpan="11" className="p-8 text-center text-slate-400 text-sm">
+                      No billing entries yet. Click <span className="font-bold text-indigo-400 cursor-pointer" onClick={() => openRowModal(null)}>+ Add Entry Row</span> to get started.
+                    </td>
+                  </tr>
+                ) : (
+                  tableItems.map((item, idx) => {
+                    const inlineInput = (field, type = 'number', color = 'text-slate-200') => (
+                      <input
+                        type={type}
+                        value={item[field] ?? ''}
+                        onChange={e => updateTableItemField(idx, field, type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)}
+                        className={`w-full bg-transparent border-b border-transparent hover:border-slate-600 focus:border-indigo-400 outline-none text-center text-xs py-0.5 px-1 transition ${color}`}
+                      />
+                    );
+                    return (
+                      <React.Fragment key={idx}>
+                        <tr className="hover:bg-slate-800/10 transition border-t border-slate-700/50">
+                          {/* Plan name - read only display */}
+                          <td className="p-2 text-xs font-semibold text-slate-200 max-w-[180px] break-words">
+                            {item.plan_name || '—'}
+                          </td>
+                          {/* Vehicle No - inline editable */}
+                          <td className="p-1">
+                            {inlineInput('vehicle_number', 'text', 'text-slate-400 font-mono text-[10px]')}
+                          </td>
+                          {/* Date (inline) */}
+                          <td className="p-1 text-center">
                             <input
-                              type="text"
-                              placeholder="Type plan e.g. 8 Hr..."
-                              value={searchVal}
-                              onFocus={() => setShowPlanDropdown(prev => ({ ...prev, [idx]: true }))}
-                              onChange={(e) => {
-                                setRowPlanSearch(prev => ({ ...prev, [idx]: e.target.value }));
-                                if (item.plan_id && e.target.value !== item.plan_name) {
-                                  handleRowChange(idx, 'plan_id', '');
-                                }
-                              }}
-                              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-indigo-500 transition"
+                              type="date"
+                              value={item.date || ''}
+                              onChange={e => updateTableItemField(idx, 'date', e.target.value)}
+                              className="w-full bg-transparent border-b border-transparent hover:border-slate-600 focus:border-indigo-400 outline-none text-center text-[10px] py-0.5 text-slate-300 transition"
                             />
-                          </div>
-
-                          {plansDropdownOpen && (
-                            <div className="absolute z-50 left-3 right-3 mt-1 bg-[#0f172a] border border-slate-700 rounded-lg max-h-48 overflow-y-auto shadow-[0_10px_40px_rgba(0,0,0,0.8)] divide-y divide-slate-800">
-                              {filteredPlans.length === 0 ? (
-                                <div className="p-2 text-xs text-slate-500 text-center font-medium">No plans matched.</div>
-                              ) : (
-                                filteredPlans.map(plan => (
-                                  <div
-                                    key={plan.id}
-                                    onClick={() => selectPlanForRow(idx, plan)}
-                                    className="p-2.5 text-xs text-slate-200 hover:bg-indigo-600/30 hover:text-white cursor-pointer transition flex flex-col gap-1.5"
-                                  >
-                                    <div className="flex items-baseline gap-1.5 flex-wrap">
-                                      <span className="font-bold text-slate-50 leading-tight break-words">{plan.plan_name}</span>
-                                      <span className="text-slate-400">({plan.vehicle_type})</span>
-                                    </div>
-                                    <div className="flex items-center justify-between w-full">
-                                      <div className="flex items-center">
-                                        {plan.plan_name.toLowerCase().includes('outstation') || plan.plan_type === 'Outstation' ? (
-                                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
-                                            Outstation
-                                          </span>
-                                        ) : (
-                                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
-                                            Local
-                                          </span>
-                                        )}
-                                      </div>
-                                      <span className="font-semibold text-indigo-400 font-mono">₹{plan.rate}</span>
-                                    </div>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Vehicle No */}
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            placeholder="e.g. MH15"
-                            value={item.vehicle_number}
-                            onChange={(e) => handleRowChange(idx, 'vehicle_number', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-indigo-500 transition"
-                          />
-                        </td>
-
-                        {/* Rate */}
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            placeholder="e.g. 1500"
-                            value={item.rate}
-                            onChange={(e) => handleRowChange(idx, 'rate', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center font-semibold text-emerald-300"
-                          />
-                        </td>
-
-                        {/* Row Date */}
-                        <td className="p-2 flex flex-col gap-1.5 justify-center h-full">
-                          {((item.plan_name || '').toLowerCase().includes('outstation') || item.plan_type === 'Outstation') ? (
-                            <>
-                              <div className="flex items-center gap-1">
-                                <span className="text-[9px] text-slate-500 font-bold uppercase w-8">Start</span>
-                                <CustomDatePicker
-                                  value={item.date}
-                                  onChange={(dateString) => handleRowChange(idx, 'date', dateString)}
-                                  className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-[10px] text-slate-100 outline-none cursor-pointer min-w-0"
-                                />
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-[9px] text-slate-500 font-bold uppercase w-8">End</span>
-                                <CustomDatePicker
-                                  value={item.end_date || item.date}
-                                  onChange={(dateString) => handleRowChange(idx, 'end_date', dateString)}
-                                  className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-[10px] text-slate-100 outline-none cursor-pointer min-w-0"
-                                />
-                              </div>
-                            </>
-                          ) : (
-                            <CustomDatePicker
-                              value={item.date}
-                              onChange={(dateString) => handleRowChange(idx, 'date', dateString)}
-                              className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-2 pr-8 py-1.5 text-xs text-slate-100 outline-none cursor-pointer mt-2"
-                            />
-                          )}
-                        </td>
-
-                        {/* Total Distance */}
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            placeholder="e.g. 100"
-                            value={item.total_distance_km}
-                            onChange={(e) => handleRowChange(idx, 'total_distance_km', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center"
-                          />
-                        </td>
-
-                        {/* Extra KM (Autofill) */}
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            readOnly
-                            value={item.extra_km}
-                            className="w-full bg-slate-950/40 border border-slate-800 text-slate-400 rounded-lg px-2 py-1.5 text-xs outline-none text-center font-bold"
-                          />
-                        </td>
-
-                        {/* Total Hours */}
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            placeholder="e.g. 9"
-                            value={item.total_hours}
-                            onChange={(e) => handleRowChange(idx, 'total_hours', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center"
-                          />
-                        </td>
-
-                        {/* Extra Hours (Autofill) */}
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            readOnly
-                            value={item.extra_hours}
-                            className="w-full bg-slate-950 border border-slate-800 text-slate-400 rounded-lg px-2 py-1.5 text-xs outline-none text-center font-bold"
-                          />
-                        </td>
-
-                        {/* DA Allowance */}
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            placeholder="e.g. 300"
-                            value={item.da_allowance}
-                            onChange={(e) => handleRowChange(idx, 'da_allowance', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center font-semibold text-amber-300"
-                          />
-                        </td>
-
-                        {/* Night Allowance */}
-                        <td className="p-3">
-                          <input
-                            type="text"
-                            placeholder="e.g. 200"
-                            value={item.night_allowance}
-                            onChange={(e) => handleRowChange(idx, 'night_allowance', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-indigo-500 transition text-center font-semibold text-purple-300"
-                          />
-                        </td>
-
-                        {/* Delete Action */}
-                        <td className="p-3 text-center" rowSpan="2">
-                          <button
-                            type="button"
-                            disabled={tableItems.length === 1}
-                            onClick={() => removeRow(idx)}
-                            className="text-rose-500 hover:bg-rose-500/10 p-1.5 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
-                            title="Remove Row"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
-                      <tr className="hover:bg-slate-800/10 transition border-b border-slate-700/50 bg-slate-900/20">
-                        <td colSpan="6" className="p-3 text-right text-xs text-slate-500 font-medium tracking-wide">
-                          Calculations &rarr;
-                        </td>
-
-                        {/* Total Amount without GST */}
-                        <td className="p-2 text-right text-slate-300 font-bold font-mono border-l border-slate-800/50 text-xs whitespace-nowrap">
-                          Excl. GST: ₹{(item.amount_without_gst || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </td>
-
-                        {/* GST Selector */}
-                        <td className="p-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-400 font-bold">GST:</span>
-                            <div className="w-24">
-                              <CustomSelect
-                                disabled={!gstEnabled}
-                                value={item.gst_rate}
-                                onChange={(val) => handleRowChange(idx, 'gst_rate', val)}
-                                options={gstRates.map(rate => ({ value: rate, label: `${rate}%` }))}
-                                placement="top"
-                              />
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Total Amount with GST */}
-                        <td className="p-2 text-right whitespace-nowrap">
-                          <div className="flex flex-col justify-center items-end">
+                          </td>
+                          {/* Rate (inline) */}
+                          <td className="p-1">{inlineInput('rate', 'number', 'text-emerald-300 font-semibold')}</td>
+                          {/* Total Distance */}
+                          <td className="p-1">{inlineInput('total_distance_km', 'number', 'text-slate-300')}</td>
+                          {/* Extra KM */}
+                          <td className="p-1">{inlineInput('extra_km', 'number', 'text-rose-400 font-bold')}</td>
+                          {/* Total Hours */}
+                          <td className="p-1">{inlineInput('total_hours', 'number', 'text-slate-300')}</td>
+                          {/* Extra Hours */}
+                          <td className="p-1">{inlineInput('extra_hours', 'number', 'text-rose-400 font-bold')}</td>
+                          {/* DA Allowance */}
+                          <td className="p-1">{inlineInput('da_allowance', 'number', 'text-amber-300 font-semibold')}</td>
+                          {/* Night Allowance */}
+                          <td className="p-1">{inlineInput('night_allowance', 'number', 'text-purple-300 font-semibold')}</td>
+                          {/* Actions */}
+                          <td className="p-2 text-center" rowSpan="2">
+                            <button
+                              type="button"
+                              onClick={() => removeRow(idx)}
+                              className="text-rose-500 hover:bg-rose-500/10 p-1.5 rounded-lg transition"
+                              title="Remove Row"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                        <tr className="border-b border-slate-700/50 bg-slate-900/20">
+                          <td colSpan="5" className="p-2 text-right text-xs text-slate-500 font-medium tracking-wide">
+                            Calculations →
+                          </td>
+                          {/* Total Amount without GST */}
+                          <td className="p-2 text-right text-slate-300 font-bold font-mono border-l border-slate-800/50 text-xs whitespace-nowrap">
+                            Excl. GST: ₹{(item.amount_without_gst || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                          {/* GST Rate inline */}
+                          <td className="p-1">
+                            <select
+                              value={item.gst_rate || 5}
+                              onChange={e => updateTableItemField(idx, 'gst_rate', parseFloat(e.target.value))}
+                              className="bg-slate-900 border border-slate-700 rounded text-xs text-slate-300 px-1 py-0.5 outline-none focus:border-indigo-400"
+                            >
+                              <option value={0}>0%</option>
+                              <option value={5}>5%</option>
+                              <option value={12}>12%</option>
+                              <option value={18}>18%</option>
+                              <option value={28}>28%</option>
+                            </select>
+                          </td>
+                          {/* Total Amount with GST */}
+                          <td colSpan="2" className="p-2 text-right whitespace-nowrap">
                             <span className="text-indigo-400 font-bold font-mono text-xs">
                               Incl. GST: ₹{(item.amount_with_gst || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </span>
-                            {gstEnabled && item.amount_with_gst > item.amount_without_gst && (
-                              <div className="text-[10px] text-slate-500 font-medium mt-1 leading-tight text-right border-t border-slate-800/50 pt-1 w-fit">
-                                CGST ({(item.gst_rate / 2)}%): ₹{((item.amount_with_gst - item.amount_without_gst) / 2).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                <br />
-                                SGST ({(item.gst_rate / 2)}%): ₹{((item.amount_with_gst - item.amount_without_gst) / 2).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  );
-                })}
+                          </td>
+                        </tr>
+                      </React.Fragment>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -1681,6 +1349,17 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         </div>
 
       </form>
+
+      <RowModal
+        isOpen={isRowModalOpen}
+        onClose={() => setIsRowModalOpen(false)}
+        onSave={saveRowModal}
+        initialData={currentRowData}
+        gstEnabled={gstEnabled}
+        allPlans={allPlans}
+        selectedCustomer={selectedCustomer}
+        gstRates={gstRates}
+      />
     </div>
   );
 }

@@ -20,6 +20,7 @@ class UserRegister(BaseModel):
     gstin: Optional[str] = ""
     logo: Optional[str] = None
     role: Optional[str] = "superadmin"
+    plan_id: Optional[str] = "free"
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
@@ -55,6 +56,8 @@ def serialize_user(doc):
         "referral": doc.get("referral"),
         "gstin": doc.get("gstin"),
         "logo": doc.get("logo"),
+        "plan_id": doc.get("plan_id"),
+        "plan_status": doc.get("plan_status"),
     }
 
 @router.post("/register")
@@ -67,6 +70,7 @@ def register(user: UserRegister):
         )
     
     user_dict = user.model_dump()
+    user_dict["plan_status"] = "trial"  # Flag all new registrations as being in a trial state initially
     result = users_collection.insert_one(user_dict)
     
     # Return the user object without password

@@ -33,7 +33,7 @@ const leftPanelStep2 = [
   { icon: CheckCircle,text: 'Setup completes in under 2 minutes' },
 ];
 
-export default function RegisterPage({ onNavigate }) {
+export default function RegisterPage({ onNavigate, selectedPlan = 'free' }) {
   const { register } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -104,7 +104,7 @@ export default function RegisterPage({ onNavigate }) {
     if (err) { setError(err); return; }
     setLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    await register(step1, { ...step2, logoFile });
+    await register(step1, { ...step2, logoFile }, selectedPlan);
   };
 
   const inputCls = "w-full bg-slate-800/60 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 outline-none rounded-xl px-4 py-2.5 text-slate-100 placeholder:text-slate-500 transition text-sm";

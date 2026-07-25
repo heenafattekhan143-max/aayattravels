@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Building2, Phone, Mail, MapPin, Hash, FileImage,
-  Upload, X, Save, CheckCircle, AlertCircle, Info, Shield
+  Upload, X, Save, CheckCircle, AlertCircle, Info, Shield, Zap, Check
 } from 'lucide-react';
+import { pricingPlans, allFeatures } from './auth/LandingPage';
 
 export default function BusinessProfile({ navigateTo }) {
   const { user, updateUser } = useAuth();
@@ -22,7 +23,10 @@ export default function BusinessProfile({ navigateTo }) {
   const [logoFile, setLogoFile] = useState(null);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const logoRef = useRef(null);
+  
+  const currentPlanDetails = pricingPlans.find(p => p.id === (user?.plan_id || 'free'));
 
   useEffect(() => {
     if (user?.logo && !logoFile) {
@@ -87,6 +91,29 @@ export default function BusinessProfile({ navigateTo }) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-16">
+
+      {/* Current Plan Section */}
+      <div className="glass-panel rounded-2xl border border-slate-700/50 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-br from-slate-900 to-indigo-950/20">
+        <div>
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-amber-400" /> Current Plan</h2>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl font-black text-white">{currentPlanDetails?.name || 'Free Trial'}</span>
+            {user?.plan_status === 'trial' && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-widest">Trial Active</span>
+            )}
+          </div>
+          <p className="text-sm text-slate-400 mt-1 max-w-md">
+            {currentPlanDetails?.description || 'Experience the full platform free for 7 days.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowUpgradeModal(true)}
+          className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all whitespace-nowrap w-full sm:w-auto"
+        >
+          Upgrade Plan
+        </button>
+      </div>
 
       {/* Info banner */}
       <div className="flex items-start gap-3 bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-3 text-sm text-blue-300">
@@ -267,6 +294,98 @@ export default function BusinessProfile({ navigateTo }) {
           <Save className="h-4 w-4" /> Save Business Profile
         </button>
       </form>
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-black">
+            {/* Modal Header */}
+            <div className="sticky top-0 z-10 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-50">Upgrade Your Plan</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Choose the plan that fits your business needs.</p>
+              </div>
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-xl transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 sm:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {pricingPlans.map((plan) => {
+                  const colorStyles = {
+                    sky: { border: 'border-sky-500/30', glow: 'shadow-sky-500/15', badge: 'bg-sky-500/20 text-sky-200 border-sky-500/30', btn: 'bg-sky-600 hover:bg-sky-500 shadow-sky-500/30' },
+                    indigo: { border: 'border-indigo-500/30', glow: 'shadow-indigo-500/15', badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30', btn: 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/30' },
+                    violet: { border: 'border-violet-500/50', glow: 'shadow-violet-500/25', badge: 'bg-violet-500/20 text-violet-200 border-violet-500/30', btn: 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-violet-500/40' },
+                    emerald: { border: 'border-emerald-500/30', glow: 'shadow-emerald-500/15', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', btn: 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/30' },
+                  };
+                  const c = colorStyles[plan.color];
+                  const isCurrent = (user?.plan_id || 'free') === plan.id;
+
+                  return (
+                    <div
+                      key={plan.id}
+                      className={`relative flex flex-col rounded-3xl border p-6 transition-all duration-300 ${isCurrent ? `${c.border} bg-slate-800/80 shadow-xl ${c.glow} scale-[1.02] ring-1 ring-slate-700` : `border-slate-800 bg-slate-900/60 hover:border-slate-700`}`}
+                    >
+                      {/* Badge */}
+                      <div className="h-6 mb-4">
+                        {isCurrent ? (
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${c.badge}`}>
+                            <CheckCircle className="h-3 w-3" /> Current Plan
+                          </span>
+                        ) : plan.badge ? (
+                          <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${c.badge}`}>
+                            {plan.badge}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {/* Header */}
+                      <div className="mb-6">
+                        <h3 className="text-xl font-bold text-slate-100 mb-2">{plan.name}</h3>
+                        <div className="flex items-baseline gap-1 mb-3">
+                          <span className="text-4xl font-black text-white">{plan.price}</span>
+                          <span className="text-slate-400 font-medium">/ {plan.period}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 leading-relaxed">{plan.description}</p>
+                      </div>
+
+                      {/* Features */}
+                      <div className="flex-1">
+                        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Includes</div>
+                        <ul className="space-y-3 mb-6">
+                          {plan.features.slice(0, 6).map((feature, idx) => (
+                            <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-300">
+                              <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                              <span className="leading-tight">{feature}</span>
+                            </li>
+                          ))}
+                          {plan.features.length > 6 && (
+                            <li className="text-xs text-slate-500 italic ml-6">+ {plan.features.length - 6} more features</li>
+                          )}
+                        </ul>
+                      </div>
+
+                      {/* Action */}
+                      <button
+                        disabled={isCurrent}
+                        onClick={() => { alert('Payment Gateway Integration Pending'); setShowUpgradeModal(false); }}
+                        className={`w-full py-3 rounded-2xl text-sm font-bold transition-all duration-200 mt-auto ${isCurrent ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : `text-white ${c.btn}`}`}
+                      >
+                        {isCurrent ? 'Active' : 'Choose Plan'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

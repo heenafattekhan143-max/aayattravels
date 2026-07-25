@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (step1Data, step2Data) => {
+  const register = async (step1Data, step2Data, planId = 'free') => {
     // Convert logo file to base64 for localStorage persistence (optional field)
     let logoBase64 = null;
     if (step2Data.logoFile) {
@@ -86,7 +86,8 @@ export function AuthProvider({ children }) {
       referral: step2Data.referral,
       gstin: step2Data.gstin || '',
       logo: logoBase64 || null,
-      role: 'superadmin'
+      role: 'superadmin',
+      plan_id: planId
     };
 
     try {
