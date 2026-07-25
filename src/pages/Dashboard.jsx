@@ -982,47 +982,46 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
 
       {/* ─── FILTER CARD ─── */}
       <div className={`transition-all duration-300 ${showFilters ? 'glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-4 space-y-3 mb-4' : 'mb-0'}`}>
-        {/* Booking Type Toggle — Moved to Header Portal if available */}
-        {document.getElementById('header-actions-portal') ? (
-          createPortal(
-            <div className="flex items-center gap-3">
-              <div className="flex gap-1.5 p-1 bg-slate-900 border border-slate-700/50 rounded-xl w-fit shadow-inner">
-                {['Regular', 'Event'].map(type => (
-                  <button key={type} onClick={() => setBookingTypeFilter(type)}
-                    className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all ${bookingTypeFilter === type ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
-                    {type === 'Regular' ? 'Regular Bookings' : 'Event Bookings'}
-                  </button>
-                ))}
-              </div>
-              <button 
-                onClick={() => setShowFilters(s => !s)}
-                className={`p-1.5 rounded-lg border transition-all ${showFilters ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-slate-200'}`}
-                title="Toggle Filters"
-              >
-                <Filter className="h-4 w-4" />
-              </button>
-            </div>,
-            document.getElementById('header-actions-portal')
-          )
-        ) : (
-          <div className={`flex items-center gap-3 ${!showFilters && 'mb-4'}`}>
-            <div className="flex gap-2 p-1 bg-slate-900 border border-slate-700/50 rounded-xl w-fit">
+        {/* Booking Type Toggle — Moved to Header Portal for Desktop */}
+        {document.getElementById('header-actions-portal') && createPortal(
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="flex gap-1.5 p-1 bg-slate-900 border border-slate-700/50 rounded-xl w-fit shadow-inner">
               {['Regular', 'Event'].map(type => (
                 <button key={type} onClick={() => setBookingTypeFilter(type)}
-                  className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${bookingTypeFilter === type ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all ${bookingTypeFilter === type ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
                   {type === 'Regular' ? 'Regular Bookings' : 'Event Bookings'}
                 </button>
               ))}
             </div>
             <button 
               onClick={() => setShowFilters(s => !s)}
-              className={`p-2 rounded-xl border transition-all ${showFilters ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-slate-200'}`}
+              className={`p-1.5 rounded-lg border transition-all ${showFilters ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-slate-200'}`}
               title="Toggle Filters"
             >
               <Filter className="h-4 w-4" />
             </button>
-          </div>
+          </div>,
+          document.getElementById('header-actions-portal')
         )}
+
+        {/* Mobile Booking Type Toggle */}
+        <div className={`flex sm:hidden items-center gap-3 ${!showFilters ? 'mb-4' : ''}`}>
+          <div className="flex gap-2 p-1 bg-slate-900 border border-slate-700/50 rounded-xl w-fit">
+            {['Regular', 'Event'].map(type => (
+              <button key={`mobile-${type}`} onClick={() => setBookingTypeFilter(type)}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${bookingTypeFilter === type ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>
+                {type === 'Regular' ? 'Regular Bookings' : 'Event Bookings'}
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={() => setShowFilters(s => !s)}
+            className={`p-2 rounded-xl border transition-all ${showFilters ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-slate-200'}`}
+            title="Toggle Filters"
+          >
+            <Filter className="h-4 w-4" />
+          </button>
+        </div>
 
         {showFilters && (
           <div className="space-y-3 animate-fade-in-up">
@@ -1394,15 +1393,26 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                           {isToday && <div className="text-[9px] font-bold text-indigo-400 uppercase">Today</div>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0 relative">
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${bStatusColor}`}>{b.booking_status}</span>
-                        {b.booking_status === 'Dispatched' ? (
-                          <button onClick={(e) => { e.stopPropagation(); setCloseBookingId(b.id); setCloseModalOpen(true); }} className="text-[9px] font-bold px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow border border-emerald-500 transition cursor-pointer">Close</button>
-                        ) : b.booking_status === 'Unconfirmed' ? (
-                          <button onClick={(e) => { e.stopPropagation(); handleConfirmBooking(b.id); }} className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow border border-blue-500 transition cursor-pointer">Confirm</button>
-                        ) : ['Completed', 'Cancelled'].includes(b.booking_status) ? null : (
-                          <button onClick={(e) => { e.stopPropagation(); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow border border-indigo-500 transition cursor-pointer">Allot</button>
-                        )}
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            if (openDropdownId === b.id) {
+                              setOpenDropdownId(null);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setDropdownPos({
+                                top: rect.bottom,
+                                right: window.innerWidth - rect.right
+                              });
+                              setOpenDropdownId(b.id);
+                            }
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-2">
