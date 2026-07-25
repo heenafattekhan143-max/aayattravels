@@ -1134,9 +1134,9 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                   {/* Section Header: Event Details */}
                   <button
                     onClick={() => setExpandedEvents(prev => ({ ...prev, [ev.id]: !isExpanded }))}
-                    className="w-full flex items-start justify-between gap-4 px-5 py-4 bg-slate-800/60 hover:bg-slate-800/80 transition text-left"
+                    className="w-full flex flex-col sm:flex-row items-start justify-between gap-4 px-4 sm:px-5 py-4 bg-slate-800/60 hover:bg-slate-800/80 transition text-left relative"
                   >
-                    <div className="flex items-start gap-4 min-w-0 flex-1">
+                    <div className="flex items-start gap-3 sm:gap-4 min-w-0 w-full sm:w-auto flex-1">
                       <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0 mt-0.5">
                         <Car className="h-5 w-5 text-indigo-400" />
                       </div>
@@ -1165,7 +1165,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-0 border-slate-700/50">
                       {ev.status !== 'Paid' && (
                         <button
                           type="button"
