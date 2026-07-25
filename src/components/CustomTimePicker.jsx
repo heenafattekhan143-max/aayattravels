@@ -62,7 +62,12 @@ export default function CustomTimePicker({
 
   // Prevent scroll detaching
   useEffect(() => {
-    const handleScroll = () => { if (open) setOpen(false); };
+    const handleScroll = (e) => {
+      if (e.target && e.target.closest && e.target.closest('.custom-time-portal')) {
+        return;
+      }
+      if (open) setOpen(false);
+    };
     if (open) window.addEventListener('scroll', handleScroll, true);
     return () => window.removeEventListener('scroll', handleScroll, true);
   }, [open]);

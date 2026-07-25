@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Car, Eye, EyeOff, ArrowRight, Mail, Lock, AlertCircle, CheckCircle, TrendingUp, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -23,6 +23,15 @@ export default function LoginPage({ onNavigate }) {
   const [loading, setLoading] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+
+  useEffect(() => {
+    const wasLight = document.documentElement.classList.contains('light');
+    if (wasLight) document.documentElement.classList.remove('light');
+
+    return () => {
+      if (wasLight) document.documentElement.classList.add('light');
+    };
+  }, []);
 
   const handleChange = (e) => { setFormData(p => ({ ...p, [e.target.name]: e.target.value })); setError(''); };
 

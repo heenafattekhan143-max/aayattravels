@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Car, Eye, EyeOff, ArrowRight, Mail, Lock, User, Phone,
   Building, MapPin, Hash, Globe, CheckCircle, AlertCircle, ChevronDown,
@@ -38,6 +38,15 @@ export default function RegisterPage({ onNavigate }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const wasLight = document.documentElement.classList.contains('light');
+    if (wasLight) document.documentElement.classList.remove('light');
+
+    return () => {
+      if (wasLight) document.documentElement.classList.add('light');
+    };
+  }, []);
   const [verificationSent, setVerificationSent] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [businessTypeOpen, setBusinessTypeOpen] = useState(false);

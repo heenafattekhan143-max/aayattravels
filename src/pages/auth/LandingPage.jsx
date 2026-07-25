@@ -60,9 +60,15 @@ export default function LandingPage({ onNavigate }) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    const wasLight = document.documentElement.classList.contains('light');
+    if (wasLight) document.documentElement.classList.remove('light');
+
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (wasLight) document.documentElement.classList.add('light');
+    };
   }, []);
 
   return (

@@ -66,7 +66,7 @@ const emptyForm = {
   trip_type: 'One Way',
   vehicle_type: '',
   passengers: 1,
-  passenger_details: [],
+  passenger_details: [{ name: '', phone: '', email: '' }],
   advance_amount: '',
   plan_id: '',
   payment_status: 'Pending',
@@ -678,7 +678,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       trip_type: b.trip_type || 'One Way',
       vehicle_type: b.vehicle_type || '',
       passengers: b.passengers || 1,
-      passenger_details: b.passenger_details || [],
+      passenger_details: b.passenger_details?.length > 0 ? b.passenger_details : [{ name: '', phone: '', email: '' }],
       advance_amount: b.advance_amount ?? '',
       plan_id: b.plan_id || '',
       payment_status: b.payment_status || 'Pending',
@@ -769,7 +769,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
   const selectedEntity = entities.find(e => e.phone === formData.customer_phone);
   const selectedCustomerId = selectedEntity ? selectedEntity.id : null;
   const availablePlans = plans;
-  const planOptions = availablePlans.map(p => ({ value: p.id, label: `${p.plan_name} (₹${p.rate})` }));
+  const planOptions = availablePlans.map(p => ({ value: p.id, label: p.plan_name }));
 
   const inputCls = (field) =>
     `w-full bg-slate-950 border ${errors[field] ? 'border-red-500' : 'border-slate-700'} outline-none rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:border-indigo-500 transition placeholder-slate-600`;
@@ -1110,6 +1110,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                           options={planOptions}
                           placeholder="-- Select Package --"
                           searchable={true}
+                          hidePlaceholder={true}
                         />
                       </>
                     )}
