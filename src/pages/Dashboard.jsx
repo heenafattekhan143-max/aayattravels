@@ -523,16 +523,16 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
     ) : null
   );
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4"
       style={{ animation: 'fadeInUp 0.25s ease-out both' }}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal — wider, no scroll */}
-      <div className="relative w-full max-w-5xl flex flex-col bg-slate-900 border border-slate-700/60 rounded-3xl shadow-2xl shadow-black/60 overflow-hidden"
+      {/* Modal — wider, max height, scrollable body */}
+      <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col bg-slate-900 border border-slate-700/60 rounded-3xl shadow-2xl shadow-black/60 overflow-hidden"
         style={{ animation: 'fadeInUp 0.3s ease-out both' }}>
 
         {/* Colored top accent */}
@@ -562,8 +562,8 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
           </button>
         </div>
 
-        {/* Body — 2 column grid, no scroll */}
-        <div className="px-5 py-4 grid grid-cols-2 gap-4">
+        {/* Body — responsive grid, vertical scroll */}
+        <div className="px-5 py-4 grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-y-auto">
 
           {/* ── LEFT COLUMN ── */}
           <div className="space-y-3">
@@ -571,7 +571,7 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
             {/* Section 1: Passenger / Client Info */}
             <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-3.5">
               <SectionTitle icon={User} title="Passenger / Client Info" color="text-indigo-400" />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Client Name" value={b.customer_name} valueClass="text-slate-100 font-bold" />
                 <Field label="Phone" value={b.customer_phone} valueClass="text-indigo-300" mono />
                 <Field label="Booked By" value={b.booked_by_name} valueClass="text-slate-300" />
@@ -594,7 +594,7 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
             {/* Section 2: Trip Details */}
             <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-3.5">
               <SectionTitle icon={Navigation} title="Trip Details" color="text-emerald-400" />
-              <div className="grid grid-cols-3 gap-3 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                 <Field label="Journey Date" value={b.journey_date ? formatDate(b.journey_date) : null} valueClass="text-slate-100 font-bold" />
                 <Field label="Return Date" value={b.return_date ? formatDate(b.return_date) : null} valueClass="text-violet-300" />
                 <Field label="Reporting Time" value={b.pickup_time} valueClass="text-indigo-300" mono />
@@ -632,7 +632,7 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
             {/* Section 3: Vehicle & Driver */}
             <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-3.5">
               <SectionTitle icon={Car} title="Vehicle & Driver" color="text-sky-400" />
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <Field label="Vehicle No." value={b.vehicle_number} valueClass="text-sky-300" mono />
                 <Field label="Vehicle Type" value={b.vehicle_type} valueClass="text-slate-300" />
                 <Field label="Vehicle Class" value={b.vehicle_class} valueClass="text-slate-300" />
@@ -652,7 +652,7 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
                   <span className="text-xs font-bold text-indigo-300 leading-tight">{plan.plan_name}</span>
                 </div>
               )}
-              <div className="grid grid-cols-3 gap-2 mb-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2.5">
                 <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-2.5 text-center">
                   <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Total</div>
                   <div className="text-base font-black text-emerald-400">{amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : '—'}</div>
@@ -666,7 +666,7 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
                   <div className={`text-base font-black ${balanceDue > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>{amount > 0 ? `₹${balanceDue.toLocaleString('en-IN')}` : '—'}</div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {b.da_allowance > 0 && <Field label="DA Allowance" value={`₹${b.da_allowance}`} valueClass="text-slate-300" />}
                 {b.night_allowance > 0 && <Field label="Night Allowance" value={`₹${b.night_allowance}`} valueClass="text-slate-300" />}
                 {b.gst_rate > 0 && <Field label="GST Rate" value={`${b.gst_rate}%`} valueClass="text-slate-300" />}
@@ -706,7 +706,8 @@ function BookingDetailModal({ booking: b, onClose, onCancel, colorMap, STATUS_FI
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -1652,7 +1653,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
 
       {/* ─── PAYMENT MODAL ─── */}
       {paymentModalOpen && paymentEvent && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex justify-center items-center p-4">
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex justify-center items-center p-4">
           <div className="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 animate-in fade-in zoom-in duration-200">
             <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2"><IndianRupee className="h-5 w-5 text-emerald-400" /> Update Payment</h3>
             <div className="space-y-4">
