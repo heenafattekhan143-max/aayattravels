@@ -272,7 +272,7 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
   if (!vendor) return null;
 
   return (
-    <div className="w-full px-6 space-y-6 pb-12">
+    <div className="w-full px-3 sm:px-6 space-y-4 sm:space-y-6 pb-12 min-w-0">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -289,36 +289,36 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
-          <div className="flex items-center gap-2 pl-2 text-slate-400 border-r border-slate-700 pr-3">
+        <div className="flex flex-wrap items-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
+          <div className="flex items-center gap-2 pl-2 text-slate-400 border-r border-slate-700 pr-3 shrink-0">
             <Filter className="h-4 w-4" />
             <span className="text-xs font-semibold uppercase">Date</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-32 relative">
+          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+            <div className="flex-1 sm:w-32 relative">
               <CustomDatePicker 
                 value={startDate} 
                 onChange={setStartDate} 
                 maxDate={endDate}
                 placeholder="Start Date"
-                className="bg-slate-800 text-slate-200 text-sm border-none rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition w-full"
+                className="bg-slate-800 text-slate-200 text-sm border-none rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition w-full min-w-0"
               />
             </div>
-            <span className="text-slate-500 text-sm">to</span>
-            <div className="w-32 relative">
+            <span className="text-slate-500 text-sm shrink-0">to</span>
+            <div className="flex-1 sm:w-32 relative">
               <CustomDatePicker 
                 value={endDate} 
                 onChange={setEndDate} 
                 minDate={startDate}
                 placeholder="End Date"
-                className="bg-slate-800 text-slate-200 text-sm border-none rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition w-full"
+                className="bg-slate-800 text-slate-200 text-sm border-none rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition w-full min-w-0"
               />
             </div>
           </div>
           {(startDate || endDate) && (
             <button 
               onClick={() => { setStartDate(''); setEndDate(''); }}
-              className="text-xs text-rose-400 hover:text-rose-300 ml-1 px-2"
+              className="text-xs text-rose-400 font-bold border border-rose-500/30 px-3 py-1.5 rounded-lg hover:bg-rose-500/10 transition shrink-0"
             >
               Clear
             </button>
@@ -390,13 +390,13 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
         </div>
       </div>
 
-      <div className="glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-xl flex flex-col">
-        <div className="flex items-center gap-2 mb-6">
-          <FileText className="h-5 w-5 text-indigo-400" />
-          <h2 className="text-lg font-bold text-slate-50">Unified Business Ledger</h2>
+      <div className="glass-panel p-3 sm:p-6 rounded-2xl border border-slate-700/50 shadow-xl flex flex-col min-w-0">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
+          <FileText className="h-5 w-5 text-indigo-400 shrink-0" />
+          <h2 className="text-lg font-bold text-slate-50 truncate">Unified Business Ledger</h2>
         </div>
 
-        <div className="bg-slate-950/50 border border-slate-800 rounded-xl overflow-x-auto shadow-inner">
+        <div className="bg-slate-950/50 border border-slate-800 rounded-xl overflow-x-auto shadow-inner w-full">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-900/50 text-xs uppercase tracking-wider text-slate-400 font-semibold">
