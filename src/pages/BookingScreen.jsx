@@ -1088,7 +1088,13 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                                 <div className="text-xs text-slate-400 mt-0.5">{guestPlanDetails.plan_type} Plan</div>
                               </div>
                               <div className="text-right">
-                                <div className="text-sm font-bold text-emerald-400">₹{guestPlanDetails.rate}</div>
+                                <div className="text-sm font-bold text-emerald-400">
+                                  ₹{
+                                    vehicles.find(v => v.vehicle_number === formData.vehicle_number)?.ownership_type === 'Vendor' 
+                                      ? (guestPlanDetails.vendor_rate || guestPlanDetails.rate)
+                                      : (guestPlanDetails.company_rate || guestPlanDetails.rate)
+                                  }
+                                </div>
                                 <div className="text-[10px] text-slate-500 uppercase">Base Rate</div>
                               </div>
                             </div>

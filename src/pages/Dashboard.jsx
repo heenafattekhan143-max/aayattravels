@@ -993,7 +993,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                 </button>
               ))}
             </div>
-            <button 
+            <button
               onClick={() => setShowFilters(s => !s)}
               className={`p-1.5 rounded-lg border transition-all ${showFilters ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-slate-200'}`}
               title="Toggle Filters"
@@ -1014,7 +1014,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
               </button>
             ))}
           </div>
-          <button 
+          <button
             onClick={() => setShowFilters(s => !s)}
             className={`p-2 rounded-xl border transition-all ${showFilters ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400 shadow-inner' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-slate-200'}`}
             title="Toggle Filters"
@@ -1026,85 +1026,85 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
         {showFilters && (
           <div className="space-y-3 animate-fade-in-up">
 
-        {/* Row 1: Status Filters + Search */}
-        <div className="flex flex-col xl:flex-row xl:items-center gap-3">
-          {/* Search (Column 1) */}
-          <div className="flex items-center bg-slate-800/60 border border-slate-700 rounded-xl overflow-hidden px-3 py-2.5 gap-2 focus-within:border-indigo-500/60 transition w-full xl:w-64 shrink-0">
-            <Search className="h-4 w-4 text-slate-400 shrink-0" />
-            <input
-              type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Search by client, vehicle, driver, booking ID..."
-              className="bg-transparent text-sm text-slate-100 outline-none w-full placeholder-slate-500"
-            />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm('')} className="text-slate-500 hover:text-slate-200 transition shrink-0">
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Status Filter Chips — hidden in Event mode */}
-          {bookingTypeFilter !== 'Event' && (
-            <div className="flex gap-1.5 flex-wrap flex-1">
-              {STATUS_FILTERS.map(f => {
-                const isActive = statusFilter === f.key;
-                const count = statusCounts[f.key] || 0;
-                const c = colorMap[f.color];
-                return (
-                  <button key={f.key} onClick={() => setStatusFilter(f.key)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-bold transition-all duration-200 ${isActive ? c.btn + ' shadow-md scale-105' : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200 bg-transparent'
-                      }`}>
-                    {f.label}
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${isActive ? 'bg-black/20' : 'bg-slate-700 text-slate-300'}`}>
-                      {count}
-                    </span>
+            {/* Row 1: Status Filters + Search */}
+            <div className="flex flex-col xl:flex-row xl:items-center gap-3">
+              {/* Search (Column 1) */}
+              <div className="flex items-center bg-slate-800/60 border border-slate-700 rounded-xl overflow-hidden px-3 py-2.5 gap-2 focus-within:border-indigo-500/60 transition w-full xl:w-64 shrink-0">
+                <Search className="h-4 w-4 text-slate-400 shrink-0" />
+                <input
+                  type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                  placeholder="Search by client, vehicle, driver, booking ID..."
+                  className="bg-transparent text-sm text-slate-100 outline-none w-full placeholder-slate-500"
+                />
+                {searchTerm && (
+                  <button onClick={() => setSearchTerm('')} className="text-slate-500 hover:text-slate-200 transition shrink-0">
+                    <X className="h-3.5 w-3.5" />
                   </button>
-                );
-              })}
-            </div>
-          )}
-
-        </div>
-
-        {/* Row 2: Date range — hidden in Event mode */}
-        {bookingTypeFilter !== 'Event' && (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider w-8 shrink-0">From</span>
-              <div className="flex-1">
-                <CustomDatePicker value={fromDate} onChange={setFromDate} maxDate={toDate} placeholder="Start Date"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 pr-7 py-1.5 text-xs text-slate-100 outline-none cursor-pointer" />
+                )}
               </div>
-            </div>
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider w-8 shrink-0">To</span>
-              <div className="flex-1">
-                <CustomDatePicker value={toDate} onChange={setToDate} minDate={fromDate} placeholder="End Date"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 pr-7 py-1.5 text-xs text-slate-100 outline-none cursor-pointer" />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {(fromDate || toDate) && (
-                <button onClick={() => { setFromDate(''); setToDate(''); }}
-                  className="text-[10px] text-rose-400 font-bold border border-rose-500/30 px-2.5 py-1.5 rounded-lg hover:bg-rose-500/10 transition">
-                  Clear Dates
-                </button>
+
+              {/* Status Filter Chips — hidden in Event mode */}
+              {bookingTypeFilter !== 'Event' && (
+                <div className="flex gap-1.5 flex-wrap flex-1">
+                  {STATUS_FILTERS.map(f => {
+                    const isActive = statusFilter === f.key;
+                    const count = statusCounts[f.key] || 0;
+                    const c = colorMap[f.color];
+                    return (
+                      <button key={f.key} onClick={() => setStatusFilter(f.key)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-bold transition-all duration-200 ${isActive ? c.btn + ' shadow-md scale-105' : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200 bg-transparent'
+                          }`}>
+                        {f.label}
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${isActive ? 'bg-black/20' : 'bg-slate-700 text-slate-300'}`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-              <div className="text-[10px] text-slate-500 font-medium whitespace-nowrap">
-                Showing <span className="text-slate-50 font-bold">{filteredBookings.length}</span> of {allBookings.filter(b => !b.event_id).length}
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Event mode info row */}
-        {bookingTypeFilter === 'Event' && (
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-500 font-medium">
-              Showing all <span className="text-slate-300 font-bold">{eventBills.length}</span> event{eventBills.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-        )}
+            </div>
+
+            {/* Row 2: Date range — hidden in Event mode */}
+            {bookingTypeFilter !== 'Event' && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider w-8 shrink-0">From</span>
+                  <div className="flex-1">
+                    <CustomDatePicker value={fromDate} onChange={setFromDate} maxDate={toDate} placeholder="Start Date"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 pr-7 py-1.5 text-xs text-slate-100 outline-none cursor-pointer" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider w-8 shrink-0">To</span>
+                  <div className="flex-1">
+                    <CustomDatePicker value={toDate} onChange={setToDate} minDate={fromDate} placeholder="End Date"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 pr-7 py-1.5 text-xs text-slate-100 outline-none cursor-pointer" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {(fromDate || toDate) && (
+                    <button onClick={() => { setFromDate(''); setToDate(''); }}
+                      className="text-[10px] text-rose-400 font-bold border border-rose-500/30 px-2.5 py-1.5 rounded-lg hover:bg-rose-500/10 transition">
+                      Clear Dates
+                    </button>
+                  )}
+                  <div className="text-[10px] text-slate-500 font-medium whitespace-nowrap">
+                    Showing <span className="text-slate-50 font-bold">{filteredBookings.length}</span> of {allBookings.filter(b => !b.event_id).length}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Event mode info row */}
+            {bookingTypeFilter === 'Event' && (
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-slate-500 font-medium">
+                  Showing all <span className="text-slate-300 font-bold">{eventBills.length}</span> event{eventBills.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1244,7 +1244,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${bStatusColor}`}>{b.booking_status}</span>
                                     </td>
                                     <td className="px-4 py-2.5 text-center relative">
-                                      <button 
+                                      <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           const rect = e.currentTarget.getBoundingClientRect();
@@ -1255,10 +1255,10 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                       >
                                         <MoreVertical className="h-4 w-4" />
                                       </button>
-                                      
+
                                       {openDropdownId === b.id && createPortal(
                                         <div className="fixed inset-0 z-[9999]" onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); }}>
-                                          <div 
+                                          <div
                                             onClick={(e) => e.stopPropagation()}
                                             style={{
                                               position: 'fixed',
@@ -1267,39 +1267,39 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                             }}
                                             className="w-52 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-1.5 text-left animate-in fade-in zoom-in-95 duration-100 origin-top-right"
                                           >
-                                            
-                                            <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setSelectedBooking(b); }} 
+
+                                            <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setSelectedBooking(b); }}
                                               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors">
                                               <FileText className="h-4 w-4 text-slate-400" />
                                               <span className="font-medium">Details</span>
                                             </button>
 
                                             {b.booking_status === 'Unconfirmed' && (
-                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleConfirmBooking(b.id); }} 
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleConfirmBooking(b.id); }}
                                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 rounded-lg transition-colors mt-0.5">
                                                 <CheckCircle className="h-4 w-4" />
                                                 <span className="font-medium">Confirm duty</span>
                                               </button>
                                             )}
-                                            
+
                                             {b.booking_status === 'Confirmed' && (
-                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleUnconfirmBooking(b.id); }} 
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleUnconfirmBooking(b.id); }}
                                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 rounded-lg transition-colors mt-0.5">
                                                 <RotateCcw className="h-4 w-4" />
                                                 <span className="font-medium">Unconfirm duty</span>
                                               </button>
                                             )}
-                                            
+
                                             {b.booking_status === 'Dispatched' && (
-                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setCloseBookingId(b.id); setCloseModalOpen(true); }} 
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setCloseBookingId(b.id); setCloseModalOpen(true); }}
                                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 rounded-lg transition-colors mt-0.5">
                                                 <CheckSquare className="h-4 w-4" />
                                                 <span className="font-medium">Close duty</span>
                                               </button>
                                             )}
-                                            
+
                                             {b.booking_status !== 'Cancelled' && (
-                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }} 
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }}
                                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
                                                 <FileText className="h-4 w-4" />
                                                 <span className="font-medium">View/Download Bill PDF</span>
@@ -1307,23 +1307,23 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                             )}
 
                                             {!['Completed', 'Cancelled', 'Dispatched'].includes(b.booking_status) && (
-                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} 
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }}
                                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
                                                 <UserPlus className="h-4 w-4" />
                                                 <span className="font-medium">Allot duty</span>
                                               </button>
                                             )}
-                                            
-                                            <button onClick={(e) => { 
-                                              e.stopPropagation(); 
-                                              setOpenDropdownId(null); 
-                                              if (setEditingBookingId) setEditingBookingId(b.id); 
-                                              navigateTo('booking-screen'); 
+
+                                            <button onClick={(e) => {
+                                              e.stopPropagation();
+                                              setOpenDropdownId(null);
+                                              if (setEditingBookingId) setEditingBookingId(b.id);
+                                              navigateTo('booking-screen');
                                             }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors mt-0.5">
                                               <Edit2 className="h-4 w-4 text-slate-400" />
                                               <span className="font-medium">Edit duty</span>
                                             </button>
-                                            
+
                                             <button onClick={(e) => {
                                               e.stopPropagation();
                                               setOpenDropdownId(null);
@@ -1336,7 +1336,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                             {!['Cancelled', 'Completed'].includes(b.booking_status) && (
                                               <>
                                                 <div className="h-px bg-slate-700/50 my-1.5 mx-1" />
-                                                <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleCancelBooking(b.id); }} 
+                                                <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleCancelBooking(b.id); }}
                                                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-lg transition-colors">
                                                   <Ban className="h-4 w-4" />
                                                   <span className="font-medium">Cancel Duty</span>
@@ -1395,9 +1395,9 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 relative">
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${bStatusColor}`}>{b.booking_status}</span>
-                        <button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (openDropdownId === b.id) {
                               setOpenDropdownId(null);
                             } else {
@@ -1540,9 +1540,9 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${bStatusColor}`}>{b.booking_status}</span>
                         </td>
                         <td className="px-2.5 py-2 text-center relative">
-                          <button 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
                               if (openDropdownId === b.id) {
                                 setOpenDropdownId(null);
                               } else {
@@ -1558,10 +1558,10 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                           >
                             <MoreVertical className="h-4 w-4" />
                           </button>
-                          
+
                           {openDropdownId === b.id && createPortal(
                             <div className="fixed inset-0 z-[9999]" onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); }}>
-                              <div 
+                              <div
                                 onClick={(e) => e.stopPropagation()}
                                 style={{
                                   position: 'fixed',
@@ -1570,39 +1570,39 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                 }}
                                 className="w-52 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-1.5 text-left animate-in fade-in zoom-in-95 duration-100 origin-top-right"
                               >
-                                
-                                <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setSelectedBooking(b); }} 
+
+                                <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setSelectedBooking(b); }}
                                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors">
                                   <FileText className="h-4 w-4 text-slate-400" />
                                   <span className="font-medium">Details</span>
                                 </button>
 
                                 {b.booking_status === 'Unconfirmed' && (
-                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleConfirmBooking(b.id); }} 
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleConfirmBooking(b.id); }}
                                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 rounded-lg transition-colors mt-0.5">
                                     <CheckCircle className="h-4 w-4" />
                                     <span className="font-medium">Confirm duty</span>
                                   </button>
                                 )}
-                                
+
                                 {b.booking_status === 'Confirmed' && (
-                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleUnconfirmBooking(b.id); }} 
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleUnconfirmBooking(b.id); }}
                                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 rounded-lg transition-colors mt-0.5">
                                     <RotateCcw className="h-4 w-4" />
                                     <span className="font-medium">Unconfirm duty</span>
                                   </button>
                                 )}
-                                
+
                                 {b.booking_status === 'Dispatched' && (
-                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setCloseBookingId(b.id); setCloseModalOpen(true); }} 
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setCloseBookingId(b.id); setCloseModalOpen(true); }}
                                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 rounded-lg transition-colors mt-0.5">
                                     <CheckSquare className="h-4 w-4" />
                                     <span className="font-medium">Close duty</span>
                                   </button>
                                 )}
-                                
+
                                 {b.booking_status !== 'Cancelled' && (
-                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }} 
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }}
                                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
                                     <FileText className="h-4 w-4" />
                                     <span className="font-medium">View/Download Bill PDF</span>
@@ -1610,23 +1610,23 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                 )}
 
                                 {!['Completed', 'Cancelled', 'Dispatched'].includes(b.booking_status) && (
-                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }} 
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }}
                                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
                                     <UserPlus className="h-4 w-4" />
                                     <span className="font-medium">Allot duty</span>
                                   </button>
                                 )}
-                                
-                                <button onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  setOpenDropdownId(null); 
-                                  if (setEditingBookingId) setEditingBookingId(b.id); 
-                                  navigateTo('booking-screen'); 
+
+                                <button onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenDropdownId(null);
+                                  if (setEditingBookingId) setEditingBookingId(b.id);
+                                  navigateTo('booking-screen');
                                 }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/60 hover:text-white rounded-lg transition-colors mt-0.5">
                                   <Edit2 className="h-4 w-4 text-slate-400" />
                                   <span className="font-medium">Edit duty</span>
                                 </button>
-                                
+
                                 <button onClick={(e) => {
                                   e.stopPropagation();
                                   setOpenDropdownId(null);
@@ -1639,7 +1639,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                 {!['Cancelled', 'Completed'].includes(b.booking_status) && (
                                   <>
                                     <div className="h-px bg-slate-700/50 my-1.5 mx-1" />
-                                    <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleCancelBooking(b.id); }} 
+                                    <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleCancelBooking(b.id); }}
                                       className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-lg transition-colors">
                                       <Ban className="h-4 w-4" />
                                       <span className="font-medium">Cancel Duty</span>
@@ -1770,7 +1770,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
           if (fabDragging.current) {
             fabWasDragged.current = true;
             fabDragging.current = false;
-            try { localStorage.setItem('dashboard_fab_pos', JSON.stringify(fabPos)); } catch {}
+            try { localStorage.setItem('dashboard_fab_pos', JSON.stringify(fabPos)); } catch { }
           }
         }}
         onClick={() => {
@@ -1795,16 +1795,16 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
         <Plus className="h-5 w-5 shrink-0" />
         <span className="text-sm font-black tracking-wide whitespace-nowrap">New Booking</span>
         <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor" className="opacity-40 group-hover:opacity-70 transition-opacity ml-0.5 shrink-0">
-          <circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/>
-          <circle cx="2" cy="7" r="1.5"/><circle cx="8" cy="7" r="1.5"/>
-          <circle cx="2" cy="12" r="1.5"/><circle cx="8" cy="12" r="1.5"/>
+          <circle cx="2" cy="2" r="1.5" /><circle cx="8" cy="2" r="1.5" />
+          <circle cx="2" cy="7" r="1.5" /><circle cx="8" cy="7" r="1.5" />
+          <circle cx="2" cy="12" r="1.5" /><circle cx="8" cy="12" r="1.5" />
         </svg>
       </div>
-      <DutySlipSidebar 
-        isOpen={!!printingBooking} 
-        onClose={() => setPrintingBooking(null)} 
-        booking={printingBooking} 
-        plans={plans} 
+      <DutySlipSidebar
+        isOpen={!!printingBooking}
+        onClose={() => setPrintingBooking(null)}
+        booking={printingBooking}
+        plans={plans}
         formatDate={formatDate}
       />
 

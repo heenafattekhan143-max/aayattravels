@@ -118,7 +118,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
           onChange={handleInputChange}
           readOnly={isGuest}
           className={`w-full bg-slate-950 border ${isGuest ? 'border-amber-500/50 text-amber-300' :
-              error ? 'border-red-500' : 'border-slate-700'
+            error ? 'border-red-500' : 'border-slate-700'
             } outline-none rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-100 focus:border-indigo-500 transition placeholder-slate-600`}
           autoComplete="off"
         />
@@ -155,8 +155,8 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-slate-50 truncate">{entity.name}</span>
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${entity.entity_type === 'customer'
-                          ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
-                          : 'bg-violet-500/15 text-violet-400 border border-violet-500/30'
+                        ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                        : 'bg-violet-500/15 text-violet-400 border border-violet-500/30'
                         }`}>{entity.entity_type}</span>
                     </div>
                     <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
@@ -323,14 +323,14 @@ export default function BookingList({ navigateTo, setEditingBookingId, setViewin
     const effectiveName = formData.is_guest ? guestName.trim() : formData.customer_name.trim();
     if (!effectiveName) errs.customer_name = 'Customer name is required.';
     if (!formData.journey_date) errs.journey_date = 'Journey date is required.';
-    
+
     // Validate return date is equal to or after journey date
     if (formData.journey_date && formData.return_date) {
       if (formData.return_date < formData.journey_date) {
         errs.return_date = 'Return date must be equal to or greater than journey start date.';
       }
     }
-    
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -464,7 +464,7 @@ export default function BookingList({ navigateTo, setEditingBookingId, setViewin
     const matchStatus = !filterStatus || b.booking_status === filterStatus;
     const matchPayment = !filterPayment || b.payment_status === filterPayment;
     const matchDate = !filterDate || (b[filterDateType] && b[filterDateType] === filterDate);
-    
+
     // Booking Type Filter (Regular vs Event)
     let matchType = true;
     if (bookingTypeFilter === 'Regular') {
@@ -701,14 +701,14 @@ export default function BookingList({ navigateTo, setEditingBookingId, setViewin
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-1 text-xs">
-                             <span className="text-sky-300 font-mono font-bold">{b.vehicle_number || '—'}</span>
-                             {b.vehicle_type && <span className="text-slate-500 text-[10px]">{b.vehicle_type}</span>}
+                            <span className="text-sky-300 font-mono font-bold">{b.vehicle_number || '—'}</span>
+                            {b.vehicle_type && <span className="text-slate-500 text-[10px]">{b.vehicle_type}</span>}
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-1 text-xs">
-                             <span className="text-violet-300 font-semibold max-w-[120px] truncate">{b.driver_name || <span className="text-slate-600 italic font-normal">Unassigned</span>}</span>
-                             {b.passengers > 0 && <span className="text-slate-500 text-[10px]">{b.passengers} pax</span>}
+                            <span className="text-violet-300 font-semibold max-w-[120px] truncate">{b.driver_name || <span className="text-slate-600 italic font-normal">Unassigned</span>}</span>
+                            {b.passengers > 0 && <span className="text-slate-500 text-[10px]">{b.passengers} pax</span>}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right">

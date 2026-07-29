@@ -230,11 +230,19 @@ def sync_provisional_bills(booking_doc, user_email: str):
     gst_rate = float(booking_doc.get("gst_rate") or 0.0)
     plan_name = ""
     
+    vehicle = None
+    if vehicle_number:
+        vehicle = vehicles_collection.find_one({"vehicle_number": {"$regex": f"^{vehicle_number}$", "$options": "i"}, "user_email": user_email})
+    is_vendor = vehicle and vehicle.get("ownership_type") == "Vendor"
+    
     plan = None
     if plan_id:
         plan = plans_collection.find_one({"_id": ObjectId(plan_id), "user_email": user_email})
         if plan:
-            base_rate = float(plan.get("rate") or 0.0)
+            if is_vendor:
+                base_rate = float(plan.get("vendor_rate") or plan.get("rate") or 0.0)
+            else:
+                base_rate = float(plan.get("company_rate") or plan.get("rate") or 0.0)
             da_allowance = float(plan.get("da_allowance") or 0.0)
             night_allowance = float(plan.get("night_allowance") or 0.0)
             plan_name = plan.get("plan_name", "")
@@ -348,11 +356,7 @@ def sync_provisional_bills(booking_doc, user_email: str):
             bills_collection.insert_one(sales_data)
 
     # 2. Purchase Bill (if vehicle belongs to Vendor)
-    vehicle = None
-    if vehicle_number:
-        vehicle = vehicles_collection.find_one({"vehicle_number": {"$regex": f"^{vehicle_number}$", "$options": "i"}, "user_email": user_email})
-    
-    if vehicle and vehicle.get("ownership_type") == "Vendor":
+    if is_vendor:
         purchase_bill = bills_collection.find_one({"booking_ref": booking_ref, "bill_type": "Purchase", "user_email": user_email})
         
         purchase_data = base_bill.copy()
@@ -387,12 +391,23 @@ def generate_bill_for_booking(booking_doc, user_email: str):
     end_km = float(booking_doc.get("end_km") or 0.0)
     working_hours = float(booking_doc.get("working_hours") or 0.0)
     
+    vehicle_number = booking_doc.get("vehicle_number")
+    vehicle = None
+    if vehicle_number:
+        vehicle = vehicles_collection.find_one({"vehicle_number": {"$regex": f"^{vehicle_number}$", "$options": "i"}, "user_email": user_email})
+    is_vendor = vehicle and vehicle.get("ownership_type") == "Vendor"
+
     if plan:
         base_km = float(plan.get("base_km") or 0.0)
         base_hours = float(plan.get("base_hours") or 0.0)
         extra_km_rate = float(plan.get("extra_km_rate") or 0.0)
         extra_hours_rate = float(plan.get("extra_hours_rate") or 0.0)
-        base_rate = float(plan.get("rate") or 0.0)
+        
+        if is_vendor:
+            base_rate = float(plan.get("vendor_rate") or plan.get("rate") or 0.0)
+        else:
+            base_rate = float(plan.get("company_rate") or plan.get("rate") or 0.0)
+            
         da_allowance = float(plan.get("da_allowance") or 0.0)
         night_allowance = float(plan.get("night_allowance") or 0.0)
     else:

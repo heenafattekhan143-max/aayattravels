@@ -120,7 +120,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
 
   // Pre-load edit data once editingBillId and master master data is available
   useEffect(() => {
-    if (!editingBillId || allPlans.length === 0 || allCustomers.length === 0) return;
+    if (!editingBillId || allPlans.length === 0 || allCustomers.length === 0 || allVehicles.length === 0) return;
 
     async function loadEditingBill() {
       try {
@@ -140,6 +140,13 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         setVehicleSearch(bill.vehicle_number);
         setTollAmount(bill.toll_amount > 0 ? bill.toll_amount.toString() : '');
         setParkingAmount(bill.parking_amount > 0 ? bill.parking_amount.toString() : '');
+
+        // Resolve vehicle selection details
+        let resolvedVehicle = null;
+        if (bill.vehicle_number) {
+          resolvedVehicle = allVehicles.find(v => v.vehicle_number === bill.vehicle_number) || null;
+          setSelectedVehicle(resolvedVehicle);
+        }
 
         // Resolve customer selection details
         const matchedCust = allCustomers.find(c => c.id === bill.customer_id);
@@ -177,7 +184,9 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             amount_with_gst: item.amount_with_gst,
 
             // Resolve from master plans or fall back
-            rate: item.rate ?? (matchedPlan ? matchedPlan.rate : 0),
+            rate: item.rate ?? (matchedPlan ? (
+              resolvedVehicle?.ownership_type === 'Vendor' ? matchedPlan.vendor_rate : matchedPlan.company_rate
+            ) || matchedPlan.rate : 0),
             extra_km_rate: matchedPlan ? matchedPlan.extra_km_rate : 0,
             extra_hours_rate: matchedPlan ? matchedPlan.extra_hours_rate : 0,
             base_km: matchedPlan ? matchedPlan.base_km : 0,
@@ -194,7 +203,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
     }
 
     loadEditingBill();
-  }, [editingBillId, allPlans, allCustomers]);
+  }, [editingBillId, allPlans, allCustomers, allVehicles]);
 
   // Filter customers by selected party type and search term
   const filteredCustomers = allCustomers.filter(c =>
@@ -227,6 +236,27 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Recalculate table item rates when vehicle selection changes
+  useEffect(() => {
+    if (tableItems.length === 0) return;
+    let hasChanges = false;
+    const newItems = tableItems.map(item => {
+      if (!item.plan_id) return item;
+      const p = allPlans.find(plan => plan.id === item.plan_id);
+      if (p) {
+        const newRate = (selectedVehicle?.ownership_type === 'Vendor' ? p.vendor_rate : p.company_rate) || p.rate || item.rate;
+        if (newRate !== item.rate) {
+          hasChanges = true;
+          return { ...item, rate: newRate };
+        }
+      }
+      return item;
+    });
+    if (hasChanges) {
+      setTableItems(newItems);
+    }
+  }, [selectedVehicle, allPlans, tableItems]);
 
   // Recalculate whole bill dynamically when items, gst toggle, toll, or purchasePlan changes
   useEffect(() => {
@@ -361,7 +391,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         plan_id: plan.id,
         plan_name: plan.plan_name,
         plan_type: plan.plan_type || '',
-        rate: plan.rate,
+        rate: (selectedVehicle?.ownership_type === 'Vendor' ? plan.vendor_rate : plan.company_rate) || plan.rate || 0,
         extra_km_rate: plan.extra_km_rate,
         extra_hours_rate: plan.extra_hours_rate,
         base_km: plan.base_km,
@@ -500,7 +530,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
           const night = parseFloat(item.night_allowance) || 0;
           const extraKmRate = parseFloat(selectedPurchasePlan.extra_km_rate) || 0;
           const extraHrsRate = parseFloat(selectedPurchasePlan.extra_hours_rate) || 0;
-          const baseRate = parseFloat(selectedPurchasePlan.rate) || 0;
+          const baseRate = parseFloat(selectedPurchasePlan.vendor_rate || selectedPurchasePlan.rate) || 0;
           const numDays = item.num_days || 1;
           const amtWithout = (baseRate * numDays) + (extraKm * extraKmRate) + (extraHrs * extraHrsRate) + da + night;
           return {
@@ -987,7 +1017,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                             <span className="text-xs text-slate-400 ml-2">({plan.plan_type})</span>
                           </div>
                           <div className="text-right text-xs text-slate-400 space-x-2">
-                            <span className="text-amber-300 font-mono font-bold">₹{plan.rate}</span>
+                            <span className="text-amber-300 font-mono font-bold">₹{(selectedVehicle?.ownership_type === 'Vendor' ? plan.vendor_rate : plan.company_rate) || plan.rate}</span>
                             {plan.extra_km_rate > 0 && <span>+₹{plan.extra_km_rate}/km</span>}
                             {plan.extra_hours_rate > 0 && <span>+₹{plan.extra_hours_rate}/hr</span>}
                           </div>
@@ -1002,7 +1032,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                 {selectedPurchasePlan && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-semibold">
-                      Base Rate: ₹{selectedPurchasePlan.rate}
+                      Base Rate: ₹{selectedPurchasePlan.vendor_rate || selectedPurchasePlan.rate}
                     </span>
                     <span className="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs">
                       Base: {selectedPurchasePlan.base_km} km / {selectedPurchasePlan.base_hours} hr
@@ -1111,7 +1141,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                                     </span>
                                   )}
                                 </div>
-                                <span className="font-semibold text-indigo-400 font-mono">₹{plan.rate}</span>
+                                <span className="font-semibold text-indigo-400 font-mono">₹{(selectedVehicle?.ownership_type === 'Vendor' ? plan.vendor_rate : plan.company_rate) || plan.rate}</span>
                               </div>
                             </div>
                           ))
@@ -1362,7 +1392,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                                           </span>
                                         )}
                                       </div>
-                                      <span className="font-semibold text-indigo-400 font-mono">₹{plan.rate}</span>
+                                      <span className="font-semibold text-indigo-400 font-mono">₹{(selectedVehicle?.ownership_type === 'Vendor' ? plan.vendor_rate : plan.company_rate) || plan.rate}</span>
                                     </div>
                                   </div>
                                 ))

@@ -70,7 +70,8 @@ export default function PlanList({ navigateTo }) {
     setEditingPlan(plan);
     setEditFormData({
       plan_name: plan.plan_name || '',
-      rate: plan.rate ? plan.rate.toString() : '',
+      company_rate: plan.company_rate ? plan.company_rate.toString() : '',
+      vendor_rate: plan.vendor_rate ? plan.vendor_rate.toString() : '',
       vehicle_type: plan.vehicle_type || 'Sedan',
       extra_km_rate: plan.extra_km_rate ? plan.extra_km_rate.toString() : '',
       extra_hours_rate: plan.extra_hours_rate ? plan.extra_hours_rate.toString() : '',
@@ -96,7 +97,10 @@ export default function PlanList({ navigateTo }) {
 
         if (hourMatch) updated.base_hours = hourMatch[1];
         if (kmMatch) updated.base_km = kmMatch[1];
-        if (rateMatch) updated.rate = rateMatch[1];
+        if (rateMatch) {
+          updated.company_rate = rateMatch[1];
+          updated.vendor_rate = rateMatch[1];
+        }
       }
 
       // Auto-update extra rates if vehicle type changes
@@ -119,8 +123,12 @@ export default function PlanList({ navigateTo }) {
     const tempErrors = {};
     if (!editFormData.plan_name?.trim()) tempErrors.plan_name = "Plan name is required.";
 
-    if (!editFormData.rate || isNaN(editFormData.rate) || parseFloat(editFormData.rate) <= 0) {
-      tempErrors.rate = "Plan base rate must be a number greater than 0.";
+    if (!editFormData.company_rate || isNaN(editFormData.company_rate) || parseFloat(editFormData.company_rate) <= 0) {
+      tempErrors.company_rate = "Company rate must be a number greater than 0.";
+    }
+
+    if (!editFormData.vendor_rate || isNaN(editFormData.vendor_rate) || parseFloat(editFormData.vendor_rate) <= 0) {
+      tempErrors.vendor_rate = "Vendor rate must be a number greater than 0.";
     }
 
     if (!editFormData.extra_km_rate || isNaN(editFormData.extra_km_rate)) {
@@ -149,7 +157,8 @@ export default function PlanList({ navigateTo }) {
     try {
       const payload = {
         plan_name: editFormData.plan_name,
-        rate: parseFloat(editFormData.rate),
+        company_rate: parseFloat(editFormData.company_rate),
+        vendor_rate: parseFloat(editFormData.vendor_rate),
         vehicle_type: editFormData.vehicle_type,
         extra_km_rate: parseFloat(editFormData.extra_km_rate),
         extra_hours_rate: editFormData.plan_type === 'Local' ? parseFloat(editFormData.extra_hours_rate) : 0,
@@ -216,7 +225,8 @@ export default function PlanList({ navigateTo }) {
                   <th className="p-4">Plan Type</th>
                   <th className="p-4">Vehicle</th>
                   <th className="p-4">Plan Name</th>
-                  <th className="p-4">Rate (Rs.)</th>
+                  <th className="p-4">Company Rate (Rs.)</th>
+                  <th className="p-4">Vendor Rate (Rs.)</th>
                   <th className="p-4">Base Limits</th>
                   <th className="p-4">Extra Rates</th>
                   <th className="p-4 text-center">Actions</th>
@@ -237,7 +247,8 @@ export default function PlanList({ navigateTo }) {
                       </td>
                       <td className="p-4 text-slate-300">{plan.vehicle_type}</td>
                       <td className="p-4 font-semibold text-slate-50">{plan.plan_name}</td>
-                      <td className="p-4 font-bold text-indigo-300">₹{plan.rate.toLocaleString()}</td>
+                      <td className="p-4 font-bold text-indigo-300">₹{(plan.company_rate || 0).toLocaleString()}</td>
+                      <td className="p-4 font-bold text-indigo-300">₹{(plan.vendor_rate || 0).toLocaleString()}</td>
                       <td className="p-4 text-slate-400 font-medium text-xs">
                         {plan.plan_type === 'Outstation' ? `${plan.base_km} Kms/Day` : `${plan.base_hours} Hrs / ${plan.base_km} Kms`}
                       </td>
@@ -330,25 +341,39 @@ export default function PlanList({ navigateTo }) {
                       <input type="number" name="base_km" value={editFormData.base_km} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
                     </div>
                   </div>
-                  <div className="space-y-1 mt-4">
-                    <label className="text-xs font-semibold text-slate-300">Base Rate (Rs.) *</label>
-                    <input type="text" name="rate" value={editFormData.rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
-                    {editErrors.rate && <p className="text-[10px] text-rose-400">{editErrors.rate}</p>}
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-300">Company Rate (Rs.) *</label>
+                      <input type="text" name="company_rate" value={editFormData.company_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.company_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                      {editErrors.company_rate && <p className="text-[10px] text-rose-400">{editErrors.company_rate}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-300">Vendor Rate (Rs.) *</label>
+                      <input type="text" name="vendor_rate" value={editFormData.vendor_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.vendor_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                      {editErrors.vendor_rate && <p className="text-[10px] text-rose-400">{editErrors.vendor_rate}</p>}
+                    </div>
                   </div>
                 </>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-300">Per Day KM Limit *</label>
-                    <input type="number" name="base_km" value={editFormData.base_km} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.base_km ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
-                    {editErrors.base_km && <p className="text-[10px] text-rose-400">{editErrors.base_km}</p>}
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-300">Per Day KM Limit *</label>
+                      <input type="number" name="base_km" value={editFormData.base_km} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.base_km ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                      {editErrors.base_km && <p className="text-[10px] text-rose-400">{editErrors.base_km}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-300">Company Rate (Rs.) *</label>
+                      <input type="text" name="company_rate" value={editFormData.company_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.company_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                      {editErrors.company_rate && <p className="text-[10px] text-rose-400">{editErrors.company_rate}</p>}
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-300">Per Day Rate (Rs.) *</label>
-                    <input type="text" name="rate" value={editFormData.rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
-                    {editErrors.rate && <p className="text-[10px] text-rose-400">{editErrors.rate}</p>}
+                  <div className="space-y-1 mt-4">
+                    <label className="text-xs font-semibold text-slate-300">Vendor Rate (Rs.) *</label>
+                    <input type="text" name="vendor_rate" value={editFormData.vendor_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.vendor_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                    {editErrors.vendor_rate && <p className="text-[10px] text-rose-400">{editErrors.vendor_rate}</p>}
                   </div>
-                </div>
+                </>
               )}
 
               {/* Extra Rates */}

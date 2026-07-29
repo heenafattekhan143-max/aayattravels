@@ -5,7 +5,8 @@ import { Layers, CheckCircle, AlertTriangle, X } from 'lucide-react';
 export default function CreatePlanModal({ onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     plan_name: '',
-    rate: '',
+    company_rate: '',
+    vendor_rate: '',
     extra_km_rate: '',
     extra_hours_rate: '',
     plan_type: 'Local',
@@ -32,10 +33,16 @@ export default function CreatePlanModal({ onClose, onSuccess }) {
       tempErrors.plan_name = "Plan name is required.";
     }
 
-    if (!formData.rate) {
-      tempErrors.rate = formData.plan_type === 'Local' ? "Plan base rate is required." : "Per day rate is required.";
-    } else if (isNaN(formData.rate) || parseFloat(formData.rate) <= 0) {
-      tempErrors.rate = "Rate must be a valid number greater than 0.";
+    if (!formData.company_rate) {
+      tempErrors.company_rate = "Company rate is required.";
+    } else if (isNaN(formData.company_rate) || parseFloat(formData.company_rate) <= 0) {
+      tempErrors.company_rate = "Company rate must be a valid number greater than 0.";
+    }
+
+    if (!formData.vendor_rate) {
+      tempErrors.vendor_rate = "Vendor rate is required.";
+    } else if (isNaN(formData.vendor_rate) || parseFloat(formData.vendor_rate) <= 0) {
+      tempErrors.vendor_rate = "Vendor rate must be a valid number greater than 0.";
     }
 
     if (!formData.extra_km_rate || isNaN(formData.extra_km_rate)) {
@@ -67,7 +74,10 @@ export default function CreatePlanModal({ onClose, onSuccess }) {
 
         if (hourMatch) updated.base_hours = hourMatch[1];
         if (kmMatch) updated.base_km = kmMatch[1];
-        if (rateMatch) updated.rate = rateMatch[1];
+        if (rateMatch) {
+          updated.company_rate = rateMatch[1];
+          updated.vendor_rate = rateMatch[1];
+        }
       }
       return updated;
     });
@@ -85,7 +95,8 @@ export default function CreatePlanModal({ onClose, onSuccess }) {
     try {
       const payload = {
         plan_name: formData.plan_name,
-        rate: parseFloat(formData.rate),
+        company_rate: parseFloat(formData.company_rate),
+        vendor_rate: parseFloat(formData.vendor_rate),
         vehicle_type: 'Sedan', // Guest plans default or it gets overridden by the booking vehicle selection anyway
         extra_km_rate: parseFloat(formData.extra_km_rate),
         extra_hours_rate: formData.plan_type === 'Local' ? parseFloat(formData.extra_hours_rate) : 0,
@@ -210,17 +221,32 @@ export default function CreatePlanModal({ onClose, onSuccess }) {
                 </div>
               </div>
 
-              <div className="space-y-1 mt-4">
-                <label className="text-xs font-semibold text-slate-400">Base Rate (Rs.) <span className="text-rose-500">*</span></label>
-                <input
-                  type="text"
-                  name="rate"
-                  placeholder="e.g. 4000"
-                  value={formData.rate}
-                  onChange={handleChange}
-                  className={`w-full bg-slate-950/60 border ${errors.rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
-                />
-                {errors.rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.rate}</p>}
+              {/* Rates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400">Company Rate (Rs.) <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    name="company_rate"
+                    placeholder="e.g. 4000"
+                    value={formData.company_rate}
+                    onChange={handleChange}
+                    className={`w-full bg-slate-950/60 border ${errors.company_rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
+                  />
+                  {errors.company_rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.company_rate}</p>}
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400">Vendor Rate (Rs.) <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    name="vendor_rate"
+                    placeholder="e.g. 3500"
+                    value={formData.vendor_rate}
+                    onChange={handleChange}
+                    className={`w-full bg-slate-950/60 border ${errors.vendor_rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
+                  />
+                  {errors.vendor_rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.vendor_rate}</p>}
+                </div>
               </div>
             </>
           ) : (
@@ -238,19 +264,33 @@ export default function CreatePlanModal({ onClose, onSuccess }) {
                   />
                   {errors.base_km && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.base_km}</p>}
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-400">Per Day Rate (Rs.) <span className="text-rose-500">*</span></label>
-                  <input
-                    type="text"
-                    name="rate"
-                    placeholder="e.g. 4000"
-                    value={formData.rate}
-                    onChange={handleChange}
-                    className={`w-full bg-slate-950/60 border ${errors.rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
-                  />
-                  {errors.rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.rate}</p>}
-                </div>
+                {/* Rates */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-400">Company Rate (Rs.) <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        name="company_rate"
+                        placeholder="e.g. 4000"
+                        value={formData.company_rate}
+                        onChange={handleChange}
+                        className={`w-full bg-slate-950/60 border ${errors.company_rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
+                      />
+                      {errors.company_rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.company_rate}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-400">Vendor Rate (Rs.) <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        name="vendor_rate"
+                        placeholder="e.g. 3500"
+                        value={formData.vendor_rate}
+                        onChange={handleChange}
+                        className={`w-full bg-slate-950/60 border ${errors.vendor_rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
+                      />
+                      {errors.vendor_rate && <p className="text-xs text-vendor_rate mt-1 font-medium">{errors.vendor_rate}</p>}
+                    </div>
+                  </div>
               </div>
             </>
           )}
