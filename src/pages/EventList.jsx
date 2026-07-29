@@ -45,7 +45,7 @@ export default function EventList({ navigateTo, setEditingEventBillId }) {
   async function fetchEventBills() {
     try {
       const res = await axios.get('/api/event-bills');
-      setBills(res.data);
+      setBills(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch event bills.');

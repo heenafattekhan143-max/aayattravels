@@ -23,10 +23,10 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
         axios.get('/api/payments'),
         axios.get('/api/received-payments')
       ]);
-      setVendors(venRes.data);
-      setBills(billsRes.data);
-      setPayments(payRes.data);
-      setReceivedPayments(recPayRes.data);
+      setVendors(Array.isArray(venRes.data) ? venRes.data : []);
+      setBills(Array.isArray(billsRes.data) ? billsRes.data : []);
+      setPayments(Array.isArray(payRes.data) ? payRes.data : []);
+      setReceivedPayments(Array.isArray(recPayRes.data) ? recPayRes.data : []);
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {

@@ -93,9 +93,9 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
           axios.get('/api/plans'),
           axios.get('/api/vehicles')
         ]);
-        setAllCustomers(custRes.data);
-        setAllPlans(planRes.data);
-        setAllVehicles(vehRes.data);
+        setAllCustomers(Array.isArray(custRes.data) ? custRes.data : []);
+        setAllPlans(Array.isArray(planRes.data) ? planRes.data : []);
+        setAllVehicles(Array.isArray(vehRes.data) ? vehRes.data : []);
       } catch (err) {
         console.error("Error loading master data:", err);
       }

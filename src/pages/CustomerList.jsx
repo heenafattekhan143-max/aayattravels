@@ -86,7 +86,7 @@ export default function CustomerList({ navigateTo }) {
   async function fetchEntities() {
     try {
       const res = await axios.get('/api/customers');
-      setEntities(res.data);
+      setEntities(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch customers and vendors list.');

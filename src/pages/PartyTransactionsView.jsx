@@ -956,6 +956,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                               <td className="p-2.5 text-left border border-slate-400 whitespace-nowrap uppercase tracking-wider">Total</td>
                               <td className="p-2.5 text-center border border-slate-400"></td>
                               <td className="p-2.5 text-center border border-slate-400"></td>
+                              <td className="p-2.5 text-center border border-slate-400"></td>
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalDistance} KM</td>
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraKm > 0 ? `${totalExtraKm} KM` : '-'}</td>
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalHours} Hrs</td>

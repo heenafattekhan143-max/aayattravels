@@ -59,7 +59,7 @@ export default function DriverList({ navigateTo }) {
   async function fetchDrivers() {
     try {
       const res = await axios.get('/api/drivers');
-      setDrivers(res.data);
+      setDrivers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch drivers list.');

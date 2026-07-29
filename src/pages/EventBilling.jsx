@@ -956,7 +956,9 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                 </div>
                 <div className="text-right flex flex-col justify-end items-end">
                   <p className="font-bold text-slate-700 uppercase mb-0">For {bizName.toUpperCase()}</p>
-                  <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                  {(user?.stamp || '/signature.png') && (
+                    <img src={user?.stamp || '/signature.png'} alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                  )}
                   <p className="font-bold text-slate-400 border-t border-dashed border-slate-300 pt-1 w-44 text-center uppercase tracking-widest relative z-20">Authorized Signatory</p>
                 </div>
               </div>

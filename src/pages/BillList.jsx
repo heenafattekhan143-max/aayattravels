@@ -78,8 +78,8 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
   async function fetchBills() {
     try {
       const res = await axios.get('/api/bills');
-      // Main bill list shows only Sales invoices; Purchase goes to the Purchase screen
-      const salesBills = res.data.filter(b => b.bill_type === 'Sales');
+      const data = Array.isArray(res.data) ? res.data : [];
+      const salesBills = data.filter(b => b.bill_type === 'Sales');
       setBills(salesBills);
 
       if (viewingBillId) {
@@ -976,6 +976,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                               <td className="p-1.5 text-left border border-slate-400 whitespace-nowrap uppercase tracking-wider">Total</td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
+                              <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalDistance} KM</td>
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraKm > 0 ? `${totalExtraKm} KM` : '-'}</td>
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalHours} Hrs</td>
@@ -1151,7 +1152,9 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                   </div>
                   <div className="flex flex-col justify-end items-end h-full">
                     <div className="flex flex-col items-center">
-                      <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 -mt-10 relative z-10 opacity-90" />
+                      {(user?.stamp || '/signature.png') && (
+                        <img src={user?.stamp || '/signature.png'} alt="Signature" className="h-36 object-contain -mb-5 -mt-10 relative z-10 opacity-90" />
+                      )}
                       <div className="w-44 border-t border-slate-400 text-center pt-2 relative z-20">
                         <p className="font-bold text-slate-800 text-[10px]">Authorized Signature</p>
                         <p className="text-[8px] text-slate-400 mt-1">For {selectedBill.vendor_name || user?.business_name || 'OUR COMPANY'}</p>

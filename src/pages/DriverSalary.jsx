@@ -851,7 +851,9 @@ export default function DriverSalary({ navigateTo }) {
               DRIVER SIGNATURE
             </div>
             <div className="flex flex-col items-center max-w-[200px] w-full ml-auto">
-              <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+              {(user?.stamp || '/signature.png') && (
+                <img src={user?.stamp || '/signature.png'} alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+              )}
               <div className="w-full border-t border-slate-400 text-center pt-2 relative z-20">
                 AUTHORIZED SIGNATORY
               </div>

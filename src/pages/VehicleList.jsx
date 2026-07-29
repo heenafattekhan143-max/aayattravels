@@ -49,7 +49,7 @@ export default function VehicleList({ navigateTo }) {
   async function fetchVehicles() {
     try {
       const res = await axios.get('/api/vehicles');
-      setVehicles(res.data);
+      setVehicles(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch fleet vehicles.');

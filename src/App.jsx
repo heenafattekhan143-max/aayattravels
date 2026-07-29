@@ -906,7 +906,7 @@ function AppContent() {
               {profileDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                  <div className="absolute right-0 mt-3 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-fade-in-down origin-top-right">
+                  <div className="absolute right-0 mt-3 w-56 glass-panel rounded-xl shadow-2xl z-[999] overflow-hidden py-1 animate-fade-in-down origin-top-right">
                     <div className="px-4 py-3 border-b border-slate-700/50 bg-slate-900/30 mb-1">
                       <div className="text-sm font-bold text-slate-100 truncate">{user?.name || 'Admin User'}</div>
                       <div className="text-xs text-slate-400 truncate">{user?.email || 'admin@purvitravels.com'}</div>

@@ -33,6 +33,7 @@ class UserUpdate(BaseModel):
     city: Optional[str] = None
     gstin: Optional[str] = None
     logo: Optional[str] = None
+    stamp: Optional[str] = None
     state: Optional[str] = None
 
 class UserLogin(BaseModel):
@@ -56,6 +57,7 @@ def serialize_user(doc):
         "referral": doc.get("referral"),
         "gstin": doc.get("gstin"),
         "logo": doc.get("logo"),
+        "stamp": doc.get("stamp"),
         "plan_id": doc.get("plan_id"),
         "plan_status": doc.get("plan_status"),
     }

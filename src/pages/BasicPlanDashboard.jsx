@@ -22,11 +22,11 @@ export default function BasicPlanDashboard({ navigateTo }) {
         axios.get(`${API}/event-bills`)
       ]);
       setData({
-        bills: billsRes.data,
-        bookings: bookingsRes.data,
-        vehicles: vehiclesRes.data,
-        maintenance: maintenanceRes.data,
-        eventBills: eventBillsRes.data
+        bills: Array.isArray(billsRes.data) ? billsRes.data : [],
+        bookings: Array.isArray(bookingsRes.data) ? bookingsRes.data : [],
+        vehicles: Array.isArray(vehiclesRes.data) ? vehiclesRes.data : [],
+        maintenance: Array.isArray(maintenanceRes.data) ? maintenanceRes.data : [],
+        eventBills: Array.isArray(eventBillsRes.data) ? eventBillsRes.data : []
       });
     } catch (err) {
       console.error("Error fetching data:", err);

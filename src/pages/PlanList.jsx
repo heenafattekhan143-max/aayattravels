@@ -43,7 +43,7 @@ export default function PlanList({ navigateTo }) {
   async function fetchPlans() {
     try {
       const res = await axios.get('/api/plans');
-      setPlans(res.data);
+      setPlans(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch rental plans.');
