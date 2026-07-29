@@ -244,7 +244,7 @@ function AppContent() {
   const fetchMaintenanceLogs = async () => {
     try {
       const res = await axios.get('/api/maintenance');
-      setMaintenanceLogs(res.data);
+      setMaintenanceLogs(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Error fetching maintenance logs:', err);
     }
@@ -256,6 +256,7 @@ function AppContent() {
   }, [currentPage]);
 
   const filteredLogs = useMemo(() => {
+    if (!Array.isArray(maintenanceLogs)) return [];
     return maintenanceLogs.filter(log => {
       if (filterVehicle && log.vehicle !== filterVehicle) return false;
       if (filterType && log.type !== filterType) return false;
