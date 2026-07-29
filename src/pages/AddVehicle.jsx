@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Car, CheckCircle, AlertTriangle, Sparkles, ShieldAlert } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect';
+import { useAuth } from '../context/AuthContext';
 import { useConfirm } from '../context/ConfirmContext';
 
 export default function AddVehicle({ navigateTo }) {
+  const { user } = useAuth();
   const [vehicle, setVehicle] = useState({
     vehicle_number: '',
     model: '',
@@ -12,7 +14,7 @@ export default function AddVehicle({ navigateTo }) {
     vehicle_type: 'Sedan',
     status: 'Active',
     ownership_type: 'Owner',
-    owner_name: 'Ravi Sable',
+    owner_name: user?.name || '',
     maintenance_km_threshold: '',
     insurance_expiry: '',
     insurance_notify_days: '',
@@ -106,7 +108,7 @@ export default function AddVehicle({ navigateTo }) {
         vehicle_type: 'Sedan',
         status: 'Active',
         ownership_type: 'Owner',
-        owner_name: 'Ravi Sable',
+        owner_name: '',
         maintenance_km_threshold: '',
         insurance_expiry: '',
         insurance_notify_days: '',
@@ -231,7 +233,7 @@ export default function AddVehicle({ navigateTo }) {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setVehicle({ ...vehicle, ownership_type: 'Owner', owner_name: 'Ravi Sable' })}
+                      onClick={() => setVehicle({ ...vehicle, ownership_type: 'Owner', owner_name: user?.name || '' })}
                       className={`flex-1 py-1.5 px-2 rounded-lg border text-xs font-bold transition ${vehicle.ownership_type === 'Owner'
                         ? 'bg-indigo-600 border-indigo-500 text-white'
                         : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'
@@ -259,9 +261,10 @@ export default function AddVehicle({ navigateTo }) {
                   {vehicle.ownership_type === 'Owner' ? (
                     <input
                       type="text"
-                      readOnly
                       value={vehicle.owner_name}
-                      className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-400 outline-none font-semibold cursor-not-allowed"
+                      onChange={(e) => setVehicle({ ...vehicle, owner_name: e.target.value })}
+                      placeholder="Enter Owner Name"
+                      className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none font-semibold focus:border-indigo-500 transition"
                     />
                   ) : (
                     <div className="space-y-1">

@@ -13,7 +13,7 @@ class VehicleBase(BaseModel):
     vehicle_type: str = Field(..., pattern="^(Sedan|Ertiga|SUV)$")
     status: str = Field(..., pattern="^(Active|Maintenance|Inactive)$")
     ownership_type: str = Field(default="Owner", pattern="^(Owner|Vendor)$")
-    owner_name: Optional[str] = "Ravi Sable"
+    owner_name: Optional[str] = None
     maintenance_km_threshold: Optional[int] = None
     total_km_travelled: Optional[float] = 0.0
     insurance_expiry: Optional[str] = None
@@ -60,7 +60,7 @@ def serialize_vehicle(doc) -> dict:
         "vehicle_type": doc.get("vehicle_type"),
         "status": doc.get("status"),
         "ownership_type": doc.get("ownership_type", "Owner"),
-        "owner_name": doc.get("owner_name", "Ravi Sable"),
+        "owner_name": doc.get("owner_name", ""),
         "maintenance_km_threshold": doc.get("maintenance_km_threshold"),
         "total_km_travelled": doc.get("total_km_travelled", 0.0),
         "insurance_expiry": doc.get("insurance_expiry"),

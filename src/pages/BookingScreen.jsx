@@ -70,7 +70,7 @@ const emptyForm = {
   advance_amount: '',
   plan_id: '',
   payment_status: 'Pending',
-  booking_status: 'Unconfirmed',
+  booking_status: 'Confirmed',
   end_km: '',
   working_hours: '',
   remarks: '',
@@ -562,6 +562,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
     const errs = {};
     if (!formData.journey_date) errs.journey_date = 'Journey date is required.';
     if (!formData.pickup_time) errs.pickup_time = 'Start time is required.';
+    if (!formData.plan_id) errs.plan_id = 'Package selection is required.';
 
     // Validate return date is equal to or after journey date
     if (formData.journey_date && formData.return_date) {
@@ -573,7 +574,6 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
     if (formData.booking_status === 'Completed') {
       if (!formData.end_km) errs.end_km = 'Required for billing.';
       if (!formData.working_hours) errs.working_hours = 'Required for billing.';
-      if (!formData.plan_id) errs.plan_id = 'A package plan is required to generate the bill.';
     }
 
     setErrors(errs);
@@ -628,7 +628,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
         total_amount: parseFloat(formData.total_amount) || 0,
         end_km: formData.end_km ? parseInt(formData.end_km) : null,
         working_hours: formData.working_hours ? parseInt(formData.working_hours) : null,
-        booking_status: editingBookingId ? formData.booking_status : 'Confirmed',
+        booking_status: formData.booking_status || 'Confirmed',
       };
 
       if (editingBookingId) {
@@ -1063,15 +1063,18 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                   <div className="space-y-1 sm:col-span-2">
                     {formData.is_guest ? (
                       <>
-                        <label className="text-xs font-semibold text-slate-300 block mb-1">Custom Package</label>
+                        <label className="text-xs font-semibold text-slate-300 block mb-1">Custom Package <span className="text-rose-500">*</span></label>
                         {!guestPlanDetails ? (
-                          <button
-                            type="button"
-                            onClick={() => setShowCreatePlanModal(true)}
-                            className="w-full py-2.5 border border-dashed border-indigo-500/50 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-400 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2"
-                          >
-                            <Plus className="h-4 w-4" /> Create Package
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setShowCreatePlanModal(true)}
+                              className="w-full py-2.5 border border-dashed border-indigo-500/50 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-400 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2"
+                            >
+                              <Plus className="h-4 w-4" /> Create Package
+                            </button>
+                            {errors.plan_id && <p className="text-[10px] text-rose-400 mt-1">{errors.plan_id}</p>}
+                          </>
                         ) : (
                           <div className="p-4 bg-slate-900 border border-slate-700 rounded-xl relative group">
                             <button
@@ -1109,7 +1112,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                       </>
                     ) : (
                       <>
-                        <label className="text-xs font-semibold text-slate-300">Select Package</label>
+                        <label className="text-xs font-semibold text-slate-300">Select Package <span className="text-rose-500">*</span></label>
                         <CustomSelect
                           value={formData.plan_id}
                           onChange={(val) => handleChange('plan_id', val)}
@@ -1118,6 +1121,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                           searchable={true}
                           hidePlaceholder={true}
                         />
+                        {errors.plan_id && <p className="text-[10px] text-rose-400 mt-1">{errors.plan_id}</p>}
                       </>
                     )}
                   </div>

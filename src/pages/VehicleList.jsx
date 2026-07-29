@@ -13,12 +13,14 @@ import {
 } from 'lucide-react';
 import { useConfirm } from '../context/ConfirmContext';
 import CustomSelect from '../components/CustomSelect';
+import { useAuth } from '../context/AuthContext';
 
 const VEHICLE_CLASSES = ["Sedan", "Ertiga", "SUV"];
 const STATUS_OPTIONS = ["Active", "Maintenance", "Inactive"];
 
 export default function VehicleList({ navigateTo }) {
   const confirm = useConfirm();
+  const { user } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -77,9 +79,9 @@ export default function VehicleList({ navigateTo }) {
       model: vehicle.model || '',
       driver_name: vehicle.driver_name || '',
       vehicle_type: vehicle.vehicle_type,
-      status: vehicle.status,
+      status: vehicle.status || 'Active',
       ownership_type: vehicle.ownership_type || 'Owner',
-      owner_name: vehicle.owner_name || 'Ravi Sable',
+      owner_name: vehicle.owner_name || user?.name || '',
       maintenance_km_threshold: vehicle.maintenance_km_threshold || '',
       insurance_expiry: vehicle.insurance_expiry || '',
       insurance_notify_days: vehicle.insurance_notify_days || '',
@@ -420,7 +422,7 @@ export default function VehicleList({ navigateTo }) {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => setEditFormData({ ...editFormData, ownership_type: 'Owner', owner_name: 'Ravi Sable' })}
+                          onClick={() => setEditFormData({ ...editFormData, ownership_type: 'Owner', owner_name: user?.name || '' })}
                           className={`flex-1 py-1.5 px-2 rounded-lg border text-xs font-bold transition ${editFormData.ownership_type === 'Owner'
                             ? 'bg-indigo-600 border-indigo-500 text-white'
                             : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'
@@ -448,9 +450,10 @@ export default function VehicleList({ navigateTo }) {
                       {editFormData.ownership_type === 'Owner' ? (
                         <input
                           type="text"
-                          readOnly
                           value={editFormData.owner_name}
-                          className="w-full bg-slate-950/50 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 outline-none font-semibold cursor-not-allowed"
+                          onChange={(e) => setEditFormData({ ...editFormData, owner_name: e.target.value })}
+                          placeholder="Enter Owner Name"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none font-semibold focus:border-indigo-500 transition"
                         />
                       ) : (
                         <CustomSelect

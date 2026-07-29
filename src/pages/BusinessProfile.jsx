@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
-  Building2, Phone, Mail, MapPin, Hash, FileImage,
+  Building2, Phone, Mail, MapPin, Hash, FileImage, User,
   Upload, X, Save, CheckCircle, AlertCircle, Info, Shield
 } from 'lucide-react';
 
@@ -9,6 +9,7 @@ export default function BusinessProfile({ navigateTo }) {
   const { user, updateUser } = useAuth();
 
   const [form, setForm] = useState({
+    name: user?.name || '',
     businessName: user?.businessName || '',
     address: user?.address || '',
     phone: user?.phone || '',
@@ -201,6 +202,16 @@ export default function BusinessProfile({ navigateTo }) {
               <Building2 className="h-4 w-4 text-indigo-400" /> Business Information
             </h2>
 
+            {/* Full Name */}
+            <div>
+              <label className={labelCls}>Full Name <span className="text-rose-400">*</span></label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input type="text" name="name" value={form.name} onChange={handleChange}
+                  placeholder="e.g. Ravi Sable" className={inputIconCls} />
+              </div>
+            </div>
+
             {/* Business Name */}
             <div>
               <label className={labelCls}>Business Name <span className="text-rose-400">*</span></label>
@@ -211,6 +222,29 @@ export default function BusinessProfile({ navigateTo }) {
               </div>
             </div>
 
+            {/* Phone */}
+            <div>
+              <label className={labelCls}>Phone</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input type="tel" name="phone" value={form.phone} onChange={handleChange}
+                  placeholder="10-digit phone" className={inputIconCls} />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className={labelCls}>Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input type="email" name="email" value={form.email} onChange={handleChange}
+                  placeholder="business@example.com" className={inputIconCls} />
+              </div>
+            </div>
+          </div>
+
+          {/* Tax Info */}
+          <div className="glass-panel rounded-2xl border border-slate-700/50 p-6 space-y-4">
             {/* Address */}
             <div>
               <label className={labelCls}>Business Address</label>
@@ -222,29 +256,8 @@ export default function BusinessProfile({ navigateTo }) {
               </div>
             </div>
 
-            {/* Phone + Email */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>Phone</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                  <input type="tel" name="phone" value={form.phone} onChange={handleChange}
-                    placeholder="10-digit phone" className={inputIconCls} />
-                </div>
-              </div>
-              <div>
-                <label className={labelCls}>Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                  <input type="email" name="email" value={form.email} onChange={handleChange}
-                    placeholder="business@example.com" className={inputIconCls} />
-                </div>
-              </div>
-            </div>
-          </div>
+            <div className="my-6 border-t border-slate-800"></div>
 
-          {/* Tax Info */}
-          <div className="glass-panel rounded-2xl border border-slate-700/50 p-6 space-y-4">
             <h2 className="text-sm font-bold text-slate-200 flex items-center gap-2">
               <Shield className="h-4 w-4 text-emerald-400" /> Tax & Compliance
             </h2>
