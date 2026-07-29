@@ -20,15 +20,21 @@ export default function BusinessProfile({ navigateTo }) {
 
   const [logoPreview, setLogoPreview] = useState(user?.logo || null);
   const [logoFile, setLogoFile] = useState(null);
+  const [stampPreview, setStampPreview] = useState(user?.stamp || null);
+  const [stampFile, setStampFile] = useState(null);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const logoRef = useRef(null);
+  const stampRef = useRef(null);
 
   useEffect(() => {
     if (user?.logo && !logoFile) {
       setLogoPreview(user.logo);
     }
-  }, [user?.logo, logoFile]);
+    if (user?.stamp && !stampFile) {
+      setStampPreview(user.stamp);
+    }
+  }, [user?.logo, logoFile, user?.stamp, stampFile]);
 
   const handleChange = (e) => {
     setForm(p => ({ ...p, [e.target.name]: e.target.value }));
@@ -47,10 +53,28 @@ export default function BusinessProfile({ navigateTo }) {
     setError('');
   };
 
+  const handleStampChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setError('Stamp must be an image file.'); return; }
+    if (file.size > 2 * 1024 * 1024) { setError('Stamp must be smaller than 2MB.'); return; }
+    setStampFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setStampPreview(ev.target.result);
+    reader.readAsDataURL(file);
+    setError('');
+  };
+
   const handleRemoveLogo = () => {
     setLogoFile(null);
     setLogoPreview(null);
     if (logoRef.current) logoRef.current.value = '';
+  };
+
+  const handleRemoveStamp = () => {
+    setStampFile(null);
+    setStampPreview(null);
+    if (stampRef.current) stampRef.current.value = '';
   };
 
   const handleSave = async (e) => {
@@ -70,7 +94,20 @@ export default function BusinessProfile({ navigateTo }) {
       logoBase64 = null; // user removed logo
     }
 
-    const result = await updateUser({ ...form, logo: logoBase64 });
+    let stampBase64 = stampPreview; // keep existing unless replaced
+    if (stampFile) {
+      stampBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = ev => resolve(ev.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(stampFile);
+      });
+    }
+    if (!stampFile && stampPreview === null) {
+      stampBase64 = null; // user removed stamp
+    }
+
+    const result = await updateUser({ ...form, logo: logoBase64, stamp: stampBase64 });
 
     if (result && !result.success) {
       setError(result.error || 'Failed to update profile.');
@@ -99,32 +136,60 @@ export default function BusinessProfile({ navigateTo }) {
         {/* Logo section */}
         <div className="glass-panel rounded-2xl border border-slate-700/50 p-6 space-y-4">
           <h2 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-            <FileImage className="h-4 w-4 text-indigo-400" /> Business Logo
+            <FileImage className="h-4 w-4 text-indigo-400" /> Business Logo & Stamp
             <span className="text-slate-500 font-normal text-xs">(optional)</span>
           </h2>
-          <div className="flex items-center gap-5">
-            {/* Preview */}
-            <div className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-600 flex items-center justify-center bg-white shrink-0 overflow-hidden">
-              {logoPreview
-                ? <img src={logoPreview} alt="Business logo" className="w-full h-full object-contain p-1" />
-                : <Building2 className="h-8 w-8 text-slate-400" />
-              }
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center gap-5">
+              {/* Preview */}
+              <div className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-600 flex items-center justify-center bg-white shrink-0 overflow-hidden">
+                {logoPreview
+                  ? <img src={logoPreview} alt="Business logo" className="w-full h-full object-contain p-1" />
+                  : <Building2 className="h-8 w-8 text-slate-400" />
+                }
+              </div>
+              <div className="flex-1 space-y-2">
+                <input ref={logoRef} type="file" accept="image/*" onChange={handleLogoChange} className="hidden" id="biz-logo-upload" />
+                <label
+                  htmlFor="biz-logo-upload"
+                  className="flex items-center gap-2 cursor-pointer bg-slate-800/60 hover:bg-indigo-500/10 border border-dashed border-slate-600 hover:border-indigo-500 rounded-xl px-4 py-2.5 transition text-sm text-slate-300 hover:text-indigo-300 w-fit"
+                >
+                  <Upload className="h-4 w-4" /> Upload Logo
+                </label>
+                <p className="text-[11px] text-slate-500">PNG, JPG, SVG · Max 2MB</p>
+                {logoPreview && (
+                  <button type="button" onClick={handleRemoveLogo}
+                    className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition">
+                    <X className="h-3.5 w-3.5" /> Remove logo
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="flex-1 space-y-2">
-              <input ref={logoRef} type="file" accept="image/*" onChange={handleLogoChange} className="hidden" id="biz-logo-upload" />
-              <label
-                htmlFor="biz-logo-upload"
-                className="flex items-center gap-2 cursor-pointer bg-slate-800/60 hover:bg-indigo-500/10 border border-dashed border-slate-600 hover:border-indigo-500 rounded-xl px-4 py-2.5 transition text-sm text-slate-300 hover:text-indigo-300 w-fit"
-              >
-                <Upload className="h-4 w-4" /> Upload Logo
-              </label>
-              <p className="text-[11px] text-slate-500">PNG, JPG, SVG · Max 2MB · Recommended 200×200px</p>
-              {logoPreview && (
-                <button type="button" onClick={handleRemoveLogo}
-                  className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition">
-                  <X className="h-3.5 w-3.5" /> Remove logo
-                </button>
-              )}
+
+            <div className="flex items-center gap-5">
+              {/* Stamp Preview */}
+              <div className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-600 flex items-center justify-center bg-white shrink-0 overflow-hidden">
+                {stampPreview
+                  ? <img src={stampPreview} alt="Business stamp" className="w-full h-full object-contain p-1" />
+                  : <FileImage className="h-8 w-8 text-slate-400" />
+                }
+              </div>
+              <div className="flex-1 space-y-2">
+                <input ref={stampRef} type="file" accept="image/*" onChange={handleStampChange} className="hidden" id="biz-stamp-upload" />
+                <label
+                  htmlFor="biz-stamp-upload"
+                  className="flex items-center gap-2 cursor-pointer bg-slate-800/60 hover:bg-indigo-500/10 border border-dashed border-slate-600 hover:border-indigo-500 rounded-xl px-4 py-2.5 transition text-sm text-slate-300 hover:text-indigo-300 w-fit"
+                >
+                  <Upload className="h-4 w-4" /> Upload Stamp
+                </label>
+                <p className="text-[11px] text-slate-500">PNG, JPG, SVG · Max 2MB</p>
+                {stampPreview && (
+                  <button type="button" onClick={handleRemoveStamp}
+                    className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition">
+                    <X className="h-3.5 w-3.5" /> Remove stamp
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

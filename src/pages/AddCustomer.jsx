@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { UserPlus, Sparkles, MapPin, CheckCircle, AlertTriangle } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect';
+import { useAuth } from '../context/AuthContext';
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
@@ -14,6 +15,7 @@ const INDIAN_STATES = [
 const GST_TYPES = ["Registered", "Unregistered", "Composite", "Consumer"];
 
 export default function AddCustomer({ navigateTo }) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     entity_type: 'customer',
     name: '',
@@ -228,7 +230,7 @@ export default function AddCustomer({ navigateTo }) {
                 <input
                   type="text"
                   name="name"
-                  placeholder="e.g. John Doe / Purvi Travels"
+                  placeholder={`e.g. John Doe / ${user?.businessName || 'My Business'}`}
                   value={formData.name}
                   onChange={handleChange}
                   className={`w-full bg-slate-950/60 border ${errors.name ? 'border-rose-500/80 focus:ring-rose-500' : 'border-slate-700 focus:border-indigo-500'} focus:ring-2 focus:ring-indigo-500/20 outline-none rounded-xl px-4 py-2.5 text-sm text-slate-100 transition`}

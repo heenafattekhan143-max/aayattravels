@@ -11,7 +11,7 @@ const getAdjustedReportingTime = (timeStr) => {
   return `${h.toString().padStart(2, '0')}:${m}`;
 };
 
-const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate }, ref) => {
+const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate, businessName = 'Business Name' }, ref) => {
   if (!booking) return null;
 
   const plan = plans?.find((p) => p.id === booking.plan_id);
@@ -46,7 +46,7 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate }, ref
 
       {!config?.hideBusinessLetterHead && (
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold uppercase tracking-widest">PURVI TRAVELS</h1>
+          <h1 className="text-2xl font-bold uppercase tracking-widest">{businessName}</h1>
           <p className="text-sm">Premium Car Rental Services</p>
         </div>
       )}

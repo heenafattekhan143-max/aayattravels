@@ -20,8 +20,10 @@ import CustomDatePicker from '../components/CustomDatePicker';
 import CustomSelect from '../components/CustomSelect';
 import PortalDropdown from '../components/PortalDropdown';
 import { convertNumberToWords } from '../utils/numberToWords';
+import { useAuth } from '../context/AuthContext';
 
 export default function GenerateBill({ navigateTo, editingBillId, setEditingBillId, gstRates = [0, 5, 12, 18] }) {
+  const { user } = useAuth();
   const vehicleWrapRef = React.useRef(null);
   // Metadata fields
   const [billType, setBillType] = useState('Sales');
@@ -858,7 +860,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                           setSelectedVehicle(veh);
                           setVehicleSearch(veh.vehicle_number);
                           setVehicleNumber(veh.vehicle_number);
-                          setVendorName(veh.owner_name || 'Purvi Travels');
+                          setVendorName(veh.owner_name || user?.businessName || 'My Business');
                           setDriverName(veh.driver_name || '');
                           setSelectedPurchasePlan(null);
                           setPurchasePlanSearch('');
@@ -869,7 +871,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                         className="p-3 text-sm text-slate-200 hover:bg-indigo-600/30 hover:text-white cursor-pointer transition flex flex-col"
                       >
                         <span className="font-semibold text-indigo-300">{veh.vehicle_number} <span className="text-slate-400 font-normal text-xs ml-2">({veh.model})</span></span>
-                        <span className="text-xs text-slate-500 mt-0.5">{veh.ownership_type || 'Owner'}: {veh.owner_name || 'Purvi Travels'} • Driver: {veh.driver_name || 'N/A'}</span>
+                        <span className="text-xs text-slate-500 mt-0.5">{veh.ownership_type || 'Owner'}: {veh.owner_name || user?.businessName || 'My Business'} • Driver: {veh.driver_name || 'N/A'}</span>
                       </div>
                     ))
                 )}

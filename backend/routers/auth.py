@@ -19,6 +19,7 @@ class UserRegister(BaseModel):
     referral: Optional[str] = ""
     gstin: Optional[str] = ""
     logo: Optional[str] = None
+    stamp: Optional[str] = None
     role: Optional[str] = "superadmin"
 
 class UserUpdate(BaseModel):
@@ -32,6 +33,7 @@ class UserUpdate(BaseModel):
     city: Optional[str] = None
     gstin: Optional[str] = None
     logo: Optional[str] = None
+    stamp: Optional[str] = None
     state: Optional[str] = None
 
 class UserLogin(BaseModel):
@@ -55,6 +57,7 @@ def serialize_user(doc):
         "referral": doc.get("referral"),
         "gstin": doc.get("gstin"),
         "logo": doc.get("logo"),
+        "stamp": doc.get("stamp"),
     }
 
 @router.post("/register")

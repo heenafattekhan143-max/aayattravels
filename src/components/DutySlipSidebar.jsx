@@ -3,8 +3,10 @@ import { X, Download, Printer, Eye } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import DutySlipTemplate from './DutySlipTemplate';
 import { createPortal } from 'react-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function DutySlipSidebar({ isOpen, onClose, booking, plans, formatDate }) {
+  const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   
   const [config, setConfig] = useState({
@@ -217,6 +219,7 @@ export default function DutySlipSidebar({ isOpen, onClose, booking, plans, forma
             config={config}
             plans={plans}
             formatDate={formatDate}
+            businessName={user?.businessName || 'My Business'}
           />
         )}
       </div>

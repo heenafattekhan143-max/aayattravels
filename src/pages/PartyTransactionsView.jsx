@@ -1090,7 +1090,11 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                   </div>
                   <div className="flex flex-col justify-end items-end h-full">
                     <div className="flex flex-col items-center mt-2">
-                      <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                      {user?.stamp ? (
+                        <img src={user.stamp} alt="Business Stamp" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                      ) : (
+                        <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                      )}
                       <div className="w-44 border-t border-slate-400 text-center pt-2 relative z-20">
                         <p className="font-bold text-slate-800 text-[10px]">Authorized Signature</p>
                         <p className="text-[8px] text-slate-400 mt-1">For {viewingTxn.bill.vendor_name || 'PURVI TOURS & TRAVELS'}</p>
