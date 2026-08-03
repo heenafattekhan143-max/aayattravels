@@ -42,7 +42,7 @@ const CustomDatePicker = ({ value, onChange, className }) => {
   );
 };
 
-export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnabled, allPlans, selectedCustomer, gstRates }) {
+export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnabled, allPlans, selectedCustomer, selectedVehicle, gstRates }) {
   const [formData, setFormData] = useState(null);
   const [planSearch, setPlanSearch] = useState('');
   const [showPlanDropdown, setShowPlanDropdown] = useState(false);
@@ -130,12 +130,15 @@ export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnab
   };
 
   const selectPlan = (plan) => {
+    const isVendor = selectedVehicle?.ownership_type === 'Vendor';
+    const applicableRate = isVendor ? (plan.vendor_rate || plan.rate) : (plan.company_rate || plan.rate);
+
     setFormData(prev => ({
       ...prev,
       plan_id: plan.id,
       plan_name: plan.plan_name,
       plan_type: plan.plan_type || '',
-      rate: plan.rate,
+      rate: applicableRate || 0,
       extra_km_rate: plan.extra_km_rate,
       extra_hours_rate: plan.extra_hours_rate,
       base_km: plan.base_km,

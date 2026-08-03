@@ -50,9 +50,11 @@ export function AuthProvider({ children }) {
       localStorage.setItem('purvi_user', JSON.stringify(safeUser));
       return { success: true, user: safeUser };
     } catch (error) {
+      const detail = error.response?.data?.detail;
+      const errMsg = Array.isArray(detail) ? detail.map(e => e.msg).join(', ') : (detail || 'Invalid email/phone or password.');
       return { 
         success: false, 
-        error: error.response?.data?.detail || 'Invalid email/phone or password.' 
+        error: errMsg 
       };
     }
   };
@@ -98,9 +100,11 @@ export function AuthProvider({ children }) {
       localStorage.setItem('purvi_user', JSON.stringify(newUser));
       return { success: true, user: newUser };
     } catch (error) {
+      const detail = error.response?.data?.detail;
+      const errMsg = Array.isArray(detail) ? detail.map(e => e.msg).join(', ') : (detail || 'Failed to register account.');
       return { 
         success: false, 
-        error: error.response?.data?.detail || 'Failed to register account.' 
+        error: errMsg 
       };
     }
   };

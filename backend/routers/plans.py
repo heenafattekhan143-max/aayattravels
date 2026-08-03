@@ -31,7 +31,9 @@ def get_default_extra_rates(vehicle_type: str, user_email: str = Depends(get_cur
 
 class PlanBase(BaseModel):
     plan_name: str = Field(..., min_length=1)
-    rate: float = Field(..., gt=0)
+    rate: Optional[float] = None
+    company_rate: Optional[float] = None
+    vendor_rate: Optional[float] = None
     vehicle_type: str = Field(..., pattern="^(Sedan|Ertiga|SUV)$")
     base_hours: Optional[int] = None
     base_km: Optional[int] = None
@@ -47,6 +49,8 @@ class PlanCreate(PlanBase):
 class PlanUpdate(BaseModel):
     plan_name: Optional[str] = None
     rate: Optional[float] = None
+    company_rate: Optional[float] = None
+    vendor_rate: Optional[float] = None
     vehicle_type: Optional[str] = None
     base_hours: Optional[int] = None
     base_km: Optional[int] = None
@@ -70,6 +74,8 @@ def serialize_plan(doc) -> dict:
         "id": str(doc["_id"]),
         "plan_name": doc.get("plan_name"),
         "rate": doc.get("rate"),
+        "company_rate": doc.get("company_rate"),
+        "vendor_rate": doc.get("vendor_rate"),
         "vehicle_type": doc.get("vehicle_type"),
         "base_hours": doc.get("base_hours"),
         "base_km": doc.get("base_km"),

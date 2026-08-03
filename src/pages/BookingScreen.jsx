@@ -769,7 +769,11 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
   const selectedEntity = entities.find(e => e.phone === formData.customer_phone);
   const selectedCustomerId = selectedEntity ? selectedEntity.id : null;
   const availablePlans = plans;
-  const planOptions = availablePlans.map(p => ({ value: p.id, label: `${p.plan_name} (₹${p.rate})` }));
+  const planOptions = availablePlans.map(p => {
+    const isVendor = vehicles.find(v => v.vehicle_number === formData.vehicle_number)?.ownership_type === 'Vendor';
+    const applicableRate = isVendor ? (p.vendor_rate || p.rate) : (p.company_rate || p.rate);
+    return { value: p.id, label: `${p.plan_name} (₹${applicableRate})` };
+  });
 
   const inputCls = (field) =>
     `w-full bg-slate-950 border ${errors[field] ? 'border-red-500' : 'border-slate-700'} outline-none rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:border-indigo-500 transition placeholder-slate-600`;
@@ -1088,7 +1092,13 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                                 <div className="text-xs text-slate-400 mt-0.5">{guestPlanDetails.plan_type} Plan</div>
                               </div>
                               <div className="text-right">
-                                <div className="text-sm font-bold text-emerald-400">₹{guestPlanDetails.rate}</div>
+                                <div className="text-sm font-bold text-emerald-400">
+                                  ₹{
+                                    vehicles.find(v => v.vehicle_number === formData.vehicle_number)?.ownership_type === 'Vendor' 
+                                      ? (guestPlanDetails.vendor_rate || guestPlanDetails.rate)
+                                      : (guestPlanDetails.company_rate || guestPlanDetails.rate)
+                                  }
+                                </div>
                                 <div className="text-[10px] text-slate-500 uppercase">Base Rate</div>
                               </div>
                             </div>

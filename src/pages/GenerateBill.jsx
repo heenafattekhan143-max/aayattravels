@@ -147,6 +147,12 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         // Map and resolve table item plan details
         const items = bill.table_items.map(item => {
           const matchedPlan = allPlans.find(p => p.id === item.plan_id);
+          const applicableRate = matchedPlan 
+            ? (selectedVehicle?.ownership_type === 'Vendor' 
+                ? (matchedPlan.vendor_rate || matchedPlan.rate) 
+                : (matchedPlan.company_rate || matchedPlan.rate))
+            : 0;
+
           return {
             plan_id: item.plan_id,
             plan_name: item.plan_name,
@@ -163,9 +169,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             amount_without_gst: item.amount_without_gst,
             gst_rate: item.gst_rate || 12,
             amount_with_gst: item.amount_with_gst,
-
-            // Resolve from master plans or fall back
-            rate: item.rate ?? (matchedPlan ? matchedPlan.rate : 0),
+            rate: item.rate ?? applicableRate,
             extra_km_rate: matchedPlan ? matchedPlan.extra_km_rate : 0,
             extra_hours_rate: matchedPlan ? matchedPlan.extra_hours_rate : 0,
             base_km: matchedPlan ? matchedPlan.base_km : 0,
@@ -1358,6 +1362,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         gstEnabled={gstEnabled}
         allPlans={allPlans}
         selectedCustomer={selectedCustomer}
+        selectedVehicle={selectedVehicle}
         gstRates={gstRates}
       />
     </div>
