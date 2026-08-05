@@ -383,8 +383,6 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
   const validateForm = () => {
     const tempErrors = {};
     if (!selectedCustomer) tempErrors.customer = "Please select a customer/vendor.";
-    if (!vehicleNumber.trim()) tempErrors.vehicleNumber = "Vehicle number is required.";
-    if (!vendorName.trim()) tempErrors.vendorName = "Vendor name is required.";
 
     // In Purchase mode, vendor plan is required instead of row-level plan
     if (billType === 'Purchase' && !selectedPurchasePlan) {
@@ -805,7 +803,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Vehicle Number Search */}
             <div className="space-y-1 relative z-50" ref={vehicleWrapRef}>
-              <label className="text-sm font-semibold text-slate-300">Vehicle Number <span className="text-rose-500">*</span></label>
+              <label className="text-sm font-semibold text-slate-300">Vehicle Number</label>
               <div className="relative">
                 <input
                   type="text"
@@ -883,7 +881,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             {/* Vendor/Owner Name (Auto-filled from Vehicle) */}
             <div className="space-y-1">
               <label className="text-sm font-semibold text-slate-300">
-                {selectedVehicle && selectedVehicle.ownership_type === 'Owner' ? 'Owner Name' : 'Vendor Name'} <span className="text-rose-500">*</span>
+                {selectedVehicle && selectedVehicle.ownership_type === 'Owner' ? 'Owner Name' : 'Vendor Name'}
               </label>
               <input
                 type="text"
