@@ -90,8 +90,8 @@ export default function LandingPage({ onNavigate }) {
               <Car className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="font-extrabold text-slate-50 text-lg tracking-tight">Miracrest Group</span>
-              <span className="text-[10px] text-indigo-400 font-semibold tracking-widest uppercase block leading-none">Rental System</span>
+              <span className="font-extrabold text-slate-50 text-xl tracking-tight">Premier Fleet Management System</span>
+              <span className="text-[10px] text-indigo-400 font-semibold tracking-widest uppercase block leading-none">From Booking to Billing, All in One .</span>
             </div>
           </div>
 
@@ -312,7 +312,7 @@ export default function LandingPage({ onNavigate }) {
             <div className="bg-indigo-600 p-1.5 rounded-lg">
               <Car className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-slate-400">Miracrest Group Rental System</span>
+            <span className="font-bold text-slate-400">Premier Fleet Management System</span>
           </div>
           <span>© 2026 Miracrest Group. All rights reserved.</span>
           <div className="flex items-center gap-4">

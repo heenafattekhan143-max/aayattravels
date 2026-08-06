@@ -255,7 +255,7 @@ export default function EventList({ navigateTo, setEditingEventBillId }) {
     } catch (e) { /* skip */ }
 
     const infoData = [
-      ['PURVI TOURS & TRAVELS – EVENT BILL', '', '', ''],
+      ['PREMIER FLEET MANAGEMENT SYSTEM – EVENT BILL', '', '', ''],
       ['Invoice No:', bill.bill_no || '', 'Status:', bill.status || ''],
       ['Client Name:', bill.client_name || '', 'Event Name:', bill.event_name || ''],
       ['Location:', bill.event_location || '', 'Total Days:', bill.total_days || ''],

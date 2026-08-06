@@ -218,7 +218,7 @@ export default function BusinessProfile({ navigateTo }) {
               <div className="relative">
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <input type="text" name="businessName" value={form.businessName} onChange={handleChange}
-                  placeholder="e.g. Purvi Tours & Travels" className={inputIconCls} />
+                  placeholder="e.g. Premier Fleet Management System" className={inputIconCls} />
               </div>
             </div>
 

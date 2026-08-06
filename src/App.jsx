@@ -794,7 +794,7 @@ function AppContent() {
             )}
             <div className="min-w-0">
               <span className="font-extrabold text-slate-50 text-sm leading-tight block break-words mb-0.5">{user?.businessName || 'My Business'}</span>
-              <span className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase block">Rental System</span>
+              <span className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase block">From Booking to Billing, All in One .</span>
             </div>
           </div>
           <button

@@ -814,7 +814,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                   <div className="border border-slate-700 text-xs text-slate-800">
                     {/* Row 1: Company Title */}
                     <div className="py-2.5 px-3 border-b border-slate-700 text-center bg-slate-50">
-                      <h1 className="text-2xl font-black tracking-tight leading-none" style={{ color: '#0096FF' }}>PURVI TOURS &amp; TRAVELS</h1>
+                      <h1 className="text-2xl font-black tracking-tight leading-none" style={{ color: '#0096FF' }}>PREMIER FLEET MANAGEMENT SYSTEM</h1>
                       <p className="text-[11px] mt-1 font-bold text-slate-600">PANCHIL NAGAR NEAR RAHUL S MITRA MANDAL GHORPADI GAON PUNE 41101</p>
                     </div>
                     {/* Row 2: Contact Info */}
@@ -1117,7 +1117,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                       )}
                       <div className="w-44 border-t border-slate-400 text-center pt-2 relative z-20">
                         <p className="font-bold text-slate-800 text-[10px]">Authorized Signature</p>
-                        <p className="text-[8px] text-slate-400 mt-1">For {viewingTxn.bill.vendor_name || 'PURVI TOURS & TRAVELS'}</p>
+                        <p className="text-[8px] text-slate-400 mt-1">For {viewingTxn.bill.vendor_name || 'PREMIER FLEET MANAGEMENT SYSTEM'}</p>
                       </div>
                     </div>
                   </div>

@@ -10,7 +10,7 @@ mock_users = [
     "name": "Super Admin",
     "phone": "9158197878",
     "role": "superadmin",
-    "businessName": "Purvi Travels HQ",
+    "businessName": "Premier Fleet Management System",
     "businessType": "Car-rental company",
     "city": "Mumbai",
   },

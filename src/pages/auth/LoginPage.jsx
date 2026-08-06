@@ -78,8 +78,8 @@ export default function LoginPage({ onNavigate }) {
               <Car className="h-6 w-6 text-white" />
             </div>
             <div>
-              <span className="font-extrabold text-white text-xl tracking-tight">Miracrest Group</span>
-              <span className="text-[10px] text-indigo-300 font-semibold tracking-widest uppercase block leading-none">Rental System</span>
+              <span className="font-extrabold text-white text-xl tracking-tight">Premier Fleet Management System</span>
+              <span className="text-[10px] text-indigo-300 font-semibold tracking-widest uppercase block leading-none">From Booking to Billing, All in One .</span>
             </div>
           </div>
 
@@ -139,8 +139,8 @@ export default function LoginPage({ onNavigate }) {
             <div className="bg-indigo-600 p-3 rounded-2xl shadow-2xl shadow-indigo-500/40 mb-3 animate-pulse-glow">
               <Car className="h-7 w-7 text-white" />
             </div>
-            <h1 className="text-2xl font-black text-slate-50">Miracrest Group</h1>
-            <p className="text-slate-400 text-sm mt-1">Rental System</p>
+            <h1 className="text-2xl font-black text-slate-50">Premier Fleet Management System</h1>
+            <p className="text-slate-400 text-sm mt-1">From Booking to Billing, All in One .</p>
           </div>
 
           {/* Header */}

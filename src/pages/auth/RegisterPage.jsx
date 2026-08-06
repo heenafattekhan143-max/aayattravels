@@ -138,8 +138,8 @@ export default function RegisterPage({ onNavigate }) {
               <Car className="h-6 w-6 text-white" />
             </div>
             <div>
-              <span className="font-extrabold text-white text-xl tracking-tight">Miracrest Group</span>
-              <span className="text-[10px] text-indigo-300 font-semibold tracking-widest uppercase block leading-none">Rental System</span>
+              <span className="font-extrabold text-white text-xl tracking-tight">Premier Fleet Management System</span>
+              <span className="text-[10px] text-indigo-300 font-semibold tracking-widest uppercase block leading-none">From Booking to Billing, All in One .</span>
             </div>
           </div>
 
