@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useConfirm } from '../context/ConfirmContext';
 import CustomSelect from '../components/CustomSelect';
+import { useVehicleClasses } from '../hooks/useVehicleClasses';
 
 
 
@@ -29,6 +30,7 @@ export default function PlanList({ navigateTo }) {
   const [editErrors, setEditErrors] = useState({});
   const [editSuccess, setEditSuccess] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const { vehicleClasses } = useVehicleClasses();
 
   useEffect(() => {
     fetchPlans();
@@ -66,7 +68,7 @@ export default function PlanList({ navigateTo }) {
       plan_name: plan.plan_name || '',
       company_rate: plan.company_rate ? plan.company_rate.toString() : '',
       vendor_rate: plan.vendor_rate ? plan.vendor_rate.toString() : '',
-      vehicle_type: plan.vehicle_type || 'Sedan',
+      vehicle_type: plan.vehicle_type || '',
       extra_km_rate: plan.extra_km_rate ? plan.extra_km_rate.toString() : '',
       extra_hours_rate: plan.extra_hours_rate ? plan.extra_hours_rate.toString() : '',
       vendor_extra_km_rate: plan.vendor_extra_km_rate ? plan.vendor_extra_km_rate.toString() : '',
@@ -110,6 +112,7 @@ export default function PlanList({ navigateTo }) {
 
   const validateEditForm = () => {
     const tempErrors = {};
+    if (!editFormData.vehicle_type) tempErrors.vehicle_type = "Vehicle class is required.";
     if (!editFormData.plan_name?.trim()) tempErrors.plan_name = "Plan name is required.";
 
     if (!editFormData.company_rate || isNaN(editFormData.company_rate) || parseFloat(editFormData.company_rate) <= 0) {
@@ -306,6 +309,22 @@ export default function PlanList({ navigateTo }) {
             )}
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Vehicle Class *</label>
+                <select
+                  name="vehicle_type"
+                  value={editFormData.vehicle_type || ''}
+                  onChange={handleEditChange}
+                  className={`w-full bg-slate-950 text-xs border ${editErrors.vehicle_type ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`}
+                >
+                  <option value="">-- Select Class --</option>
+                  {vehicleClasses.map(vc => (
+                    <option key={vc.name} value={vc.name}>{vc.name}</option>
+                  ))}
+                </select>
+                {editErrors.vehicle_type && <p className="text-[10px] text-rose-400">{editErrors.vehicle_type}</p>}
+              </div>
 
               {/* Plan Name */}
               <div className="space-y-1">

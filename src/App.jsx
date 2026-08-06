@@ -163,6 +163,7 @@ function AppContent() {
   const [vendorForPayment, setVendorForPayment] = useState(null);
   const [customerForReceivedPayment, setCustomerForReceivedPayment] = useState(null);
   const [viewingBillId, setViewingBillId] = useState(null);
+  const [returnToRoute, setReturnToRoute] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -378,11 +379,11 @@ function AppContent() {
       case 'dashboard':
         return user?.role === 'staff' ?
           <BasicPlanDashboard navigateTo={setCurrentPage} /> :
-          <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} setEditingEventBillId={setEditingEventBillId} />;
+          <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} setEditingEventBillId={setEditingEventBillId} setReturnToRoute={setReturnToRoute} />;
       case 'generate-bill':
         return <GenerateBill navigateTo={setCurrentPage} editingBillId={editingBillId} setEditingBillId={setEditingBillId} gstRates={gstRates} />;
       case 'bill-list':
-        return <BillList navigateTo={setCurrentPage} setEditingBillId={setEditingBillId} viewingBillId={viewingBillId} setViewingBillId={setViewingBillId} />;
+        return <BillList navigateTo={setCurrentPage} setEditingBillId={setEditingBillId} viewingBillId={viewingBillId} setViewingBillId={setViewingBillId} returnToRoute={returnToRoute} setReturnToRoute={setReturnToRoute} />;
       case 'add-customer':
         return <AddCustomer navigateTo={setCurrentPage} />;
       case 'customer-list':
@@ -408,7 +409,7 @@ function AppContent() {
       case 'booking-screen':
         return <BookingScreen navigateTo={setCurrentPage} editingBookingId={editingBookingId} setEditingBookingId={setEditingBookingId} />;
       case 'booking-list':
-        return <BookingList navigateTo={setCurrentPage} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} />;
+        return <BookingList navigateTo={setCurrentPage} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} setReturnToRoute={setReturnToRoute} />;
       case 'payments':
       case 'vendor-business':
         return <VendorBusinessList navigateTo={setCurrentPage} setVendorForPayment={setVendorForPayment} />;
@@ -880,7 +881,7 @@ function AppContent() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-950 lg:ml-0">
 
         {/* Navigation Bar (hidden on print) */}
-        <header className="h-14 lg:h-16 border-b border-slate-800 bg-slate-900/30 flex items-center justify-between px-4 lg:px-8 shrink-0 no-print">
+        <header className="h-14 lg:h-16 border-b border-slate-800 bg-slate-900/30 flex items-center justify-between px-2 lg:px-4 shrink-0 no-print">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(s => !s)}
@@ -951,7 +952,7 @@ function AppContent() {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 flex flex-col overflow-y-auto p-4 lg:p-8 w-full">
+        <main className="flex-1 flex flex-col overflow-y-auto p-2 lg:p-4 w-full">
           {renderContent()}
         </main>
       </div>

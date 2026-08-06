@@ -265,7 +265,7 @@ function ConfirmDialog({ open, title, message, onConfirm, onCancel }) {
 /* ══════════════════════════════════════════════════════ */
 /*                   MAIN COMPONENT                       */
 /* ══════════════════════════════════════════════════════ */
-export default function BookingList({ navigateTo, setEditingBookingId, setViewingBillId }) {
+export default function BookingList({ navigateTo, setEditingBookingId, setViewingBillId, setReturnToRoute }) {
   const [bookings, setBookings] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -408,6 +408,7 @@ export default function BookingList({ navigateTo, setEditingBookingId, setViewin
       const bill = res.data.find(b => b.booking_ref === bookingId);
       if (bill) {
         if (setViewingBillId) setViewingBillId(bill.id);
+        if (setReturnToRoute) setReturnToRoute('booking-list');
         navigateTo('bill-list');
       } else {
         alert("Bill not generated for this booking yet.");
@@ -689,26 +690,25 @@ export default function BookingList({ navigateTo, setEditingBookingId, setViewin
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-col">
-                            <span className="text-slate-50 font-bold text-sm max-w-[150px] truncate">{b.customer_name}</span>
+                            <span className="text-slate-50 font-bold text-sm max-w-[150px] truncate capitalize">{b.customer_name}</span>
                             {b.customer_phone && <span className="text-slate-500 text-[10px] font-mono mt-0.5">{b.customer_phone}</span>}
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-1 text-xs text-slate-300 max-w-[180px]">
-                            <div className="flex items-start gap-1.5"><MapPin className="h-3 w-3 text-green-400 shrink-0 mt-0.5" /><span className="truncate">{b.pickup_location || '—'}</span></div>
-                            {b.drop_location && <div className="flex items-start gap-1.5"><ArrowRight className="h-3 w-3 text-slate-600 shrink-0 mt-0.5" /><span className="truncate">{b.drop_location}</span></div>}
+                            <div className="flex items-start gap-1.5"><MapPin className="h-3 w-3 text-green-400 shrink-0 mt-0.5" /><span className="truncate capitalize">{b.pickup_location || '—'}</span></div>
+                            {b.drop_location && <div className="flex items-start gap-1.5"><ArrowRight className="h-3 w-3 text-slate-600 shrink-0 mt-0.5" /><span className="truncate capitalize">{b.drop_location}</span></div>}
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex flex-col gap-1 text-xs">
+                          <div className="flex flex-col items-start gap-1 text-xs">
                             <span className="text-sky-300 font-mono font-bold">{b.vehicle_number || '—'}</span>
-                            {b.vehicle_type && <span className="text-slate-500 text-[10px]">{b.vehicle_type}</span>}
+                            {b.vehicle_class && <span className="bg-slate-800/80 text-slate-300 border border-slate-700/50 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-semibold">{b.vehicle_class}</span>}
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex flex-col gap-1 text-xs">
-                            <span className="text-violet-300 font-semibold max-w-[120px] truncate">{b.driver_name || <span className="text-slate-600 italic font-normal">Unassigned</span>}</span>
-                            {b.passengers > 0 && <span className="text-slate-500 text-[10px]">{b.passengers} pax</span>}
+                          <div className="flex flex-col gap-0.5 text-xs">
+                            <span className="text-violet-300 truncate max-w-[130px] capitalize">{b.driver_name || <span className="text-slate-600 italic">Unassigned</span>}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right">

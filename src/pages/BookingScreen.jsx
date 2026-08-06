@@ -9,6 +9,7 @@ import CustomDatePicker from '../components/CustomDatePicker';
 import CustomTimePicker from '../components/CustomTimePicker';
 import CustomSelect from '../components/CustomSelect';
 import CreatePlanModal from '../components/CreatePlanModal';
+import { useVehicleClasses } from '../hooks/useVehicleClasses';
 import CITIES from '../data/cities.json';
 
 const API = '/api';
@@ -61,6 +62,7 @@ const emptyForm = {
   flight_train_number: '',
   journey_date: '',
   return_date: '',
+  vehicle_class: '',
   vehicle_number: '',
   driver_name: '',
   trip_type: 'One Way',
@@ -474,6 +476,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { vehicleClasses } = useVehicleClasses();
 
   // Guest customer state (separate from formData to avoid confusion)
   const [guestName, setGuestName] = useState('');
@@ -635,6 +638,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
         passenger_details: formData.passenger_details || [],
         advance_amount: parseFloat(formData.advance_amount) || 0,
         total_amount: parseFloat(formData.total_amount) || 0,
+        start_km: formData.start_km ? parseInt(formData.start_km) : null,
         end_km: formData.end_km ? parseInt(formData.end_km) : null,
         working_hours: formData.working_hours ? parseInt(formData.working_hours) : null,
         booking_status: formData.booking_status || 'Confirmed',
@@ -686,6 +690,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       vehicle_number: b.vehicle_number || '',
       driver_name: b.driver_name || '',
       trip_type: b.trip_type || 'One Way',
+      vehicle_class: b.vehicle_class || b.vehicle_type || '',
       vehicle_type: b.vehicle_type || '',
       passengers: b.passengers || 1,
       passenger_details: b.passenger_details?.length > 0 ? b.passenger_details : [{ name: '', phone: '', email: '' }],
@@ -779,7 +784,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
 
   const selectedEntity = entities.find(e => e.phone === formData.customer_phone);
   const selectedCustomerId = selectedEntity ? selectedEntity.id : null;
-  const availablePlans = plans;
+  const availablePlans = formData.vehicle_class ? plans.filter(p => p.vehicle_type === formData.vehicle_class) : plans;
   const planOptions = availablePlans.map(p => ({ value: p.id, label: p.plan_name }));
 
   const inputCls = (field) =>
@@ -1126,6 +1131,22 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                       </>
                     ) : (
                       <>
+                        <div className="space-y-1 mb-4">
+                          <label className="text-xs font-semibold text-slate-300 block">Vehicle Class (Filter)</label>
+                          <select
+                            value={formData.vehicle_class || ''}
+                            onChange={(e) => {
+                               handleChange('vehicle_class', e.target.value);
+                               handleChange('plan_id', ''); // Reset plan when class changes
+                            }}
+                            className="w-full bg-slate-950 border border-slate-700 outline-none rounded-xl px-3 py-2.5 text-sm text-slate-100 cursor-pointer focus:border-indigo-500 transition"
+                          >
+                            <option value="">-- All Classes --</option>
+                            {vehicleClasses.map(vc => (
+                              <option key={vc.name} value={vc.name}>{vc.name}</option>
+                            ))}
+                          </select>
+                        </div>
                         <div className="flex items-center justify-between mb-1">
                           <label className="text-xs font-semibold text-slate-300">Select Package <span className="text-rose-500">*</span></label>
                           {formData.plan_id && (

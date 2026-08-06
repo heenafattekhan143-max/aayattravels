@@ -32,18 +32,38 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingTxn, setViewingTxn] = useState(null);
   const [customerDetails, setCustomerDetails] = useState(null);
+  const [bookingDetails, setBookingDetails] = useState(null);
   const [payError, setPayError] = useState('');
 
   React.useEffect(() => {
-    if (viewingTxn && viewingTxn.bill && viewingTxn.bill.customer_id) {
-      axios.get(`/api/customers/${viewingTxn.bill.customer_id}`)
-        .then(res => setCustomerDetails(res.data))
-        .catch(err => {
-          console.error("Error fetching customer details:", err);
-          setCustomerDetails(null);
-        });
+    if (viewingTxn && viewingTxn.bill) {
+      if (viewingTxn.bill.customer_id) {
+        axios.get(`/api/customers/${viewingTxn.bill.customer_id}`)
+          .then(res => setCustomerDetails(res.data))
+          .catch(err => {
+            console.error("Error fetching customer details:", err);
+            setCustomerDetails(null);
+          });
+      } else {
+        setCustomerDetails(null);
+      }
+
+      if (viewingTxn.bill.booking_ref && !viewingTxn.bill.guest_name) {
+        axios.get('/api/bookings')
+          .then(res => {
+            const b = res.data.find(b => b.id === viewingTxn.bill.booking_ref || b.booking_id === viewingTxn.bill.booking_ref);
+            setBookingDetails(b || null);
+          })
+          .catch(err => {
+            console.error("Error fetching booking details:", err);
+            setBookingDetails(null);
+          });
+      } else {
+        setBookingDetails(null);
+      }
     } else {
       setCustomerDetails(null);
+      setBookingDetails(null);
     }
   }, [viewingTxn]);
 
@@ -882,7 +902,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                         <div>
                           <p className="font-bold text-slate-500 text-[10px]">Guest name:</p>
                           <p className="text-xs font-black text-slate-900 uppercase">
-                            {viewingTxn.bill.guest_name || '—'}
+                            {viewingTxn.bill.guest_name || (bookingDetails?.passenger_details?.[0]?.name) || '—'}
                           </p>
                         </div>
                         <div className="pt-1.5 border-t border-slate-200 mt-1.5">

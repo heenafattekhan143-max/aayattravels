@@ -34,7 +34,7 @@ const formatDate = (dateStr) => {
   return dateStr;
 };
 
-export default function BillList({ navigateTo, setEditingBillId, viewingBillId, setViewingBillId }) {
+export default function BillList({ navigateTo, setEditingBillId, viewingBillId, setViewingBillId, returnToRoute, setReturnToRoute }) {
   const confirm = useConfirm();
   const { user } = useAuth();
   // Dynamic business info from user profile
@@ -57,17 +57,37 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
   // Selected bill to view / print details
   const [selectedBill, setSelectedBill] = useState(null);
   const [customerDetails, setCustomerDetails] = useState(null);
+  const [bookingDetails, setBookingDetails] = useState(null);
 
   useEffect(() => {
-    if (selectedBill && selectedBill.customer_id) {
-      axios.get(`/api/customers/${selectedBill.customer_id}`)
-        .then(res => setCustomerDetails(res.data))
-        .catch(err => {
-          console.error("Error fetching customer details:", err);
-          setCustomerDetails(null);
-        });
+    if (selectedBill) {
+      if (selectedBill.customer_id) {
+        axios.get(`/api/customers/${selectedBill.customer_id}`)
+          .then(res => setCustomerDetails(res.data))
+          .catch(err => {
+            console.error("Error fetching customer details:", err);
+            setCustomerDetails(null);
+          });
+      } else {
+        setCustomerDetails(null);
+      }
+
+      if (selectedBill.booking_ref && !selectedBill.guest_name) {
+        axios.get('/api/bookings')
+          .then(res => {
+            const b = res.data.find(b => b.id === selectedBill.booking_ref || b.booking_id === selectedBill.booking_ref);
+            setBookingDetails(b || null);
+          })
+          .catch(err => {
+            console.error("Error fetching booking details:", err);
+            setBookingDetails(null);
+          });
+      } else {
+        setBookingDetails(null);
+      }
     } else {
       setCustomerDetails(null);
+      setBookingDetails(null);
     }
   }, [selectedBill]);
 
@@ -773,7 +793,14 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                   <Printer className="h-4 w-4" /> Print / PDF
                 </button>
                 <button
-                  onClick={() => setSelectedBill(null)}
+                  onClick={() => {
+                    setSelectedBill(null);
+                    if (setViewingBillId) setViewingBillId(null);
+                    if (returnToRoute) {
+                      navigateTo(returnToRoute);
+                      if (setReturnToRoute) setReturnToRoute(null);
+                    }
+                  }}
                   className="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-800 rounded-lg hover:bg-slate-700 transition"
                 >
                   <X className="h-5 w-5" />
@@ -888,7 +915,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                         <div>
                           <p className="font-bold text-slate-500 text-[10px]">Guest name:</p>
                           <p className="text-xs font-black text-slate-900 uppercase">
-                            {selectedBill.guest_name || '—'}
+                            {selectedBill.guest_name || (bookingDetails?.passenger_details?.[0]?.name) || '—'}
                           </p>
                         </div>
                         <div className="pt-1.5 border-t border-slate-200 mt-1.5">

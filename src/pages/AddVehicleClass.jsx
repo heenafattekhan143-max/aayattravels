@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Car, CheckCircle, AlertTriangle, Trash2 } from 'lucide-react';
+import { Car, CheckCircle, AlertTriangle, Trash2, Edit2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useConfirm } from '../context/ConfirmContext';
 
@@ -20,6 +20,7 @@ export default function AddVehicleClass() {
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetchClasses();
@@ -65,8 +66,15 @@ export default function AddVehicleClass() {
         capacity: formData.capacity ? parseInt(formData.capacity) : null,
         description: formData.description.trim()
       };
-      await axios.post(`/api/vehicle-classes`, payload);
-      setSuccessMsg("Vehicle class added successfully!");
+      
+      if (editingId) {
+        await axios.put(`/api/vehicle-classes/${editingId}`, payload);
+        setSuccessMsg("Vehicle class updated successfully!");
+        setEditingId(null);
+      } else {
+        await axios.post(`/api/vehicle-classes`, payload);
+        setSuccessMsg("Vehicle class added successfully!");
+      }
       setFormData({ name: '', capacity: '', description: '' });
       fetchClasses();
       setTimeout(() => setSuccessMsg(''), 3000);
@@ -76,6 +84,22 @@ export default function AddVehicleClass() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEdit = (cls) => {
+    setEditingId(cls.id);
+    setFormData({
+      name: cls.name,
+      capacity: cls.capacity || '',
+      description: cls.description || ''
+    });
+    setErrors({});
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setFormData({ name: '', capacity: '', description: '' });
+    setErrors({});
   };
 
   const handleDelete = async (id) => {
@@ -96,9 +120,18 @@ export default function AddVehicleClass() {
       
       {/* ADD FORM */}
       <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 lg:col-span-1">
-        <div className="flex items-center gap-2 mb-6 border-b border-slate-800 pb-3">
-          <Car className="h-5 w-5 text-indigo-400" />
-          <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider">Add Vehicle Class</h2>
+        <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <Car className="h-5 w-5 text-indigo-400" />
+            <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+              {editingId ? 'Edit Vehicle Class' : 'Add Vehicle Class'}
+            </h2>
+          </div>
+          {editingId && (
+            <button onClick={cancelEdit} className="text-slate-400 hover:text-rose-400 transition" title="Cancel Edit">
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
         {successMsg && (
@@ -156,14 +189,23 @@ export default function AddVehicleClass() {
             />
           </div>
 
-          <div className="pt-4 border-t border-slate-800/50">
+          <div className="pt-4 border-t border-slate-800/50 flex items-center gap-3">
             <button
               type="submit"
               disabled={isSubmitting}
               className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-indigo-500/20 disabled:opacity-50"
             >
-              {isSubmitting ? "Saving..." : "Add Vehicle Class"}
+              {isSubmitting ? "Saving..." : (editingId ? "Update Class" : "Add Vehicle Class")}
             </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold rounded-xl transition"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -199,9 +241,14 @@ export default function AddVehicleClass() {
                     <td className="p-4 text-sm text-slate-400">{cls.capacity || '-'}</td>
                     <td className="p-4 text-sm text-slate-400">{cls.description || '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDelete(cls.id)} className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition" title="Delete">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleEdit(cls)} className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition" title="Edit">
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => handleDelete(cls.id)} className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition" title="Delete">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
