@@ -14,7 +14,7 @@ const API = '/api';
 const TRIP_TYPES = ['One Way', 'Round Trip', 'Local'];
 const BOOKING_STATUSES = ['Unconfirmed', 'Confirmed', 'Cancelled', 'Completed'];
 const PAYMENT_STATUSES = ['Pending', 'Partial', 'Paid'];
-const VEHICLE_TYPES = ['Sedan', 'SUV', 'Mini Bus', 'Tempo Traveller', 'Luxury', 'Others'];
+
 
 const emptyForm = {
   booking_id: '',
@@ -730,11 +730,9 @@ export default function BookingList({ navigateTo, setEditingBookingId, setViewin
                                 <CheckCircle className="h-4 w-4" />
                               </button>
                             )}
-                            {!['Completed', 'Cancelled', 'Dispatched'].includes(b.booking_status) && (
-                              <button onClick={() => handleEdit(b)} className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition" title="Edit">
-                                <Edit2 className="h-4 w-4" />
-                              </button>
-                            )}
+                            <button onClick={() => handleEdit(b)} className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition" title="Edit">
+                              <Edit2 className="h-4 w-4" />
+                            </button>
                             {b.booking_status !== 'Cancelled' && (
                               <button onClick={() => handleViewBill(b.id)} className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition" title="View/Download Bill PDF">
                                 <FileText className="h-4 w-4" />

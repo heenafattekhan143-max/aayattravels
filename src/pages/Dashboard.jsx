@@ -350,6 +350,7 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, vendors, 
 }
 
 function CloseBookingModal({ booking, onClose, onSave }) {
+  const [startKm, setStartKm] = useState(booking?.start_km || '');
   const [endKm, setEndKm] = useState(booking?.end_km || '');
   const [closeTime, setCloseTime] = useState(booking?.end_time || new Date().toTimeString().slice(0, 5));
   const [workingHours, setWorkingHours] = useState(booking?.working_hours || '');
@@ -380,12 +381,13 @@ function CloseBookingModal({ booking, onClose, onSave }) {
   }, [closeTime, booking?.pickup_time]);
 
   const handleSave = async () => {
-    if (!endKm) {
-      alert("Please enter the KM travelled.");
+    if (startKm === '' || endKm === '') {
+      alert("Please enter both Start and End KM.");
       return;
     }
     setIsSubmitting(true);
     await onSave(booking.id, {
+      start_km: parseInt(startKm, 10),
       end_km: parseInt(endKm, 10),
       end_time: closeTime,
       working_hours: parseInt(workingHours, 10) || 0,
@@ -444,7 +446,18 @@ function CloseBookingModal({ booking, onClose, onSave }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-2">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400 uppercase">Travelled KM</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase">Start KM</label>
+              <input
+                type="number"
+                min="0"
+                value={startKm}
+                onChange={(e) => setStartKm(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 text-slate-100 rounded-xl px-3 py-2.5 text-sm outline-none transition"
+                placeholder="e.g. 100"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-400 uppercase">End KM</label>
               <input
                 type="number"
                 min="0"
@@ -452,6 +465,17 @@ function CloseBookingModal({ booking, onClose, onSave }) {
                 onChange={(e) => setEndKm(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 text-slate-100 rounded-xl px-3 py-2.5 text-sm outline-none transition"
                 placeholder="e.g. 150"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-400 uppercase">Total KM</label>
+              <input
+                type="number"
+                value={(parseInt(endKm, 10) || 0) - (parseInt(startKm, 10) || 0)}
+                readOnly
+                className="w-full bg-slate-950/50 border border-slate-700 text-slate-400 rounded-xl px-3 py-2.5 text-sm outline-none cursor-not-allowed"
               />
             </div>
 
@@ -1298,14 +1322,6 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                               </button>
                                             )}
 
-                                            {b.booking_status !== 'Cancelled' && (
-                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
-                                                <FileText className="h-4 w-4" />
-                                                <span className="font-medium">View/Download Bill PDF</span>
-                                              </button>
-                                            )}
-
                                             {!['Completed', 'Cancelled', 'Dispatched'].includes(b.booking_status) && (
                                               <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }}
                                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
@@ -1332,6 +1348,14 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                               <Printer className="h-4 w-4 text-slate-400" />
                                               <span className="font-medium">Print duty slip</span>
                                             </button>
+
+                                            {b.booking_status !== 'Cancelled' && (
+                                              <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }}
+                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
+                                                <FileText className="h-4 w-4" />
+                                                <span className="font-medium">View/Download Bill</span>
+                                              </button>
+                                            )}
 
                                             {!['Cancelled', 'Completed'].includes(b.booking_status) && (
                                               <>
@@ -1601,14 +1625,6 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                   </button>
                                 )}
 
-                                {b.booking_status !== 'Cancelled' && (
-                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
-                                    <FileText className="h-4 w-4" />
-                                    <span className="font-medium">View/Download Bill PDF</span>
-                                  </button>
-                                )}
-
                                 {!['Completed', 'Cancelled', 'Dispatched'].includes(b.booking_status) && (
                                   <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setAllotmentBookingId(b.id); setAllotmentModalOpen(true); }}
                                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
@@ -1635,6 +1651,14 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                   <Printer className="h-4 w-4 text-slate-400" />
                                   <span className="font-medium">Print duty slip</span>
                                 </button>
+
+                                {b.booking_status !== 'Cancelled' && (
+                                  <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleViewBill(b.id); }}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 rounded-lg transition-colors mt-0.5">
+                                    <FileText className="h-4 w-4" />
+                                    <span className="font-medium">View/Download Bill</span>
+                                  </button>
+                                )}
 
                                 {!['Cancelled', 'Completed'].includes(b.booking_status) && (
                                   <>
@@ -1667,6 +1691,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
           <div className="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 animate-in fade-in zoom-in duration-200">
             <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2"><IndianRupee className="h-5 w-5 text-emerald-400" /> Update Payment</h3>
             <div className="space-y-4">
+
               <div>
                 <label className="text-xs font-semibold text-slate-400">Enter Payment Amount Received (₹)</label>
                 <input

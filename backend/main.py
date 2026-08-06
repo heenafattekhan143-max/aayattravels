@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import customers, plans, bills, vehicles, plan_names, maintenance, drivers, bookings, payments, received_payments, event_bills, auth
+from backend.routers import customers, plans, bills, vehicles, plan_names, maintenance, drivers, bookings, payments, received_payments, event_bills, vehicle_classes, auth
 from backend.config import check_db_connection
 
 app = FastAPI(
@@ -36,6 +36,7 @@ app.include_router(customers.router)
 app.include_router(plans.router)
 app.include_router(bills.router)
 app.include_router(vehicles.router)
+app.include_router(vehicle_classes.router)
 app.include_router(plan_names.router)
 app.include_router(maintenance.router)
 app.include_router(drivers.router)

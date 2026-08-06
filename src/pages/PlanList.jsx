@@ -14,13 +14,7 @@ import {
 import { useConfirm } from '../context/ConfirmContext';
 import CustomSelect from '../components/CustomSelect';
 
-const VEHICLE_TYPES = ["Sedan", "Ertiga", "SUV"];
 
-const DEFAULT_RATES = {
-  "Sedan": { km: 12, hr: 150 },
-  "Ertiga": { km: 15, hr: 180 },
-  "SUV": { km: 18, hr: 200 }
-};
 
 export default function PlanList({ navigateTo }) {
   const confirm = useConfirm();
@@ -75,6 +69,8 @@ export default function PlanList({ navigateTo }) {
       vehicle_type: plan.vehicle_type || 'Sedan',
       extra_km_rate: plan.extra_km_rate ? plan.extra_km_rate.toString() : '',
       extra_hours_rate: plan.extra_hours_rate ? plan.extra_hours_rate.toString() : '',
+      vendor_extra_km_rate: plan.vendor_extra_km_rate ? plan.vendor_extra_km_rate.toString() : '',
+      vendor_extra_hours_rate: plan.vendor_extra_hours_rate ? plan.vendor_extra_hours_rate.toString() : '',
       base_hours: plan.base_hours ? plan.base_hours.toString() : '',
       base_km: plan.base_km ? plan.base_km.toString() : '',
       da_allowance: plan.da_allowance ? plan.da_allowance.toString() : '',
@@ -103,14 +99,7 @@ export default function PlanList({ navigateTo }) {
         }
       }
 
-      // Auto-update extra rates if vehicle type changes
-      if (name === 'vehicle_type') {
-        const rates = DEFAULT_RATES[value];
-        if (rates) {
-          updated.extra_km_rate = rates.km.toString();
-          updated.extra_hours_rate = rates.hr.toString();
-        }
-      }
+
       return updated;
     });
 
@@ -162,6 +151,8 @@ export default function PlanList({ navigateTo }) {
         vehicle_type: editFormData.vehicle_type,
         extra_km_rate: parseFloat(editFormData.extra_km_rate),
         extra_hours_rate: editFormData.plan_type === 'Local' ? parseFloat(editFormData.extra_hours_rate) : 0,
+        vendor_extra_km_rate: editFormData.vendor_extra_km_rate ? parseFloat(editFormData.vendor_extra_km_rate) : null,
+        vendor_extra_hours_rate: editFormData.plan_type === 'Local' && editFormData.vendor_extra_hours_rate ? parseFloat(editFormData.vendor_extra_hours_rate) : null,
         base_hours: editFormData.base_hours ? parseInt(editFormData.base_hours, 10) : null,
         base_km: editFormData.base_km ? parseInt(editFormData.base_km, 10) : null,
         da_allowance: editFormData.da_allowance ? parseFloat(editFormData.da_allowance) : 0,
@@ -330,76 +321,85 @@ export default function PlanList({ navigateTo }) {
               </div>
 
               {editFormData.plan_type === 'Local' ? (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-300">Base Hours</label>
-                      <input type="number" name="base_hours" value={editFormData.base_hours} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-300">Base KMs</label>
-                      <input type="number" name="base_km" value={editFormData.base_km} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
-                    </div>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Base Hours</label>
+                    <input type="number" name="base_hours" value={editFormData.base_hours} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-300">Company Rate (Rs.) *</label>
-                      <input type="text" name="company_rate" value={editFormData.company_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.company_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
-                      {editErrors.company_rate && <p className="text-[10px] text-rose-400">{editErrors.company_rate}</p>}
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-300">Vendor Rate (Rs.) *</label>
-                      <input type="text" name="vendor_rate" value={editFormData.vendor_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.vendor_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
-                      {editErrors.vendor_rate && <p className="text-[10px] text-rose-400">{editErrors.vendor_rate}</p>}
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Base KMs</label>
+                    <input type="number" name="base_km" value={editFormData.base_km} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
                   </div>
-                </>
+                </div>
               ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-300">Per Day KM Limit *</label>
-                      <input type="number" name="base_km" value={editFormData.base_km} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.base_km ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
-                      {editErrors.base_km && <p className="text-[10px] text-rose-400">{editErrors.base_km}</p>}
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-300">Company Rate (Rs.) *</label>
-                      <input type="text" name="company_rate" value={editFormData.company_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.company_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
-                      {editErrors.company_rate && <p className="text-[10px] text-rose-400">{editErrors.company_rate}</p>}
-                    </div>
+                <div className="space-y-1 mt-2">
+                  <label className="text-xs font-semibold text-slate-300">Per Day KM Limit *</label>
+                  <input type="number" name="base_km" value={editFormData.base_km} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.base_km ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                  {editErrors.base_km && <p className="text-[10px] text-rose-400">{editErrors.base_km}</p>}
+                </div>
+              )}
+
+              {/* Rates — 2-column: Company left, Vendor right */}
+              <div className="border-t border-slate-800/50 pt-4 mt-4">
+
+                {/* Column headers */}
+                <div className="grid grid-cols-2 gap-4 mb-1">
+                  <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Company</p>
+                  <p className="text-[10px] font-bold text-amber-400/80 uppercase tracking-widest">Vendor</p>
+                </div>
+
+                {/* Base Rate row */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Base Rate (Rs.) *</label>
+                    <input type="text" name="company_rate" value={editFormData.company_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.company_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                    {editErrors.company_rate && <p className="text-[10px] text-rose-400">{editErrors.company_rate}</p>}
                   </div>
-                  <div className="space-y-1 mt-4">
-                    <label className="text-xs font-semibold text-slate-300">Vendor Rate (Rs.) *</label>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-amber-400/80">Base Rate (Rs.) *</label>
                     <input type="text" name="vendor_rate" value={editFormData.vendor_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.vendor_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
                     {editErrors.vendor_rate && <p className="text-[10px] text-rose-400">{editErrors.vendor_rate}</p>}
                   </div>
-                </>
-              )}
-
-              {/* Extra Rates */}
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-800 pt-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Extra KM Rate (₹)</label>
-                  <input type="text" name="extra_km_rate" value={editFormData.extra_km_rate} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
-                  {editErrors.extra_km_rate && <p className="text-[10px] text-rose-400">{editErrors.extra_km_rate}</p>}
                 </div>
-                {editFormData.plan_type === 'Local' && (
+
+                {/* Extra KM Rate row */}
+                <div className="grid grid-cols-2 gap-4 mt-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Extra Hour Rate (₹)</label>
-                    <input type="text" name="extra_hours_rate" value={editFormData.extra_hours_rate} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
-                    {editErrors.extra_hours_rate && <p className="text-[10px] text-rose-400">{editErrors.extra_hours_rate}</p>}
+                    <label className="text-xs font-semibold text-slate-300">Company Extra KM Rate (₹) *</label>
+                    <input type="text" name="extra_km_rate" value={editFormData.extra_km_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.extra_km_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                    {editErrors.extra_km_rate && <p className="text-[10px] text-rose-400">{editErrors.extra_km_rate}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-amber-400/80">Vendor Extra KM Rate (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                    <input type="text" name="vendor_extra_km_rate" value={editFormData.vendor_extra_km_rate} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
+                  </div>
+                </div>
+
+                {/* Extra Hour Rate row */}
+                {editFormData.plan_type === 'Local' && (
+                  <div className="grid grid-cols-2 gap-4 mt-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-300">Company Extra Hour Rate (₹) *</label>
+                      <input type="text" name="extra_hours_rate" value={editFormData.extra_hours_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.extra_hours_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                      {editErrors.extra_hours_rate && <p className="text-[10px] text-rose-400">{editErrors.extra_hours_rate}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-amber-400/80">Vendor Extra Hour Rate (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                      <input type="text" name="vendor_extra_hours_rate" value={editFormData.vendor_extra_hours_rate} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
+                    </div>
                   </div>
                 )}
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Driver Allowance (₹)</label>
-                  <input type="number" name="da_allowance" value={editFormData.da_allowance} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Night Allowance (₹)</label>
-                  <input type="number" name="night_allowance" value={editFormData.night_allowance} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
+                {/* Allowances row */}
+                <div className="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-slate-800/40">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Driver Allowance (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                    <input type="number" name="da_allowance" value={editFormData.da_allowance} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Night Allowance (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                    <input type="number" name="night_allowance" value={editFormData.night_allowance} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
+                  </div>
                 </div>
               </div>
 

@@ -4,14 +4,16 @@ import { Car, CheckCircle, AlertTriangle, Sparkles, ShieldAlert } from 'lucide-r
 import CustomSelect from '../components/CustomSelect';
 import { useAuth } from '../context/AuthContext';
 import { useConfirm } from '../context/ConfirmContext';
+import { useVehicleClasses } from '../hooks/useVehicleClasses';
 
 export default function AddVehicle({ navigateTo }) {
   const { user } = useAuth();
+  const { vehicleClasses } = useVehicleClasses();
   const [vehicle, setVehicle] = useState({
     vehicle_number: '',
     model: '',
     driver_name: '',
-    vehicle_type: 'Sedan',
+    vehicle_type: '',
     status: 'Active',
     ownership_type: 'Owner',
     owner_name: user?.name || '',
@@ -105,7 +107,7 @@ export default function AddVehicle({ navigateTo }) {
         vehicle_number: '',
         model: '',
         driver_name: '',
-        vehicle_type: 'Sedan',
+        vehicle_type: '',
         status: 'Active',
         ownership_type: 'Owner',
         owner_name: '',
@@ -197,7 +199,8 @@ export default function AddVehicle({ navigateTo }) {
                 <CustomSelect
                   value={vehicle.vehicle_type}
                   onChange={(val) => setVehicle({ ...vehicle, vehicle_type: val })}
-                  options={['Sedan', 'Ertiga', 'SUV']}
+                  options={vehicleClasses.map(c => ({ value: c.name, label: c.capacity ? `${c.name} (${c.capacity} Seater)` : c.name }))}
+                  placeholder="-- Select Class --"
                 />
               </div>
 

@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/vehicles", tags=["vehicles"])
 class VehicleBase(BaseModel):
     vehicle_number: str = Field(..., min_length=1)
     model: Optional[str] = ""
-    vehicle_type: str = Field(..., pattern="^(Sedan|Ertiga|SUV)$")
+    vehicle_type: str = Field(...)
     status: str = Field(..., pattern="^(Active|Maintenance|Inactive)$")
     ownership_type: str = Field(default="Owner", pattern="^(Owner|Vendor)$")
     owner_name: Optional[str] = None

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { X, Car, CheckCircle } from 'lucide-react';
 import CustomDatePicker from './CustomDatePicker';
 import CustomSelect from './CustomSelect';
+import { useVehicleClasses } from '../hooks/useVehicleClasses';
 
 const TRIP_TYPES = ['One Way', 'Round Trip', 'Local'];
-const VEHICLE_CLASSES = ['Hatchback', 'Sedan', 'SUV', 'MUV', 'Premium Sedan', 'Luxury', 'Traveller', 'Mini Bus', 'Bus'];
 
 export default function EventBookingModal({ 
   isOpen, 
@@ -39,6 +39,7 @@ export default function EventBookingModal({
   });
 
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
+  const { vehicleClasses } = useVehicleClasses();
 
   useEffect(() => {
     if (isOpen) {
@@ -176,7 +177,7 @@ export default function EventBookingModal({
                 onChange={(val) => handleChange('vehicle_class', val)}
                 options={[
                   { value: '', label: 'None' },
-                  ...VEHICLE_CLASSES.map(vc => ({ value: vc, label: vc }))
+                  ...vehicleClasses.map(vc => ({ value: vc.name, label: vc.capacity ? `${vc.name} (${vc.capacity} Seater)` : vc.name }))
                 ]}
               />
             </div>

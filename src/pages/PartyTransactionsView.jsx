@@ -638,7 +638,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                               return (
                                 <div className="flex items-center gap-2.5 mt-1">
                                   <button
-                                    onClick={(e) => { e.stopPropagation(); setViewingTxn(txn); setIsViewModalOpen(true); }}
+                                    onClick={(e) => { e.stopPropagation(); setViewingTxn({ bill: txn }); setIsViewModalOpen(true); }}
                                     className="text-slate-400 hover:text-slate-100 transition p-0.5"
                                     title="View Invoice"
                                   >

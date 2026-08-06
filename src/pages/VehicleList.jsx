@@ -14,13 +14,14 @@ import {
 import { useConfirm } from '../context/ConfirmContext';
 import CustomSelect from '../components/CustomSelect';
 import { useAuth } from '../context/AuthContext';
+import { useVehicleClasses } from '../hooks/useVehicleClasses';
 
-const VEHICLE_CLASSES = ["Sedan", "Ertiga", "SUV"];
 const STATUS_OPTIONS = ["Active", "Maintenance", "Inactive"];
 
 export default function VehicleList({ navigateTo }) {
   const confirm = useConfirm();
   const { user } = useAuth();
+  const { vehicleClasses } = useVehicleClasses();
   const [vehicles, setVehicles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -393,7 +394,8 @@ export default function VehicleList({ navigateTo }) {
                       <CustomSelect
                         value={editFormData.vehicle_type}
                         onChange={(val) => handleEditChange({ target: { name: 'vehicle_type', value: val } })}
-                        options={VEHICLE_CLASSES}
+                        options={vehicleClasses.map(c => ({ value: c.name, label: c.capacity ? `${c.name} (${c.capacity} Seater)` : c.name }))}
+                        placeholder="-- Select Class --"
                       />
                     </div>
 

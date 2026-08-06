@@ -38,6 +38,8 @@ class PlanBase(BaseModel):
     base_km: Optional[int] = None
     extra_km_rate: Optional[float] = None
     extra_hours_rate: Optional[float] = None
+    vendor_extra_km_rate: Optional[float] = None
+    vendor_extra_hours_rate: Optional[float] = None
     plan_type: Optional[str] = None
     da_allowance: Optional[float] = 0.0
     night_allowance: Optional[float] = 0.0
@@ -54,6 +56,8 @@ class PlanUpdate(BaseModel):
     base_km: Optional[int] = None
     extra_km_rate: Optional[float] = None
     extra_hours_rate: Optional[float] = None
+    vendor_extra_km_rate: Optional[float] = None
+    vendor_extra_hours_rate: Optional[float] = None
     plan_type: Optional[str] = None
     da_allowance: Optional[float] = None
     night_allowance: Optional[float] = None
@@ -64,6 +68,8 @@ class PlanResponse(PlanBase):
     base_km: int
     extra_km_rate: float
     extra_hours_rate: float
+    vendor_extra_km_rate: Optional[float] = None
+    vendor_extra_hours_rate: Optional[float] = None
 
 def serialize_plan(doc) -> dict:
     if not doc:
@@ -78,6 +84,8 @@ def serialize_plan(doc) -> dict:
         "base_km": doc.get("base_km"),
         "extra_km_rate": doc.get("extra_km_rate"),
         "extra_hours_rate": doc.get("extra_hours_rate"),
+        "vendor_extra_km_rate": doc.get("vendor_extra_km_rate"),
+        "vendor_extra_hours_rate": doc.get("vendor_extra_hours_rate"),
         "plan_type": doc.get("plan_type"),
         "da_allowance": doc.get("da_allowance", 0.0),
         "night_allowance": doc.get("night_allowance", 0.0)

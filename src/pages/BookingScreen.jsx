@@ -16,7 +16,7 @@ const API = '/api';
 const TRIP_TYPES = ['One Way', 'Round Trip', 'Local'];
 const BOOKING_STATUSES = ['Unconfirmed', 'Confirmed', 'Cancelled', 'Completed'];
 const PAYMENT_STATUSES = ['Pending', 'Partial', 'Paid'];
-const VEHICLE_TYPES = ['Sedan', 'SUV', 'Mini Bus', 'Tempo Traveller', 'Luxury', 'Others'];
+
 
 function formatDate(d) {
   if (!d) return '—';
@@ -71,10 +71,11 @@ const emptyForm = {
   plan_id: '',
   payment_status: 'Pending',
   booking_status: 'Confirmed',
+  start_km: '',
   end_km: '',
   working_hours: '',
   remarks: '',
-  gst_rate: 0,
+  gst_rate: '',
 };
 
 const statusColor = {
@@ -477,8 +478,9 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
   // Guest customer state (separate from formData to avoid confusion)
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
-
+  const [showDriverModal, setShowDriverModal] = useState(false);
   const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
+  const [editingPlanData, setEditingPlanData] = useState(null);
   const [guestPlanDetails, setGuestPlanDetails] = useState(null);
 
   // Filters
@@ -516,6 +518,13 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
 
     return Array.from(unavailable);
   }, [formData.journey_date, formData.pickup_time, formData.return_date, formData.end_time, bookings, editingId]);
+
+  const fetchPlans = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/plans`);
+      setPlans(res.data);
+    } catch (err) { console.error('Error fetching plans:', err); }
+  }, []);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -629,6 +638,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
         end_km: formData.end_km ? parseInt(formData.end_km) : null,
         working_hours: formData.working_hours ? parseInt(formData.working_hours) : null,
         booking_status: formData.booking_status || 'Confirmed',
+        gst_rate: formData.gst_rate !== '' ? parseFloat(formData.gst_rate) : 0,
       };
 
       if (editingBookingId) {
@@ -686,6 +696,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       end_km: b.end_km || '',
       working_hours: b.working_hours || '',
       remarks: b.remarks || '',
+      gst_rate: b.gst_rate != null ? String(b.gst_rate) : '',
     });
     if (wasGuest) { setGuestName(b.customer_name || ''); setGuestPhone(b.customer_phone || ''); }
     else { setGuestName(''); setGuestPhone(''); }
@@ -1068,7 +1079,10 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                           <>
                             <button
                               type="button"
-                              onClick={() => setShowCreatePlanModal(true)}
+                              onClick={() => {
+                                setEditingPlanData(null);
+                                setShowCreatePlanModal(true);
+                              }}
                               className="w-full py-2.5 border border-dashed border-indigo-500/50 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:border-indigo-400 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2"
                             >
                               <Plus className="h-4 w-4" /> Create Package
@@ -1112,7 +1126,24 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                       </>
                     ) : (
                       <>
-                        <label className="text-xs font-semibold text-slate-300">Select Package <span className="text-rose-500">*</span></label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-semibold text-slate-300">Select Package <span className="text-rose-500">*</span></label>
+                          {formData.plan_id && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const p = plans.find(x => x.id === formData.plan_id);
+                                if (p) {
+                                  setEditingPlanData(p);
+                                  setShowCreatePlanModal(true);
+                                }
+                              }}
+                              className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition uppercase tracking-wider bg-indigo-500/10 px-2 py-0.5 rounded"
+                            >
+                              Edit Package
+                            </button>
+                          )}
+                        </div>
                         <CustomSelect
                           value={formData.plan_id}
                           onChange={(val) => handleChange('plan_id', val)}
@@ -1136,14 +1167,15 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                     <label className="text-xs font-semibold text-slate-300">GST Rate (%)</label>
                     <CustomSelect
                       value={formData.gst_rate}
-                      onChange={(val) => handleChange('gst_rate', Number(val))}
+                      onChange={(val) => handleChange('gst_rate', val)}
+                      placeholder="0% (No GST)"
                       hidePlaceholder={true}
                       options={[
-                        { value: 0, label: '0% (No GST)' },
-                        { value: 5, label: '5%' },
-                        { value: 10, label: '10%' },
-                        { value: 20, label: '20%' },
-                        { value: 30, label: '30%' },
+                        { value: '0', label: '0% (No GST)' },
+                        { value: '5', label: '5%' },
+                        { value: '10', label: '10%' },
+                        { value: '20', label: '20%' },
+                        { value: '30', label: '30%' },
                       ]}
                     />
                   </div>
@@ -1222,12 +1254,23 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
 
       {showCreatePlanModal && (
         <CreatePlanModal
-          onClose={() => setShowCreatePlanModal(false)}
+          initialData={editingPlanData}
+          onClose={() => {
+            setShowCreatePlanModal(false);
+            setEditingPlanData(null);
+          }}
           onSuccess={(newPlan) => {
+            fetchPlans();
             setGuestPlanDetails(newPlan);
             handleChange('plan_id', newPlan.id);
-            setPlans(prev => [...prev, newPlan]);
+            setPlans(prev => {
+              if (prev.find(p => p.id === newPlan.id)) {
+                return prev.map(p => p.id === newPlan.id ? newPlan : p);
+              }
+              return [...prev, newPlan];
+            });
             setShowCreatePlanModal(false);
+            setEditingPlanData(null);
           }}
         />
       )}

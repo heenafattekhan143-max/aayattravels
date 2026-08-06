@@ -10,13 +10,13 @@ const API_URL = '/api';
 export const ROLE_PERMISSIONS = {
   superadmin: [
     'dashboard', 'booking', 'billing', 'events', 'payments',
-    'company', 'plans', 'vehicle', 'driver', 'business',
+    'company', 'plans', 'vehicle', 'driver', 'business', 'reports', 'quotation'
   ],
   vendor: [
     'dashboard', 'booking', 'billing', 'events', 'payments', 'company', 'plans',
   ],
   staff: [
-    'dashboard', 'billing', 'company', 'plans', 'vehicle', 'driver', 'business',
+    'dashboard', 'billing', 'company', 'plans', 'vehicle', 'driver', 'business', 'reports', 'quotation'
   ],
 };
 

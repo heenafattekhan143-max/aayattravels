@@ -42,6 +42,7 @@ class BookingBase(BaseModel):
     booking_status: Optional[str] = "Confirmed"  # Confirmed / Cancelled / Completed
     remarks: Optional[str] = ""
     note: Optional[str] = ""
+    start_km: Optional[int] = 0
     end_km: Optional[int] = 0
     working_hours: Optional[int] = 0
     plan_id: Optional[str] = None
@@ -85,6 +86,7 @@ class BookingUpdate(BaseModel):
     booking_status: Optional[str] = None
     remarks: Optional[str] = None
     note: Optional[str] = None
+    start_km: Optional[int] = None
     end_km: Optional[int] = None
     working_hours: Optional[int] = None
     plan_id: Optional[str] = None
@@ -528,8 +530,8 @@ def update_booking(booking_id: str, booking_update: BookingUpdate, user_email: s
     # Auto-generate or update provisional bills for vendor business on every update
     sync_provisional_bills(result, user_email)
 
-    # Auto-generate final bill on booking completion
-    if update_data.get("booking_status") == "Completed" and old_doc.get("booking_status") != "Completed":
+    # Auto-generate or update final bill if booking is completed
+    if result.get("booking_status") == "Completed":
         generate_bill_for_booking(result, user_email)
 
     return serialize_booking(result)

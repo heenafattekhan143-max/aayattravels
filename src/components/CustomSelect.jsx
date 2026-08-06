@@ -43,13 +43,13 @@ export default function CustomSelect({
   let selectedLabel = placeholder;
   if (value !== '' && value !== undefined && value !== null) {
     const opt = options.find((o) => {
-      if (typeof o === 'object') return o.value === value;
-      return o === value;
+      if (typeof o === 'object') return o.value == value; // loose equality handles number/string mismatch
+      return o == value;
     });
     if (opt) {
       selectedLabel = typeof opt === 'object' ? opt.label : opt;
     } else {
-      selectedLabel = value; 
+      selectedLabel = value;
     }
   }
 

@@ -46,6 +46,7 @@ import PlanList from './pages/PlanList';
 import GenerateBill from './pages/GenerateBill';
 import BillList from './pages/BillList';
 import AddVehicle from './pages/AddVehicle';
+import AddVehicleClass from './pages/AddVehicleClass';
 import VehicleList from './pages/VehicleList';
 import Quotation from './pages/Quotation';
 import AddPlanName from './pages/AddPlanName';
@@ -65,6 +66,7 @@ import EventList from './pages/EventList';
 import BookingList from './pages/BookingList';
 import CustomDatePicker from './components/CustomDatePicker';
 import BusinessProfile from './pages/BusinessProfile';
+import ReportsView from './pages/ReportsView';
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: 'dashboard' },
@@ -85,17 +87,20 @@ const MENU_ITEMS = [
     ]
   },
   {
-    id: 'payments', label: 'Payments',
+    id: 'business', label: 'Business',
     items: [
       { path: 'vendor-business', label: 'Vendor Business', icon: IndianRupee },
+      { path: 'all-sale', label: 'My Business', icon: FileText },
+      // { path: 'purchase', label: 'Purchase', icon: List },
+      // { path: 'my-sale', label: 'My Vehicle Sale', icon: Car }
       // { path: 'received-vendor-payment', label: 'Received Payment', icon: IndianRupee }
     ]
   },
   {
-    id: 'company', label: 'Company / Vendors',
+    id: 'company', label: 'Clients',
     items: [
-      { path: 'add-customer', label: 'Add Customer', icon: Plus },
-      { path: 'customer-list', label: 'Customer / Vendor List', icon: List }
+      { path: 'add-customer', label: 'Add Client', icon: Plus },
+      { path: 'customer-list', label: 'Client List', icon: List }
     ]
   },
   {
@@ -109,6 +114,7 @@ const MENU_ITEMS = [
     id: 'vehicle', label: 'Vehicle',
     items: [
       { path: 'add-vehicle', label: 'Add Vehicle', icon: Plus },
+      { path: 'add-vehicle-class', label: 'Add Vehicle Class', icon: Plus },
       { path: 'vehicle-maintenance', label: 'Vehicle Maintenance', icon: Wrench },
       { path: 'vehicle-list', label: 'Vehicle List', icon: List }
     ]
@@ -136,7 +142,17 @@ const MENU_ITEMS = [
   //     { path: 'my-sale', label: 'My Vehicle Sale', icon: Car }
   //   ]
   // },
-  { id: 'quotation', label: 'Quotation', icon: FileText, path: 'quotation' }
+  {
+    id: 'reports', label: 'Reports',
+    items: [
+      { path: 'reports-sales', label: 'Sales Report', icon: FileText },
+      { path: 'reports-vendor', label: 'Vendor Report', icon: FileSpreadsheet },
+      { path: 'reports-bookings', label: 'Bookings Report', icon: BookOpen },
+      { path: 'reports-maintenance', label: 'Maintenance Report', icon: Wrench },
+      { path: 'reports-driver', label: 'Driver Report', icon: Users }
+    ]
+  },
+  // { id: 'quotation', label: 'Quotation', icon: FileText, path: 'quotation' }
 ];
 
 function AppContent() {
@@ -377,6 +393,8 @@ function AppContent() {
         return <PlanList navigateTo={setCurrentPage} />;
       case 'add-vehicle':
         return <AddVehicle navigateTo={setCurrentPage} />;
+      case 'add-vehicle-class':
+        return <AddVehicleClass />;
       case 'vehicle-list':
         return <VehicleList navigateTo={setCurrentPage} />;
       case 'quotation':
@@ -707,6 +725,12 @@ function AppContent() {
 
       case 'my-sale':
         return <MyVehicleSalesScreen />;
+
+      case 'reports-sales': return <ReportsView reportType="sales" />;
+      case 'reports-vendor': return <ReportsView reportType="vendor" />;
+      case 'reports-bookings': return <ReportsView reportType="bookings" />;
+      case 'reports-maintenance': return <ReportsView reportType="maintenance" />;
+      case 'reports-driver': return <ReportsView reportType="driver" />;
 
       default:
         return <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} setEditingEventBillId={setEditingEventBillId} />;

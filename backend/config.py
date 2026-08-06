@@ -20,6 +20,7 @@ bookings_collection = db["bookings"]
 payments_collection = db["payments"]
 received_payments_collection = db["received_payments"]
 event_bills_collection = db["event_bills"]
+vehicle_classes_collection = db["vehicle_classes"]
 counters_collection = db["counters"]
 users_collection = db["users"]
 

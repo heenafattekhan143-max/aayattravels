@@ -12,7 +12,7 @@ const INDIAN_STATES = [
   "Uttarakhand", "West Bengal", "Delhi", "Jammu and Kashmir", "Ladakh", "Puducherry"
 ];
 
-const GST_TYPES = ["Registered", "Unregistered", "Composite", "Consumer"];
+const GST_TYPES = ["Registered", "Unregistered"];
 
 export default function AddCustomer({ navigateTo }) {
   const { user } = useAuth();
@@ -32,44 +32,7 @@ export default function AddCustomer({ navigateTo }) {
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGstLoading, setIsGstLoading] = useState(false);
-  const [gstLookupSuccess, setGstLookupSuccess] = useState(false);
 
-  useEffect(() => {
-    const gstin = formData.gstin.trim().toUpperCase();
-    if (gstin.length === 15) {
-      const gstinPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-      if (gstinPattern.test(gstin)) {
-        handleGstLookup(gstin);
-      }
-    } else {
-      setGstLookupSuccess(false);
-    }
-  }, [formData.gstin]);
-
-  const handleGstLookup = async (gstin) => {
-    setIsGstLoading(true);
-    setErrors(prev => ({ ...prev, gstin: '' }));
-    try {
-      const res = await axios.get(`/api/customers/gst-lookup/${gstin}`);
-      const data = res.data;
-      if (data && data.legal_name) {
-        setFormData(prev => ({
-          ...prev,
-          name: data.legal_name,
-          state: data.state || prev.state,
-          billing_address: data.billing_address || prev.billing_address,
-          email: data.email || prev.email,
-          gst_type: 'Registered'
-        }));
-        setGstLookupSuccess(true);
-      }
-    } catch (err) {
-      console.error('GSTIN lookup failed:', err);
-    } finally {
-      setIsGstLoading(false);
-    }
-  };
 
   const validate = () => {
     const tempErrors = {};
@@ -186,10 +149,10 @@ export default function AddCustomer({ navigateTo }) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5 items-stretch">
-          
+
           {/* ── LEFT COLUMN (CARD 1) ── */}
           <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 space-y-6">
-            
+
             {/* Header */}
             <div className="flex items-center gap-2 mb-2 border-b border-slate-800 pb-2">
               <UserPlus className="h-5 w-5 text-indigo-400" />
@@ -208,7 +171,7 @@ export default function AddCustomer({ navigateTo }) {
                     onChange={() => handleTypeChange('customer')}
                     className="w-4 h-4 text-indigo-600 border-slate-700 focus:ring-indigo-500 bg-slate-950"
                   />
-                  <span className="font-semibold">Company / Customer</span>
+                  <span className="font-semibold">Client</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer text-slate-300 text-sm">
                   <input
@@ -272,7 +235,7 @@ export default function AddCustomer({ navigateTo }) {
           {/* ── RIGHT COLUMN (CARD 2) ── */}
           <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 flex flex-col justify-between">
             <div className="space-y-6">
-              
+
               <div className="flex items-center gap-2 mb-2 border-b border-slate-800 pb-2">
                 <Sparkles className="h-5 w-5 text-indigo-400" />
                 <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">GST & Address Details</h3>
@@ -303,18 +266,7 @@ export default function AddCustomer({ navigateTo }) {
                       disabled={formData.gst_type === 'Unregistered' || formData.gst_type === 'Consumer'}
                       className={`w-full bg-slate-950/60 border ${errors.gstin ? 'border-rose-500/80 focus:ring-rose-500' : 'border-slate-700 focus:border-indigo-500'} focus:ring-2 focus:ring-indigo-500/20 outline-none rounded-xl px-4 py-2.5 text-sm text-slate-100 transition disabled:opacity-40 disabled:cursor-not-allowed`}
                     />
-                    {isGstLoading && (
-                      <span className="absolute right-4 top-3 flex h-4 w-4 items-center justify-center">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                      </span>
-                    )}
                   </div>
-                  {gstLookupSuccess && (
-                    <p className="text-xs text-emerald-400 mt-1 font-semibold flex items-center gap-1">
-                      <span>✨ GSTIN details auto-filled successfully!</span>
-                    </p>
-                  )}
                   {errors.gstin && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.gstin}</p>}
                 </div>
               </div>
