@@ -242,20 +242,6 @@ export default function LoginPage({ onNavigate }) {
             </div>
           </div>
 
-          {/* Demo credentials */}
-          <div className="mt-5 bg-slate-900/50 border border-slate-700/40 rounded-2xl p-4 animate-fade-in-up delay-300 opacity-0-init">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Demo Credentials</p>
-            <div className="grid grid-cols-3 gap-2">
-              {demoCredentials.map(d => (
-                <button key={d.role} type="button"
-                  onClick={() => setFormData({ identifier: d.email, password: d.password })}
-                  className={`text-left px-3 py-2.5 rounded-xl bg-${d.color}-500/5 border border-${d.color}-500/15 hover:border-${d.color}-500/40 hover:bg-${d.color}-500/10 transition group`}>
-                  <div className={`text-xs font-bold text-${d.color}-400 mb-0.5`}>{d.role}</div>
-                  <div className="text-[10px] text-slate-600 group-hover:text-slate-400 transition font-mono truncate">{d.email.split('@')[0]}</div>
-                </button>
-              ))}
-            </div>
-          </div>
 
           <p className="text-center text-xs text-slate-600 mt-5">
             <button onClick={() => onNavigate('landing')} className="hover:text-slate-400 transition">← Back to Home</button>
