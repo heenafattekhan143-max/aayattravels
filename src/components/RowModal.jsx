@@ -78,12 +78,8 @@ export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnab
     const extraHrsRate = parseFloat(formData.extra_hours_rate) || 0;
     const baseRate = parseFloat(formData.rate) || 0;
 
-    let extraKm = 0;
-    let extraHrs = 0;
-    if (formData.plan_id) {
-      if (totalDist > baseKm) extraKm = totalDist - baseKm;
-      if (totalHrs > baseHrs) extraHrs = totalHrs - baseHrs;
-    }
+    const extraKm = parseFloat(formData.extra_km) || 0;
+    const extraHrs = parseFloat(formData.extra_hours) || 0;
 
     const da = parseFloat(formData.da_allowance) || 0;
     const night = parseFloat(formData.night_allowance) || 0;
@@ -95,15 +91,11 @@ export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnab
       : rowAmountWithoutGst;
 
     if (
-      formData.extra_km !== extraKm ||
-      formData.extra_hours !== extraHrs ||
       formData.amount_without_gst !== rowAmountWithoutGst ||
       formData.amount_with_gst !== rowAmountWithGst
     ) {
       setFormData(prev => ({
         ...prev,
-        extra_km: extraKm,
-        extra_hours: extraHrs,
         amount_without_gst: rowAmountWithoutGst,
         amount_with_gst: rowAmountWithGst
       }));
@@ -126,7 +118,25 @@ export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnab
   if (!isOpen || !formData) return null;
 
   const handleFieldChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Auto-calculate extra km when total distance changes
+      if (field === 'total_distance_km' && updated.plan_id) {
+        const dist = parseFloat(value) || 0;
+        const base = parseFloat(updated.base_km) || 0;
+        updated.extra_km = dist > base ? dist - base : 0;
+      }
+      
+      // Auto-calculate extra hours when total hours changes
+      if (field === 'total_hours' && updated.plan_id) {
+        const hrs = parseFloat(value) || 0;
+        const base = parseFloat(updated.base_hours) || 0;
+        updated.extra_hours = hrs > base ? hrs - base : 0;
+      }
+      
+      return updated;
+    });
   };
 
   const selectPlan = (plan) => {
@@ -145,6 +155,8 @@ export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnab
       base_hours: plan.base_hours,
       total_distance_km: plan.base_km || 0,
       total_hours: plan.base_hours || 0,
+      extra_km: 0,
+      extra_hours: 0,
     }));
     setPlanSearch(plan.plan_name);
     setShowPlanDropdown(false);
@@ -348,9 +360,10 @@ export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnab
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Extra KM</label>
               <input
                 type="number"
-                readOnly
+                placeholder="0"
                 value={formData.extra_km}
-                className="w-full bg-slate-900/50 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 outline-none text-center font-mono"
+                onChange={(e) => handleFieldChange('extra_km', e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500 text-center font-mono"
               />
             </div>
             <div className="space-y-1">
@@ -367,9 +380,10 @@ export default function RowModal({ isOpen, onClose, onSave, initialData, gstEnab
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Extra Hours</label>
               <input
                 type="number"
-                readOnly
+                placeholder="0"
                 value={formData.extra_hours}
-                className="w-full bg-slate-900/50 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 outline-none text-center font-mono"
+                onChange={(e) => handleFieldChange('extra_hours', e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500 text-center font-mono"
               />
             </div>
           </div>

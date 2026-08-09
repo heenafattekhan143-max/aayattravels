@@ -34,7 +34,7 @@ class PlanBase(BaseModel):
     rate: Optional[float] = None
     company_rate: Optional[float] = None
     vendor_rate: Optional[float] = None
-    vehicle_type: str = Field(..., pattern="^(Sedan|Ertiga|SUV)$")
+    vehicle_type: str = Field(..., pattern="^(Sedan|Seadan|Ertiga|SUV)$")
     base_hours: Optional[int] = None
     base_km: Optional[int] = None
     extra_km_rate: Optional[float] = None

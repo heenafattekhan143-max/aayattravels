@@ -38,14 +38,14 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
   const confirm = useConfirm();
   const { user } = useAuth();
   // Dynamic business info from user profile
-  const bizName    = user?.businessName || 'My Business';
-  const bizAddress = user?.address      || '';
-  const bizPhone   = user?.phone        || '';
-  const bizEmail   = user?.email        || '';
-  const bizGstin   = user?.gstin        || '';
-  const bizSac     = user?.sacCode      || '998559';
-  const bizState   = user?.state        || '27-Maharashtra';
-  const bizLogo    = user?.logo         || null;
+  const bizName = user?.businessName || 'My Business';
+  const bizAddress = user?.address || '';
+  const bizPhone = user?.phone || '';
+  const bizEmail = user?.email || '';
+  const bizGstin = user?.gstin || '';
+  const bizSac = user?.sacCode || '998559';
+  const bizState = user?.state || '27-Maharashtra';
+  const bizLogo = user?.logo || null;
   const [bills, setBills] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -57,6 +57,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
   // Selected bill to view / print details
   const [selectedBill, setSelectedBill] = useState(null);
   const [customerDetails, setCustomerDetails] = useState(null);
+  const [showStamp, setShowStamp] = useState(user?.show_stamp ?? true);
 
   useEffect(() => {
     if (selectedBill && selectedBill.customer_id) {
@@ -155,8 +156,10 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
 
   const printSubtotalExclTax = selectedBill ? (selectedBill.table_items || []).reduce((sum, item) => sum + (item.amount_without_gst || 0), 0) : 0;
   const printGstAmount = selectedBill ? (selectedBill.table_items || []).reduce((sum, item) => sum + ((item.amount_with_gst || 0) - (item.amount_without_gst || 0)), 0) : 0;
-  
-  const hasExtraHours = selectedBill ? (selectedBill.table_items || []).some(item => parseFloat(item.extra_hours) > 0) : true;
+
+  const isOutstationBill = selectedBill ? (selectedBill.table_items || []).some(item => (item.plan_name || '').toLowerCase().includes('outstation') || item.plan_type === 'Outstation') : false;
+  const hasTotalHours = !isOutstationBill;
+  const hasExtraHours = !isOutstationBill && (selectedBill ? (selectedBill.table_items || []).some(item => parseFloat(item.extra_hours) > 0) : true);
   const hasNightAllowance = selectedBill ? (selectedBill.table_items || []).some(item => parseFloat(item.night_allowance) > 0) : true;
 
   const customerGstin = customerDetails?.gstin || (selectedBill ? selectedBill.customer_gstin : '') || '';
@@ -192,15 +195,15 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     };
 
     const boldCenter = { font: { bold: true }, alignment: { horizontal: 'center', vertical: 'center' } };
-    const boldLeft   = { font: { bold: true }, alignment: { horizontal: 'left', vertical: 'center' } };
-    const boldRight  = { font: { bold: true }, alignment: { horizontal: 'right', vertical: 'center' } };
-    const numFmt     = { numFmt: '₹#,##0.00', alignment: { horizontal: 'right' } };
+    const boldLeft = { font: { bold: true }, alignment: { horizontal: 'left', vertical: 'center' } };
+    const boldRight = { font: { bold: true }, alignment: { horizontal: 'right', vertical: 'center' } };
+    const numFmt = { numFmt: '₹#,##0.00', alignment: { horizontal: 'right' } };
     const numFmtBold = { numFmt: '₹#,##0.00', font: { bold: true }, alignment: { horizontal: 'right' } };
-    const hdrStyle   = { font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1E3A5F' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: { style: 'thin', color: { rgb: 'AAAAAA' } } } };
-    const subHdrStyle= { font: { bold: true, sz: 10, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E5FA3' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: { style: 'thin', color: { rgb: '9999AA' } } } };
+    const hdrStyle = { font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1E3A5F' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: { style: 'thin', color: { rgb: 'AAAAAA' } } } };
+    const subHdrStyle = { font: { bold: true, sz: 10, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E5FA3' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: { style: 'thin', color: { rgb: '9999AA' } } } };
     const totalStyle = { font: { bold: true, color: { rgb: '006100' } }, fill: { fgColor: { rgb: 'C6EFCE' } }, alignment: { horizontal: 'right', vertical: 'center' } };
-    const altRow1    = { fill: { fgColor: { rgb: 'F0F4FF' } }, alignment: { horizontal: 'center' } };
-    const altRow2    = { fill: { fgColor: { rgb: 'FFFFFF' } }, alignment: { horizontal: 'center' } };
+    const altRow1 = { fill: { fgColor: { rgb: 'F0F4FF' } }, alignment: { horizontal: 'center' } };
+    const altRow2 = { fill: { fgColor: { rgb: 'FFFFFF' } }, alignment: { horizontal: 'center' } };
 
     // ════════════════════════════════════════════════
     // SHEET 1 — Full Bill Summary (one row per bill)
@@ -272,14 +275,14 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
       for (let c = 0; c < nCol; c++) {
         const addr = XLSX.utils.encode_cell({ r: ri + 1, c });
         if (!ws1[addr]) ws1[addr] = { t: 'n', v: 0 };
-        ws1[addr].s = [9,10,11,12,13,14,15].includes(c) ? { ...numFmt, fill: style.fill } : style;
+        ws1[addr].s = [9, 10, 11, 12, 13, 14, 15].includes(c) ? { ...numFmt, fill: style.fill } : style;
       }
     });
     const totalRowIdx = wsData1.length - 1;
     for (let c = 0; c < nCol; c++) {
       const addr = XLSX.utils.encode_cell({ r: totalRowIdx, c });
       if (!ws1[addr]) ws1[addr] = { t: 's', v: '' };
-      ws1[addr].s = [9,10,11,12,13,14,15].includes(c) ? { ...numFmtBold, fill: { fgColor: { rgb: 'C6EFCE' } }, font: { bold: true, color: { rgb: '006100' } } } : totalStyle;
+      ws1[addr].s = [9, 10, 11, 12, 13, 14, 15].includes(c) ? { ...numFmtBold, fill: { fgColor: { rgb: 'C6EFCE' } }, font: { bold: true, color: { rgb: '006100' } } } : totalStyle;
     }
 
     ws1['!cols'] = [
@@ -460,10 +463,10 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     const hdrStyle = { font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1E3A5F' } }, alignment: { horizontal: 'center', vertical: 'center' } };
     const labelStyle = { font: { bold: true }, fill: { fgColor: { rgb: 'EEF2FF' } }, alignment: { horizontal: 'left' } };
     const valueStyle = { alignment: { horizontal: 'left' } };
-    const numFmt    = { numFmt: '₹#,##0.00', alignment: { horizontal: 'right' } };
-    const numBold   = { numFmt: '₹#,##0.00', font: { bold: true }, fill: { fgColor: { rgb: 'C6EFCE' } }, alignment: { horizontal: 'right' }, font2: { bold: true, color: { rgb: '006100' } } };
-    const altRow1   = { fill: { fgColor: { rgb: 'F0F4FF' } }, alignment: { horizontal: 'center' } };
-    const altRow2   = { fill: { fgColor: { rgb: 'FFFFFF' } }, alignment: { horizontal: 'center' } };
+    const numFmt = { numFmt: '₹#,##0.00', alignment: { horizontal: 'right' } };
+    const numBold = { numFmt: '₹#,##0.00', font: { bold: true }, fill: { fgColor: { rgb: 'C6EFCE' } }, alignment: { horizontal: 'right' }, font2: { bold: true, color: { rgb: '006100' } } };
+    const altRow1 = { fill: { fgColor: { rgb: 'F0F4FF' } }, alignment: { horizontal: 'center' } };
+    const altRow2 = { fill: { fgColor: { rgb: 'FFFFFF' } }, alignment: { horizontal: 'center' } };
 
     const billGstin = bill.customer_gstin || '';
     const stateCode = billGstin ? billGstin.substring(0, 2) : '27';
@@ -473,7 +476,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     let subtotal = 0, gstAmt = 0;
     (bill.table_items || []).forEach(item => {
       subtotal += parseFloat(item.amount_without_gst) || 0;
-      gstAmt   += (parseFloat(item.amount_with_gst) || 0) - (parseFloat(item.amount_without_gst) || 0);
+      gstAmt += (parseFloat(item.amount_with_gst) || 0) - (parseFloat(item.amount_without_gst) || 0);
     });
 
     const infoData = [
@@ -766,6 +769,10 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
             <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800 bg-slate-950/80">
               <h2 className="text-lg font-bold text-slate-100 uppercase tracking-wider">Invoice Details</h2>
               <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-300 text-xs font-bold mr-3 no-print">
+                  <input type="checkbox" checked={showStamp} onChange={(e) => setShowStamp(e.target.checked)} className="rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500/20" />
+                  Show Stamp
+                </label>
                 <button
                   onClick={handlePrint}
                   className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition"
@@ -920,7 +927,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                         <col style={{ width: '8%' }} />
                         <col />
                         <col style={{ width: '9%' }} />
-                        <col style={{ width: '8%' }} />
+                        {hasTotalHours && <col style={{ width: '8%' }} />}
                         <col style={{ width: '8%' }} />
                         {hasExtraHours && <col style={{ width: '8%' }} />}
                         <col style={{ width: '7%' }} />
@@ -932,10 +939,11 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                           <th className="p-1.5 font-bold border border-slate-400">Rental Package Plan</th>
                           <th className="p-1.5 font-bold border border-slate-400 text-center">Vehicle No</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Rate</th>
+                          <th className="p-1.5 font-bold text-center border border-slate-400">KM Rate</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Date</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Total Distance</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Extra KMs</th>
-                          <th className="p-1.5 font-bold text-center border border-slate-400">Total Hours</th>
+                          {hasTotalHours && <th className="p-1.5 font-bold text-center border border-slate-400">Total Hours</th>}
                           {hasExtraHours && <th className="p-1.5 font-bold text-center border border-slate-400">Extra Hours</th>}
                           <th className="p-1.5 font-bold text-center border border-slate-400">DA</th>
                           {hasNightAllowance && <th className="p-1.5 font-bold text-center border border-slate-400">Night Allowance</th>}
@@ -948,6 +956,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                             <td className="p-1.5 font-semibold text-slate-900 text-[9px] leading-tight border border-slate-400 break-words">{item.plan_name}</td>
                             <td className="p-1.5 text-center font-medium text-slate-800 whitespace-nowrap border border-slate-400">{item.vehicle_number || '-'}</td>
                             <td className="p-1.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">₹{(item.rate || 0).toLocaleString('en-IN')}</td>
+                            <td className="p-1.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">₹{item.extra_km_rate || 0}/km</td>
                             <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">
                               {item.end_date
                                 ? `${formatDate(item.date)} to ${formatDate(item.end_date)}`
@@ -955,7 +964,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                             </td>
                             <td className="p-1.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_distance_km} KM</td>
                             <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_km > 0 ? `${item.extra_km} KM` : '-'}</td>
-                            <td className="p-1.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_hours} Hrs</td>
+                            {hasTotalHours && <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.total_hours} Hrs</td>}
                             {hasExtraHours && <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_hours > 0 ? `${item.extra_hours} Hrs` : '-'}</td>}
                             <td className="p-1.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">{item.da_allowance > 0 ? `₹${item.da_allowance.toLocaleString('en-IN')}` : '-'}</td>
                             {hasNightAllowance && <td className="p-1.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">{item.night_allowance > 0 ? `₹${item.night_allowance.toLocaleString('en-IN')}` : '-'}</td>}
@@ -977,9 +986,10 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                               <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
+                              <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalDistance} KM</td>
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraKm > 0 ? `${totalExtraKm} KM` : '-'}</td>
-                              <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalHours} Hrs</td>
+                              {hasTotalHours && <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalHours} Hrs</td>}
                               {hasExtraHours && <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraHours > 0 ? `${totalExtraHours} Hrs` : '-'}</td>}
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalDA > 0 ? `₹${totalDA.toLocaleString('en-IN')}` : '-'}</td>
                               {hasNightAllowance && <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalNight > 0 ? `₹${totalNight.toLocaleString('en-IN')}` : '-'}</td>}
@@ -1152,10 +1162,10 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                   </div>
                   <div className="flex flex-col justify-end items-end h-full">
                     <div className="flex flex-col items-center">
-                      {(user?.stamp || '/signature.png') && (
+                      {showStamp && (user?.stamp || '/signature.png') && (
                         <img src={user?.stamp || '/signature.png'} alt="Signature" className="h-36 object-contain -mb-5 -mt-10 relative z-10 opacity-90" />
                       )}
-                      <div className="w-44 border-t border-slate-400 text-center pt-2 relative z-20">
+                      <div className={`w-44 border-t border-slate-400 text-center pt-2 relative z-20 ${!(showStamp && (user?.stamp || '/signature.png')) ? 'mt-16' : ''}`}>
                         <p className="font-bold text-slate-800 text-[10px]">Authorized Signature</p>
                         <p className="text-[8px] text-slate-400 mt-1">For {selectedBill.vendor_name || user?.business_name || 'OUR COMPANY'}</p>
                       </div>

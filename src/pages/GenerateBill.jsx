@@ -246,28 +246,15 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         }
       }
 
-      // Extra calculations (calculate per day average, then multiply by days)
-      let extraKm = 0;
-      let extraHrs = 0;
-
-      if (hasRate) {
-        if (numDays > 1) {
-          const avgDistPerDay = totalDist / numDays;
-          extraKm = Math.max(0, avgDistPerDay - baseKm) * numDays;
-
-          const avgHrsPerDay = totalHrs / numDays;
-          extraHrs = Math.max(0, avgHrsPerDay - baseHrs) * numDays;
-        } else {
-          extraKm = Math.max(0, totalDist - baseKm);
-          extraHrs = Math.max(0, totalHrs - baseHrs);
-        }
-      }
+      // Use the extra_km and extra_hours already computed or entered from RowModal
+      let extraKm = parseFloat(item.extra_km) || 0;
+      let extraHrs = parseFloat(item.extra_hours) || 0;
       const daAllowance = parseFloat(item.da_allowance) || 0;
       const nightAllowance = parseFloat(item.night_allowance) || 0;
 
       // Base Amount without GST
       const amountWithoutGst = hasRate
-        ? (baseRate * numDays) + (extraKm * extraKmRate) + (extraHrs * extraHrsRate) + daAllowance + nightAllowance
+        ? baseRate + (extraKm * extraKmRate) + (extraHrs * extraHrsRate) + daAllowance + nightAllowance
         : 0;
 
       // Tax calculation
@@ -451,6 +438,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         extra_km: item.extra_km,
         total_hours: parseFloat(item.total_hours),
         extra_hours: item.extra_hours,
+        extra_km_rate: parseFloat(item.extra_km_rate) || 0,
+        extra_hours_rate: parseFloat(item.extra_hours_rate) || 0,
         da_allowance: parseFloat(item.da_allowance) || 0,
         night_allowance: parseFloat(item.night_allowance) || 0,
         amount_without_gst: item.amount_without_gst,
@@ -513,6 +502,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             extra_km: extraKm,
             total_hours: totalHrs,
             extra_hours: extraHrs,
+            extra_km_rate: extraKmRate,
+            extra_hours_rate: extraHrsRate,
             da_allowance: da,
             night_allowance: night,
             amount_without_gst: Math.round(amtWithout * 100) / 100,
@@ -1141,6 +1132,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                   <th className="px-2 py-1.5 align-middle text-center">Vehicle No.</th>
                   <th className="px-2 py-1.5 align-middle text-center">Date</th>
                   <th className="px-2 py-1.5 align-middle text-center">Rate</th>
+                  <th className="px-2 py-1.5 align-middle text-center">KM Rate</th>
                   <th className="px-2 py-1.5 align-middle text-center">Distance (KM)</th>
                   <th className="px-2 py-1.5 align-middle text-center">Extra KM</th>
                   <th className="px-2 py-1.5 align-middle text-center">Hours</th>
@@ -1186,9 +1178,19 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                               onChange={e => updateTableItemField(idx, 'date', e.target.value)}
                               className="w-full bg-transparent border-b border-transparent hover:border-slate-600 focus:border-indigo-400 outline-none text-center text-[10px] py-0.5 text-slate-300 transition"
                             />
+                            {item.end_date && item.end_date !== item.date && (
+                              <input
+                                type="date"
+                                value={item.end_date || ''}
+                                onChange={e => updateTableItemField(idx, 'end_date', e.target.value)}
+                                className="w-full mt-1 bg-transparent border-b border-transparent hover:border-slate-600 focus:border-indigo-400 outline-none text-center text-[10px] py-0.5 text-rose-300 transition"
+                              />
+                            )}
                           </td>
                           {/* Rate (inline) */}
                           <td className="p-1">{inlineInput('rate', 'number', 'text-emerald-300 font-semibold')}</td>
+                          {/* KM Rate (inline) */}
+                          <td className="p-1">{inlineInput('extra_km_rate', 'number', 'text-amber-300 font-semibold')}</td>
                           {/* Total Distance */}
                           <td className="p-1">{inlineInput('total_distance_km', 'number', 'text-slate-300')}</td>
                           {/* Extra KM */}

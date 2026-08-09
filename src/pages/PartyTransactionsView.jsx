@@ -152,7 +152,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
           });
         });
       }
-      
+
       // Sort newest first for display
       party.transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     });
@@ -175,6 +175,8 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
   }, [filteredParties, selectedPartyName]);
 
   const selectedParty = parties.find(p => p.name === selectedPartyName);
+
+  const [showStamp, setShowStamp] = useState(user?.show_stamp ?? true);
 
   // Filter transactions by month/year
   const filteredTransactions = useMemo(() => {
@@ -232,6 +234,9 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
   };
 
   const printSubtotalExclTax = viewingTxn && viewingTxn.bill ? (viewingTxn.bill.table_items || []).reduce((sum, item) => sum + (item.amount_without_gst || 0), 0) : 0;
+  const isOutstationBill = viewingTxn && viewingTxn.bill ? (viewingTxn.bill.table_items || []).some(item => (item.plan_name || '').toLowerCase().includes('outstation') || item.plan_type === 'Outstation') : false;
+  const hasTotalHours = !isOutstationBill;
+  const hasExtraHours = !isOutstationBill && (viewingTxn && viewingTxn.bill ? (viewingTxn.bill.table_items || []).some(item => parseFloat(item.extra_hours) > 0) : true);
   const printGstAmount = viewingTxn && viewingTxn.bill ? (viewingTxn.bill.table_items || []).reduce((sum, item) => sum + ((item.amount_with_gst || 0) - (item.amount_without_gst || 0)), 0) : 0;
 
   const handlePrint = () => {
@@ -261,27 +266,27 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
       setPayError("Please enter a valid positive payment amount.");
       return;
     }
-    
+
     if (type === 'vendor') {
       try {
         await axios.post('/api/payments', {
-          vendor_id: payingTxn.bill.customer_id || payingTxn.bill.vendor_id || '', 
+          vendor_id: payingTxn.bill.customer_id || payingTxn.bill.vendor_id || '',
           vendor_name: selectedParty.name,
           amount: amt,
           payment_date: new Date().toISOString().split('T')[0],
           payment_mode: 'Cash',
           notes: 'Recorded from Party View'
         });
-        
+
         setIsPayModalOpen(false);
         setPayAmount('');
         setPayingTxn(null);
         setPayError('');
-        
+
         // Refresh local payments to trigger FIFO recalculation
         const res = await axios.get('/api/payments');
         setPayments(res.data);
-        
+
         if (onStatusChange) onStatusChange();
       } catch (err) {
         console.error("Payment failed:", err);
@@ -525,7 +530,6 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
               </div>
 
               {/* Transactions Table */}
-              {/* Transactions Table */}
               <div className="flex-1 overflow-auto">
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 bg-slate-900 shadow-sm z-10">
@@ -553,7 +557,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                           <div className="font-semibold text-slate-200">{txn.type}</div>
                           <div className="font-mono text-xs text-indigo-300 mt-0.5">{txn.number}</div>
                         </td>
-                        
+
                         {/* Date */}
                         <td className="px-6 py-3.5 text-slate-300">
                           <div>{txn.date}</div>
@@ -586,13 +590,12 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                         {/* Status */}
                         <td className="px-6 py-3.5 text-center">
                           <div>
-                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border ${
-                              txn.status === 'Paid'
+                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border ${txn.status === 'Paid'
                                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                                 : txn.status === 'Partial'
-                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                            }`}>
+                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                              }`}>
                               {txn.status}
                             </span>
                           </div>
@@ -762,6 +765,10 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
             <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800 bg-slate-950/80">
               <h2 className="text-lg font-bold text-slate-100 uppercase tracking-wider">Invoice Details</h2>
               <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-300 text-xs font-bold mr-2 no-print">
+                  <input type="checkbox" checked={showStamp} onChange={(e) => setShowStamp(e.target.checked)} className="rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500/20" />
+                  Show Stamp
+                </label>
                 <button
                   onClick={() => {
                     const printContent = document.getElementById("invoice-print-area").innerHTML;
@@ -783,7 +790,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                 </button>
               </div>
             </div>
-            
+
             {/* Body */}
             <div className="p-6 overflow-y-auto flex-1 bg-slate-950/50">
               <div id="invoice-print-area" className="bg-white text-slate-900 p-8 md:p-12 rounded-xl text-left print-border min-h-[11in] flex flex-col justify-between">
@@ -822,7 +829,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
 
                   {/* Customer, Invoice & Guest Details Box */}
                   <div className="border-x border-b border-slate-700 grid grid-cols-12 text-xs text-slate-800 divide-x divide-slate-700">
-                    
+
                     {/* Bill To Column */}
                     <div className="col-span-5 flex flex-col justify-between">
                       <div className="bg-slate-50 border-b border-slate-700 px-2.5 py-1 font-bold text-slate-600 text-[10px] uppercase">
@@ -908,8 +915,8 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                         <col style={{ width: '9%' }} />
                         <col style={{ width: '8%' }} />
                         <col style={{ width: '8%' }} />
-                        <col style={{ width: '8%' }} />
-                        <col style={{ width: '7%' }} />
+                        {hasExtraHours && <col style={{ width: '8%' }} />}
+                        {hasTotalHours && <col style={{ width: '7%' }} />}
                         <col style={{ width: '11%' }} />
                         <col />
                       </colgroup>
@@ -917,11 +924,12 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                         <tr className="border-b border-slate-300 text-slate-700 bg-slate-50 uppercase text-[9px] tracking-wider">
                           <th className="p-2.5 font-bold border border-slate-400">Rental Package Plan</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Rate</th>
+                          <th className="p-2.5 font-bold text-center border border-slate-400">KM Rate</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Date</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Total Distance</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Extra KMs</th>
-                          <th className="p-2.5 font-bold text-center border border-slate-400">Total Hours</th>
-                          <th className="p-2.5 font-bold text-center border border-slate-400">Extra Hours</th>
+                          {hasTotalHours && <th className="p-2.5 font-bold text-center border border-slate-400">Total Hours</th>}
+                          {hasExtraHours && <th className="p-2.5 font-bold text-center border border-slate-400">Extra Hours</th>}
                           <th className="p-2.5 font-bold text-center border border-slate-400">DA</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Night Allowance</th>
                           <th className="p-2.5 font-bold text-right border border-slate-400">Sub Total</th>
@@ -932,11 +940,12 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                           <tr key={idx} className="hover:bg-slate-50 transition">
                             <td className="p-2.5 font-semibold text-slate-900 whitespace-nowrap border border-slate-400">{item.plan_name}</td>
                             <td className="p-2.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">₹{(item.rate || 0).toLocaleString('en-IN')}</td>
+                            <td className="p-2.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">₹{item.extra_km_rate || 0}/km</td>
                             <td className="p-2.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{formatDate(item.date)}</td>
                             <td className="p-2.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_distance_km} KM</td>
                             <td className="p-2.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_km > 0 ? `${item.extra_km} KM` : '-'}</td>
-                            <td className="p-2.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_hours} Hrs</td>
-                            <td className="p-2.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_hours > 0 ? `${item.extra_hours} Hrs` : '-'}</td>
+                            {hasTotalHours && <td className="p-2.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_hours} Hrs</td>}
+                            {hasExtraHours && <td className="p-2.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_hours > 0 ? `${item.extra_hours} Hrs` : '-'}</td>}
                             <td className="p-2.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">{item.da_allowance > 0 ? `₹${item.da_allowance.toLocaleString('en-IN')}` : '-'}</td>
                             <td className="p-2.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">{item.night_allowance > 0 ? `₹${item.night_allowance.toLocaleString('en-IN')}` : '-'}</td>
                             <td className="p-2.5 text-right font-bold text-slate-900 whitespace-nowrap border border-slate-400">₹{item.amount_without_gst.toLocaleString('en-IN')}</td>
@@ -957,22 +966,23 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                               <td className="p-2.5 text-center border border-slate-400"></td>
                               <td className="p-2.5 text-center border border-slate-400"></td>
                               <td className="p-2.5 text-center border border-slate-400"></td>
+                              <td className="p-2.5 text-center border border-slate-400"></td>
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalDistance} KM</td>
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraKm > 0 ? `${totalExtraKm} KM` : '-'}</td>
-                              <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalHours} Hrs</td>
-                              <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraHours > 0 ? `${totalExtraHours} Hrs` : '-'}</td>
+                              {hasTotalHours && <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalHours} Hrs</td>}
+                              {hasExtraHours && <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraHours > 0 ? `${totalExtraHours} Hrs` : '-'}</td>}
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalDA > 0 ? `₹${totalDA.toLocaleString('en-IN')}` : '-'}</td>
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalNight > 0 ? `₹${totalNight.toLocaleString('en-IN')}` : '-'}</td>
                               <td className="p-2.5 text-right border border-slate-400 whitespace-nowrap font-black">₹{totalSubtotal.toLocaleString('en-IN')}</td>
                             </tr>
                           );
                         })()}
-                       </tbody>
+                      </tbody>
                     </table>
                   </div>
                   {/* Bottom section with Tax Summary on left, Totals on right */}
                   <div className="mt-6 grid grid-cols-12 gap-8 items-start">
-                    
+
                     {/* Left: Tax Summary (only shown if GST enabled) */}
                     <div className="col-span-7">
                       {viewingTxn.bill.gst_enabled && getTaxSummary().length > 0 && (
@@ -1091,8 +1101,10 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                   </div>
                   <div className="flex flex-col justify-end items-end h-full">
                     <div className="flex flex-col items-center mt-2">
-                      <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
-                      <div className="w-44 border-t border-slate-400 text-center pt-2 relative z-20">
+                      {showStamp && (
+                        <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                      )}
+                      <div className={`w-44 border-t border-slate-400 text-center pt-2 relative z-20 ${!showStamp ? 'mt-16' : ''}`}>
                         <p className="font-bold text-slate-800 text-[10px]">Authorized Signature</p>
                         <p className="text-[8px] text-slate-400 mt-1">For {viewingTxn.bill.vendor_name || 'PURVI TOURS & TRAVELS'}</p>
                       </div>

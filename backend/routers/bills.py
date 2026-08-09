@@ -19,8 +19,10 @@ class BillItem(BaseModel):
     end_date: Optional[str] = ""
     total_distance_km: float
     extra_km: float
+    extra_km_rate: Optional[float] = 0.0
     total_hours: float
     extra_hours: float
+    extra_hours_rate: Optional[float] = 0.0
     da_allowance: Optional[float] = 0.0
     night_allowance: Optional[float] = 0.0
     amount_without_gst: float
