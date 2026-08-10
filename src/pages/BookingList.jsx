@@ -61,7 +61,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
   const wrapRef = useRef(null);
 
   // Keep input in sync when form resets / edits load
-  useEffect(() => { setQuery(isGuest ? 'Other / Guest Customer' : (value || '')); }, [value, isGuest]);
+  useEffect(() => { setQuery(isGuest ? 'Other / Guest Client' : (value || '')); }, [value, isGuest]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -70,7 +70,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const filtered = query.trim().length === 0 || query === 'Other / Guest Customer'
+  const filtered = query.trim().length === 0 || query === 'Other / Guest Client'
     ? entities
     : entities.filter(e =>
       e.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -84,7 +84,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
   };
 
   const handleSelectGuest = () => {
-    setQuery('Other / Guest Customer');
+    setQuery('Other / Guest Client');
     setOpen(false);
     onChange('', '', true);   // signal parent: guest mode on, clear name/phone
   };
@@ -104,7 +104,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
   return (
     <div ref={wrapRef} className="space-y-2">
       <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-        <Building2 className="h-3 w-3 text-indigo-400" /> Customer / Company *
+        <Building2 className="h-3 w-3 text-indigo-400" /> Client / Company *
       </label>
 
       {/* Search input */}
@@ -179,7 +179,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
                 <UserPlus className="h-3 w-3 text-amber-400" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-amber-300">Other / Guest Customer</div>
+                <div className="text-sm font-semibold text-amber-300">Other / Guest Client</div>
                 <div className="text-xs text-slate-500">Enter name &amp; phone manually</div>
               </div>
             </button>
@@ -191,7 +191,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
       {isGuest && (
         <div className="space-y-2 p-3 bg-amber-500/5 border border-amber-500/25 rounded-xl">
           <p className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-            <UserPlus className="h-3 w-3" /> Guest Customer Details
+            <UserPlus className="h-3 w-3" /> Guest Client Details
           </p>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-300">Guest Name *</label>
@@ -321,7 +321,7 @@ export default function BookingList({ navigateTo, setEditingBookingId, setViewin
     const errs = {};
     // If guest mode, validate guestName instead
     const effectiveName = formData.is_guest ? guestName.trim() : formData.customer_name.trim();
-    if (!effectiveName) errs.customer_name = 'Customer name is required.';
+    if (!effectiveName) errs.customer_name = 'Client name is required.';
     if (!formData.journey_date) errs.journey_date = 'Journey date is required.';
 
     // Validate return date is equal to or after journey date

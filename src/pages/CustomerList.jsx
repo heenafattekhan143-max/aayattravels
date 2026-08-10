@@ -219,7 +219,7 @@ export default function CustomerList({ navigateTo }) {
                             ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                             : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           }`}>
-                          {entity.entity_type === 'customer' ? 'Customer' : 'Vendor'}
+                          {entity.entity_type === 'customer' ? 'Client' : 'Vendor'}
                         </span>
                       </td>
                       <td className="p-4 font-semibold text-slate-50">{entity.name}</td>
@@ -299,7 +299,7 @@ export default function CustomerList({ navigateTo }) {
                       onChange={() => setEditFormData(p => ({ ...p, entity_type: 'customer' }))}
                       className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-950"
                     />
-                    <span className="font-semibold">Company / Customer</span>
+                    <span className="font-semibold">Company / Client</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
                     <input

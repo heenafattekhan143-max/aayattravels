@@ -674,7 +674,7 @@ export default function DriverSalary({ navigateTo }) {
                       <tr className="border-b border-slate-700 text-slate-400 text-[10px] font-bold uppercase tracking-wider bg-table-header">
                         <th className="p-3">S.No.</th>
                         <th className="p-3">Journey Date</th>
-                        <th className="p-3">Customer Details</th>
+                        <th className="p-3">Client Details</th>
                         <th className="p-3">Vehicle</th>
                         <th className="p-3">Trip Type</th>
                         <th className="p-3">Status</th>

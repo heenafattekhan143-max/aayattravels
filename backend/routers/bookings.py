@@ -249,7 +249,9 @@ def sync_provisional_bills(booking_doc, user_email: str):
             night_allowance = float(plan.get("night_allowance") or 0.0)
             plan_name = plan.get("plan_name", "")
 
+    start_km = float(booking_doc.get("start_km") or 0.0)
     end_km = float(booking_doc.get("end_km") or 0.0)
+    total_distance = max(0.0, end_km - start_km)
     working_hours = float(booking_doc.get("working_hours") or 0.0)
     extra_km_charge = 0.0
     extra_hours_charge = 0.0
@@ -257,7 +259,7 @@ def sync_provisional_bills(booking_doc, user_email: str):
     if plan:
         base_km = float(plan.get("base_km") or 0.0)
         base_hours = float(plan.get("base_hours") or 0.0)
-        extra_km = max(0.0, end_km - base_km)
+        extra_km = max(0.0, total_distance - base_km)
         extra_km_rate = float(plan.get("extra_km_rate") or 0.0)
         extra_km_charge = extra_km * extra_km_rate
         extra_hours = max(0.0, working_hours - base_hours)
@@ -271,7 +273,7 @@ def sync_provisional_bills(booking_doc, user_email: str):
         
         base_km = float(booking_doc.get("base_km") or 0.0)
         base_hours = float(booking_doc.get("base_hours") or 0.0)
-        extra_km = max(0.0, end_km - base_km)
+        extra_km = max(0.0, total_distance - base_km)
         extra_km_rate = float(booking_doc.get("extra_km_rate") or 0.0)
         extra_km_charge = extra_km * extra_km_rate
         extra_hours = max(0.0, working_hours - base_hours)
@@ -290,7 +292,7 @@ def sync_provisional_bills(booking_doc, user_email: str):
         "plan_name": plan_name,
         "rate": base_rate,
         "date": booking_doc.get("journey_date", ""),
-        "total_distance_km": end_km,
+        "total_distance_km": total_distance,
         "extra_km": extra_km,
         "total_hours": working_hours,
         "extra_hours": extra_hours,
@@ -313,7 +315,7 @@ def sync_provisional_bills(booking_doc, user_email: str):
         "driver_name": booking_doc.get("driver_name", ""),
         "source": booking_doc.get("pickup_location", ""),
         "destination": booking_doc.get("drop_location", ""),
-        "travel_distance": end_km,
+        "travel_distance": total_distance,
         "table_items": [table_item],
         "toll_amount": 0.0,
         "parking_amount": 0.0,
@@ -390,7 +392,10 @@ def generate_bill_for_booking(booking_doc, user_email: str):
     if not plan and not booking_doc.get("event_id"):
         return
 
+    start_km = float(booking_doc.get("start_km") or 0.0)
     end_km = float(booking_doc.get("end_km") or 0.0)
+    total_distance = max(0.0, end_km - start_km)
+    
     working_hours = float(booking_doc.get("working_hours") or 0.0)
     
     vehicle_number = booking_doc.get("vehicle_number")
@@ -421,7 +426,7 @@ def generate_bill_for_booking(booking_doc, user_email: str):
         da_allowance = float(booking_doc.get("da_allowance") or 0.0)
         night_allowance = float(booking_doc.get("night_allowance") or 0.0)
         
-    extra_km = max(0.0, end_km - base_km)
+    extra_km = max(0.0, total_distance - base_km)
     extra_km_charge = extra_km * extra_km_rate
     
     extra_hours = max(0.0, working_hours - base_hours)
@@ -439,7 +444,7 @@ def generate_bill_for_booking(booking_doc, user_email: str):
         "plan_name": plan.get("plan_name", "") if plan else "Event Plan",
         "rate": base_rate,
         "date": booking_doc.get("journey_date", ""),
-        "total_distance_km": end_km,
+        "total_distance_km": total_distance,
         "extra_km": extra_km,
         "total_hours": working_hours,
         "extra_hours": extra_hours,
@@ -475,7 +480,7 @@ def generate_bill_for_booking(booking_doc, user_email: str):
         "driver_name": booking_doc.get("driver_name", ""),
         "source": booking_doc.get("pickup_location", ""),
         "destination": booking_doc.get("drop_location", ""),
-        "travel_distance": end_km,
+        "travel_distance": total_distance,
         "table_items": [table_item],
         "toll_amount": 0.0,
         "parking_amount": 0.0,
@@ -497,10 +502,10 @@ def generate_bill_for_booking(booking_doc, user_email: str):
         bills_collection.insert_one(bill_dict)
     
     vehicle_num = booking_doc.get("vehicle_number")
-    if vehicle_num and end_km > 0:
+    if vehicle_num and total_distance > 0:
         vehicles_collection.update_one(
-            {"vehicle_number": vehicle_num},
-            {"$inc": {"total_km_travelled": end_km}}
+            {"vehicle_number": {"$regex": f"^{vehicle_num}$", "$options": "i"}, "user_email": user_email},
+            {"$inc": {"total_km_travelled": total_distance}}
         )
 
 @router.put("/{booking_id}", response_model=BookingResponse)

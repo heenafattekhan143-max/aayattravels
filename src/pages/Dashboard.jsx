@@ -1253,7 +1253,7 @@ export default function Dashboard({ navigateTo, theme, setTheme, setEditingBooki
                                 <th className="px-4 py-2">Booking ID</th>
                                 <th className="px-4 py-2">Trip Date</th>
                                 <th className="px-4 py-2">Time</th>
-                                <th className="px-4 py-2">Customer</th>
+                                <th className="px-4 py-2">Client</th>
                                 <th className="px-4 py-2">Pickup → Drop</th>
                                 <th className="px-4 py-2">Vehicle</th>
                                 <th className="px-4 py-2">Driver</th>

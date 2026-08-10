@@ -129,7 +129,7 @@ export default function EventBookingModal({
       rate: parseFloat(formData.rate) || 0,
       da_allowance: parseFloat(formData.da_allowance) || 0,
       night_allowance: parseFloat(formData.night_allowance) || 0,
-      customer_name: formData.customer_name || defaultCustomer || 'Event Customer',
+      customer_name: formData.customer_name || defaultCustomer || 'Event Client',
       customer_phone: defaultCustomerPhone || '',
       booking_status: 'Confirmed',
       payment_status: 'Pending',
@@ -157,7 +157,7 @@ export default function EventBookingModal({
         <div className="p-4 space-y-3 max-h-[80vh] overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1 sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-300">Customer Name</label>
+              <label className="text-xs font-semibold text-slate-300">Client Name</label>
               <input type="text" value={formData.customer_name} onChange={(e) => handleChange('customer_name', e.target.value)} 
                 placeholder="Enter customer name"
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 outline-none" />

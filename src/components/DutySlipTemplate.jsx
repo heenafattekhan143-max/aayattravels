@@ -89,7 +89,7 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate, busin
             <th className="border border-black p-3" colSpan={2}>Start</th>
             <th className="border border-black p-3" colSpan={2}>End</th>
             <th className="border border-black p-3" colSpan={2}>Total</th>
-            <th className="border border-black p-3" colSpan={2}>Extra</th>
+            <th className="border border-black p-3" colSpan={isOutstation ? 1 : 2}>Extra</th>
             <th className="border border-black p-3 align-middle" rowSpan={2}>Signature</th>
           </tr>
           <tr className='p-3'>
@@ -99,8 +99,9 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate, busin
             <th className="border border-black p-3 font-normal">Time</th>
             <th className="border border-black p-3 font-normal">Kilometers</th>
             <th className="border border-black p-3 font-normal">Time</th>
-            <th className="border border-black p-3 font-normal">Kilometers</th>
             <th className="border border-black p-3 font-normal">Time</th>
+            <th className="border border-black p-3 font-normal">Kilometers</th>
+            {!isOutstation && <th className="border border-black p-3 font-normal">Time</th>}
           </tr>
         </thead>
         <tbody>
@@ -115,6 +116,8 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate, busin
             <td className="border border-black px-2 py-2"></td>
             <td className="border border-black px-2 py-2"></td>
             <td className="border border-black px-2 py-2"></td>
+            <td className="border border-black px-2 py-2"></td>
+            {!isOutstation && <td className="border border-black px-2 py-2"></td>}
           </tr>
           <tr style={{ height: '40px' }}>
             <td className="border border-black px-3 py-2"></td>
@@ -127,6 +130,8 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate, busin
             <td className="border border-black px-3 py-2"></td>
             <td className="border border-black px-3 py-2"></td>
             <td className="border border-black px-3 py-2"></td>
+            <td className="border border-black px-3 py-2"></td>
+            {!isOutstation && <td className="border border-black px-3 py-2"></td>}
           </tr>
         </tbody>
       </table>
@@ -151,7 +156,7 @@ const DutySlipTemplate = forwardRef(({ booking, config, plans, formatDate, busin
         </tbody>
       </table>
 
-      {/* Table 3: Customer Entered */}
+      {/* Table 3: Client Entered */}
       {config?.addReleasedKmTime && (
         <table className="w-full border-collapse border border-black text-[11px] font-bold mb-12 text-left">
           <thead>

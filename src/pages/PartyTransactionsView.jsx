@@ -840,7 +840,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                     </div>
                   </div>
 
-                  {/* Customer, Invoice & Guest Details Box */}
+                  {/* Client, Invoice & Guest Details Box */}
                   <div className="border-x border-b border-slate-700 grid grid-cols-12 text-xs text-slate-800 divide-x divide-slate-700">
                     
                     {/* Bill To Column */}

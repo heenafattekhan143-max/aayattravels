@@ -361,11 +361,11 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
           {/* Card 1: Event Details */}
           <div className="glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-xl space-y-4">
             <h2 className="text-sm font-bold text-slate-50 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-800">
-              <Calendar className="h-4 w-4 text-indigo-400" /> Event & Customer Information
+              <Calendar className="h-4 w-4 text-indigo-400" /> Event & Client Information
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Customer Input */}
+              {/* Client Input */}
               <div className="space-y-1 relative">
                 <label className="text-xs font-semibold text-slate-300">Event Owner Name *</label>
                 <div className="relative">
@@ -493,7 +493,7 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                   <thead>
                     <tr className="bg-table-header text-slate-400 uppercase tracking-wider text-[10px] border-b border-slate-700">
                       <th className="py-2.5 px-2">Date</th>
-                      <th className="py-2.5 px-2">Customer</th>
+                      <th className="py-2.5 px-2">Client</th>
                       <th className="py-2.5 px-2">Vehicle</th>
                       <th className="py-2.5 px-2">Driver</th>
                       <th className="py-2.5 px-2">Rate (₹)</th>
@@ -779,7 +779,7 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                   </div>
                 </div>
 
-                {/* Customer, Invoice & Event Details Box */}
+                {/* Client, Invoice & Event Details Box */}
                 <div className="border-x border-b border-slate-700 grid grid-cols-12 text-xs text-slate-800 divide-x divide-slate-700">
                   {/* Bill To Column */}
                   <div className="col-span-6 flex flex-col justify-between">
@@ -793,7 +793,7 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                       </p>
                       <div className="pt-1 space-y-0.5">
                         <p>
-                          <span className="font-bold text-slate-500">Customer Name:</span>{" "}
+                          <span className="font-bold text-slate-500">Client Name:</span>{" "}
                           <span className="font-bold text-slate-900 uppercase">{clientName || '—'}</span>
                         </p>
                         <p>

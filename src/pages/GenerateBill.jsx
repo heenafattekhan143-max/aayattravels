@@ -276,7 +276,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
 
       // Determine number of days for outstation packages
       let numDays = 1;
-      if (item.date && item.end_date && ((item.plan_name || '').toLowerCase().includes('outstation') || item.plan_type === 'Outstation')) {
+      const isOutstation = ((item.plan_name || '').toLowerCase().includes('outstation') || item.plan_type === 'Outstation');
+      if (item.date && item.end_date && isOutstation) {
         const start = new Date(item.date);
         const end = new Date(item.end_date);
         if (!isNaN(start) && !isNaN(end) && end >= start) {
@@ -294,10 +295,10 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
           extraKm = Math.max(0, avgDistPerDay - baseKm) * numDays;
 
           const avgHrsPerDay = totalHrs / numDays;
-          extraHrs = Math.max(0, avgHrsPerDay - baseHrs) * numDays;
+          extraHrs = isOutstation ? 0 : Math.max(0, avgHrsPerDay - baseHrs) * numDays;
         } else {
           extraKm = Math.max(0, totalDist - baseKm);
-          extraHrs = Math.max(0, totalHrs - baseHrs);
+          extraHrs = isOutstation ? 0 : Math.max(0, totalHrs - baseHrs);
         }
       }
       const daAllowance = parseFloat(item.da_allowance) || 0;
@@ -663,7 +664,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         <div className="relative z-50 glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-6">
           <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
             <Receipt className="h-5 w-5 text-indigo-400" />
-            <h2 className="text-lg font-bold text-slate-50 uppercase tracking-wider text-sm">Part A: Customer & General Metadata</h2>
+            <h2 className="text-lg font-bold text-slate-50 uppercase tracking-wider text-sm">Part A: Client & General Metadata</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -741,10 +742,10 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
               </div>
             </div>
 
-            {/* Customer Dropdown Search */}
+            {/* Client Dropdown Search */}
             <div className="space-y-2 relative customer-dropdown-container">
               <label className="text-sm font-semibold text-slate-300 block">
-                Select {partyType === 'customer' ? 'Customer' : 'Vendor'} <span className="text-rose-500">*</span>
+                Select {partyType === 'customer' ? 'Client' : 'Vendor'} <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input

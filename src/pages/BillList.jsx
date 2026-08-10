@@ -226,8 +226,8 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     // SHEET 1 — Full Bill Summary (one row per bill)
     // ════════════════════════════════════════════════
     const summaryHeaders = [
-      'Invoice No', 'Date', 'Customer Name', 'Phone', 'Customer GSTIN',
-      'Customer State', 'Guest Name', 'Vehicle Number', 'Vendor Name',
+      'Invoice No', 'Date', 'Client Name', 'Phone', 'Client GSTIN',
+      'Client State', 'Guest Name', 'Vehicle Number', 'Vendor Name',
       'Subtotal (Excl. GST) ₹', 'GST Amount ₹', 'CGST ₹', 'SGST ₹', 'IGST ₹',
       'Toll Fees ₹', 'Grand Total ₹', 'GST Enabled'
     ];
@@ -314,7 +314,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     // SHEET 2 — Per-Vehicle Line Items
     // ════════════════════════════════════════════════
     const lineHeaders = [
-      'Invoice No', 'Customer Name', 'Date', 'Rental Package Plan', 'Plan Type',
+      'Invoice No', 'Client Name', 'Date', 'Rental Package Plan', 'Plan Type',
       'Rate ₹', 'No. of Days', 'Journey Start Date', 'Journey End Date',
       'Total Distance (KM)', 'Extra KM', 'Extra KM Rate ₹',
       'Total Hours', 'Extra Hours', 'Extra Hrs Rate ₹',
@@ -389,7 +389,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     // SHEET 3 — GST Tax Summary
     // ════════════════════════════════════════════════
     const gstHeaders = [
-      'Invoice No', 'Date', 'Customer Name', 'Customer GSTIN', 'State Code',
+      'Invoice No', 'Date', 'Client Name', 'Client GSTIN', 'State Code',
       'Tax Type', 'GST Rate %', 'Taxable Amount ₹',
       'CGST Rate %', 'CGST Amount ₹',
       'SGST Rate %', 'SGST Amount ₹',
@@ -499,8 +499,8 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     const infoData = [
       [bizName.toUpperCase(), '', '', ''],
       ['Invoice No:', bill.bill_no || '', 'Date:', bill.date || ''],
-      ['Customer:', bill.customer_name || '', 'Phone:', bill.phone_number || ''],
-      ['Customer GSTIN:', billGstin, 'State Code:', stateCode],
+      ['Client:', bill.customer_name || '', 'Phone:', bill.phone_number || ''],
+      ['Client GSTIN:', billGstin, 'State Code:', stateCode],
       ['Guest Name:', bill.guest_name || '', 'Vehicle No:', bill.vehicle_number || ''],
       ['Tax Type:', interState ? 'Inter-State (IGST)' : 'Intra-State (CGST+SGST)', 'GST Enabled:', bill.gst_enabled ? 'Yes' : 'No'],
       ['', '', '', ''],
@@ -693,7 +693,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                 <thead>
                   <tr className="border-b border-slate-700 bg-table-header text-slate-400 text-xs font-semibold uppercase tracking-wider">
                     <th className="p-4">Date</th>
-                    <th className="p-4">Customer Name</th>
+                    <th className="p-4">Client Name</th>
                     <th className="p-4">Vehicle Details</th>
                     <th className="p-4">Guest/Passenger</th>
                     <th className="p-4 text-right">Invoice Total</th>
@@ -853,7 +853,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                     </div>
                   </div>
 
-                  {/* Customer, Invoice & Guest Details Box */}
+                  {/* Client, Invoice & Guest Details Box */}
                   <div className="border-x border-b border-slate-700 grid grid-cols-12 text-xs text-slate-800 divide-x divide-slate-700">
 
                     {/* Bill To Column */}

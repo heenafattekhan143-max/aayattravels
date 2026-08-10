@@ -76,7 +76,7 @@ export default function BasicPlanDashboard({ navigateTo }) {
           // Log as received payment
           await axios.post(`${API}/received-payments`, {
             customer_id: bill.customer_id || '',
-            customer_name: bill.customer_name || 'Customer',
+            customer_name: bill.customer_name || 'Client',
             amount: parseFloat(bill.final_bill_amount) - (parseFloat(bill.paid_amount) || 0),
             payment_date: new Date().toISOString().split('T')[0],
             payment_mode: 'Cash',
@@ -314,7 +314,7 @@ export default function BasicPlanDashboard({ navigateTo }) {
                 <tr className="border-b border-slate-700/50 text-[10px] uppercase text-slate-500 font-bold tracking-wider">
                   <th className="py-2 px-3">Date</th>
                   <th className="py-2 px-3">Bill ID</th>
-                  <th className="py-2 px-3">Customer</th>
+                  <th className="py-2 px-3">Client</th>
                   <th className="py-2 px-3 text-right">Amount Due</th>
                   <th className="py-2 px-3 text-center">Action</th>
                 </tr>

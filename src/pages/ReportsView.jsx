@@ -11,7 +11,7 @@ const REPORT_CONFIG = {
     columns: [
       { header: 'Date', key: 'date', format: (v) => v ? new Date(v).toLocaleDateString() : '-' },
       { header: 'Bill No', key: 'bill_no' },
-      { header: 'Customer', key: 'customer_name' },
+      { header: 'Client', key: 'customer_name' },
       { header: 'Vehicle', key: 'vehicle_number' },
       { header: 'Driver', key: 'driver_name' },
       { header: 'Route', key: 'route', value: (row) => row.source && row.destination ? `${row.source} - ${row.destination}` : '-' },
@@ -44,7 +44,7 @@ const REPORT_CONFIG = {
     filter: (data) => data,
     columns: [
       { header: 'Trip Date', key: 'journey_date', format: (v) => v ? new Date(v).toLocaleDateString() : '-' },
-      { header: 'Customer', key: 'customer_name' },
+      { header: 'Client', key: 'customer_name' },
       { header: 'Phone', key: 'customer_phone' },
       { header: 'Vehicle', key: 'vehicle_number' },
       { header: 'Driver', key: 'driver_name' },

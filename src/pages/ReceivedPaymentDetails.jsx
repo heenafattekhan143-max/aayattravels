@@ -190,7 +190,7 @@ export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-slate-50 tracking-tight">{customer.name}</h1>
-            <p className="text-sm text-slate-400 mt-1">Customer Received Payment Details</p>
+            <p className="text-sm text-slate-400 mt-1">Client Received Payment Details</p>
           </div>
         </div>
 
@@ -241,7 +241,7 @@ export default function ReceivedPaymentDetails({ navigateTo, customerId }) {
               ₹{globalTotalPending.toLocaleString('en-IN')}
             </div>
             <p className="text-xs mt-2 font-semibold text-emerald-500">
-              Receivable from Customer
+              Receivable from Client
             </p>
           </div>
           <div className="flex gap-2 mt-4">

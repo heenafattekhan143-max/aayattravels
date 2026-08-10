@@ -83,7 +83,7 @@ export default function MyVehicleSalesScreen() {
       'Date': formatDate(b.date),
       'Bill Number': b.bill_no || b.id.substring(0, 6).toUpperCase(),
       'Vehicle': b.vehicle_number,
-      'Customer': b.customer_name,
+      'Client': b.customer_name,
       'Source': b.source || '-',
       'Destination': b.destination || '-',
       'Total Amount': b.final_bill_amount,
@@ -178,7 +178,7 @@ export default function MyVehicleSalesScreen() {
                 value={selectedCustomer}
                 onChange={(val) => setSelectedCustomer(val)}
                 options={uniqueCustomers.map((cust) => ({ value: cust, label: cust }))}
-                placeholder="All Customers"
+                placeholder="All Clients"
                 className="border-none bg-transparent"
               />
             </div>
@@ -215,7 +215,7 @@ export default function MyVehicleSalesScreen() {
                 <th className="px-6 py-4">Date</th>
                 <th className="px-6 py-4">Bill No.</th>
                 <th className="px-6 py-4">Vehicle</th>
-                <th className="px-6 py-4">Customer</th>
+                <th className="px-6 py-4">Client</th>
                 <th className="px-6 py-4">Route</th>
                 <th className="px-6 py-4 text-right">Total Amount</th>
                 <th className="px-6 py-4 text-center">Status</th>

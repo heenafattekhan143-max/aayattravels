@@ -128,7 +128,7 @@ export default function ReceivedPaymentsList({ navigateTo, setCustomerForPayment
                       <tr key={cust.id} className="hover:bg-slate-800/20 transition group">
                         <td className="p-4">
                           <span className="px-2 py-1 rounded text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                            Customer
+                            Client
                           </span>
                         </td>
                         <td className="p-4 font-semibold text-slate-50 group-hover:text-indigo-400 transition">{cust.name}</td>

@@ -102,7 +102,7 @@ export default function AddCustomer({ navigateTo }) {
       };
 
       await axios.post('/api/customers', payload);
-      setSuccessMsg(`${formData.entity_type === 'customer' ? 'Customer' : 'Vendor'} added successfully!`);
+      setSuccessMsg(`${formData.entity_type === 'customer' ? 'Client' : 'Vendor'} added successfully!`);
 
       // Reset form
       setFormData({

@@ -100,7 +100,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
   const wrapRef = useRef(null);
 
   // Keep input in sync when form resets / edits load
-  useEffect(() => { setQuery(isGuest ? 'Other / Guest Customer' : (value || '')); }, [value, isGuest]);
+  useEffect(() => { setQuery(isGuest ? 'Other / Guest Client' : (value || '')); }, [value, isGuest]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -109,7 +109,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const filtered = query.trim().length === 0 || query === 'Other / Guest Customer'
+  const filtered = query.trim().length === 0 || query === 'Other / Guest Client'
     ? entities
     : entities.filter(e =>
       e.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -123,7 +123,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
   };
 
   const handleSelectGuest = () => {
-    setQuery('Other / Guest Customer');
+    setQuery('Other / Guest Client');
     setOpen(false);
     onChange('', '', true);   // signal parent: guest mode on, clear name/phone
   };
@@ -143,7 +143,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
   return (
     <div ref={wrapRef} className="space-y-2">
       <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-        <Building2 className="h-3 w-3 text-indigo-400" /> Customer / Company
+        <Building2 className="h-3 w-3 text-indigo-400" /> Client / Company
       </label>
 
       {/* Search input */}
@@ -218,7 +218,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
                 <UserPlus className="h-3 w-3 text-amber-400" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-amber-300">Other / Guest Customer</div>
+                <div className="text-sm font-semibold text-amber-300">Other / Guest Client</div>
                 <div className="text-xs text-slate-500">Enter name &amp; phone manually</div>
               </div>
             </button>
@@ -230,7 +230,7 @@ function CustomerSearchPicker({ entities, value, phone, isGuest, guestName, gues
       {isGuest && (
         <div className="space-y-2 p-3 bg-amber-500/5 border border-amber-500/25 rounded-xl">
           <p className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-            <UserPlus className="h-3 w-3" /> Guest Customer Details
+            <UserPlus className="h-3 w-3" /> Guest Client Details
           </p>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-300">Guest Name *</label>
@@ -821,10 +821,10 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
           {/* ── LEFT COLUMN (CARD 1) ── */}
           <div className="glass-panel rounded-2xl border border-slate-700/50 shadow-xl p-5 md:p-6 space-y-8">
 
-            {/* Section 1: Customer & Route */}
+            {/* Section 1: Client & Route */}
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 border-b border-slate-800 pb-2 flex items-center gap-2">
-                <User className="h-4 w-4 text-indigo-400" /> Customer & Route
+                <User className="h-4 w-4 text-indigo-400" /> Client & Route
               </h4>
 
               {/* SEARCHABLE CUSTOMER PICKER */}
@@ -1124,7 +1124,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                               {guestPlanDetails.base_km && <span className="bg-slate-800 px-2 py-1 rounded">{guestPlanDetails.base_km} KMs included</span>}
                               {guestPlanDetails.base_hours && <span className="bg-slate-800 px-2 py-1 rounded">{guestPlanDetails.base_hours} Hrs included</span>}
                               {guestPlanDetails.extra_km_rate > 0 && <span className="bg-slate-800 px-2 py-1 rounded">₹{guestPlanDetails.extra_km_rate}/extra km</span>}
-                              {guestPlanDetails.extra_hours_rate > 0 && <span className="bg-slate-800 px-2 py-1 rounded">₹{guestPlanDetails.extra_hours_rate}/extra hr</span>}
+                              {guestPlanDetails.extra_hours_rate > 0 && !((guestPlanDetails.plan_name || '').toLowerCase().includes('outstation') || guestPlanDetails.plan_type === 'Outstation') && <span className="bg-slate-800 px-2 py-1 rounded">₹{guestPlanDetails.extra_hours_rate}/extra hr</span>}
                             </div>
                           </div>
                         )}
