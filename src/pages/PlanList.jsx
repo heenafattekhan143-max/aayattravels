@@ -101,6 +101,20 @@ export default function PlanList({ navigateTo }) {
         }
       }
 
+      // Auto-calculate Base Rates based on KM limits and Rates ONLY for Outstation
+      if (updated.plan_type === 'Outstation') {
+        if (['base_km', 'extra_km_rate', 'vendor_extra_km_rate', 'plan_name', 'plan_type'].includes(name)) {
+          const baseKm = parseFloat(updated.base_km) || 0;
+          
+          if (updated.extra_km_rate && !isNaN(parseFloat(updated.extra_km_rate))) {
+            updated.company_rate = (baseKm * parseFloat(updated.extra_km_rate)).toString();
+          }
+          
+          if (updated.vendor_extra_km_rate && !isNaN(parseFloat(updated.vendor_extra_km_rate))) {
+            updated.vendor_rate = (baseKm * parseFloat(updated.vendor_extra_km_rate)).toString();
+          }
+        }
+      }
 
       return updated;
     });
@@ -367,6 +381,21 @@ export default function PlanList({ navigateTo }) {
                   <p className="text-[10px] font-bold text-amber-400/80 uppercase tracking-widest">Vendor</p>
                 </div>
 
+                {/* Extra KM Rate row - OUTSTATION (ABOVE BASE RATE) */}
+                {editFormData.plan_type === 'Outstation' && (
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-300">KM RATE (₹) *</label>
+                      <input type="text" name="extra_km_rate" value={editFormData.extra_km_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.extra_km_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                      {editErrors.extra_km_rate && <p className="text-[10px] text-rose-400">{editErrors.extra_km_rate}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-amber-400/80">KM RATE (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                      <input type="text" name="vendor_extra_km_rate" value={editFormData.vendor_extra_km_rate} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
+                    </div>
+                  </div>
+                )}
+
                 {/* Base Rate row */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
@@ -381,29 +410,31 @@ export default function PlanList({ navigateTo }) {
                   </div>
                 </div>
 
-                {/* Extra KM Rate row */}
-                <div className="grid grid-cols-2 gap-4 mt-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-300">Company Extra KM Rate (₹) *</label>
-                    <input type="text" name="extra_km_rate" value={editFormData.extra_km_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.extra_km_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
-                    {editErrors.extra_km_rate && <p className="text-[10px] text-rose-400">{editErrors.extra_km_rate}</p>}
+                {/* Extra KM Rate row - LOCAL (BELOW BASE RATE) */}
+                {editFormData.plan_type === 'Local' && (
+                  <div className="grid grid-cols-2 gap-4 mt-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-300">EXTRA KM RATE (₹) *</label>
+                      <input type="text" name="extra_km_rate" value={editFormData.extra_km_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.extra_km_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
+                      {editErrors.extra_km_rate && <p className="text-[10px] text-rose-400">{editErrors.extra_km_rate}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-amber-400/80">EXTRA KM RATE (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                      <input type="text" name="vendor_extra_km_rate" value={editFormData.vendor_extra_km_rate} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-amber-400/80">Vendor Extra KM Rate (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
-                    <input type="text" name="vendor_extra_km_rate" value={editFormData.vendor_extra_km_rate} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
-                  </div>
-                </div>
+                )}
 
                 {/* Extra Hour Rate row */}
                 {editFormData.plan_type === 'Local' && (
                   <div className="grid grid-cols-2 gap-4 mt-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-300">Company Extra Hour Rate (₹) *</label>
+                      <label className="text-xs font-semibold text-slate-300">HOUR RATE (₹) *</label>
                       <input type="text" name="extra_hours_rate" value={editFormData.extra_hours_rate} onChange={handleEditChange} className={`w-full bg-slate-950 text-xs border ${editErrors.extra_hours_rate ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none`} />
                       {editErrors.extra_hours_rate && <p className="text-[10px] text-rose-400">{editErrors.extra_hours_rate}</p>}
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-amber-400/80">Vendor Extra Hour Rate (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                      <label className="text-xs font-semibold text-amber-400/80">HOUR RATE (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
                       <input type="text" name="vendor_extra_hours_rate" value={editFormData.vendor_extra_hours_rate} onChange={handleEditChange} className="w-full bg-slate-950 text-xs border border-slate-700 rounded-lg px-3 py-2 text-slate-100 outline-none" />
                     </div>
                   </div>

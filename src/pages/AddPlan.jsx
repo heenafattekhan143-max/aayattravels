@@ -107,6 +107,22 @@ export default function AddPlan({ navigateTo }) {
           updated.vendor_rate = rateMatch[1];
         }
       }
+
+      // Auto-calculate Base Rates based on KM limits and Rates ONLY for Outstation
+      if (updated.plan_type === 'Outstation') {
+        if (['base_km', 'extra_km_rate', 'vendor_extra_km_rate', 'plan_name', 'plan_type'].includes(name)) {
+          const baseKm = parseFloat(updated.base_km) || 0;
+          
+          if (updated.extra_km_rate && !isNaN(parseFloat(updated.extra_km_rate))) {
+            updated.company_rate = (baseKm * parseFloat(updated.extra_km_rate)).toString();
+          }
+          
+          if (updated.vendor_extra_km_rate && !isNaN(parseFloat(updated.vendor_extra_km_rate))) {
+            updated.vendor_rate = (baseKm * parseFloat(updated.vendor_extra_km_rate)).toString();
+          }
+        }
+      }
+
       return updated;
     });
     if (errors[name]) {
@@ -260,7 +276,7 @@ export default function AddPlan({ navigateTo }) {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-400">Base Hours (Auto-parsed)</label>
+                  <label className="text-xs font-semibold text-slate-400">Base Hours</label>
                   <input
                     type="number"
                     name="base_hours"
@@ -271,7 +287,7 @@ export default function AddPlan({ navigateTo }) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-400">Base KMs (Auto-parsed)</label>
+                  <label className="text-xs font-semibold text-slate-400">Base KMs</label>
                   <input
                     type="number"
                     name="base_km"
@@ -309,6 +325,34 @@ export default function AddPlan({ navigateTo }) {
               <p className="text-[10px] font-bold text-amber-400/80 uppercase tracking-widest">Vendor</p>
             </div>
 
+            {/* Extra KM Rate row - OUTSTATION (ABOVE BASE RATE) */}
+            {formData.plan_type === 'Outstation' && (
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400">KM RATE (₹) <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    name="extra_km_rate"
+                    value={formData.extra_km_rate}
+                    onChange={handleChange}
+                    className={`w-full bg-slate-950/60 border ${errors.extra_km_rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
+                  />
+                  {errors.extra_km_rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.extra_km_rate}</p>}
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-amber-400/80">KM RATE (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                  <input
+                    type="text"
+                    name="vendor_extra_km_rate"
+                    placeholder="e.g. 12"
+                    value={formData.vendor_extra_km_rate}
+                    onChange={handleChange}
+                    className="w-full bg-slate-950/60 border border-slate-800 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Base Rate row */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -337,37 +381,39 @@ export default function AddPlan({ navigateTo }) {
               </div>
             </div>
 
-            {/* Extra KM Rate row */}
-            <div className="grid grid-cols-2 gap-4 mt-3">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-400">EXTRA KM RATE (₹) <span className="text-rose-500">*</span></label>
-                <input
-                  type="text"
-                  name="extra_km_rate"
-                  value={formData.extra_km_rate}
-                  onChange={handleChange}
-                  className={`w-full bg-slate-950/60 border ${errors.extra_km_rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
-                />
-                {errors.extra_km_rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.extra_km_rate}</p>}
+            {/* Extra KM Rate row - LOCAL (BELOW BASE RATE) */}
+            {formData.plan_type === 'Local' && (
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400">EXTRA KM RATE (₹) <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    name="extra_km_rate"
+                    value={formData.extra_km_rate}
+                    onChange={handleChange}
+                    className={`w-full bg-slate-950/60 border ${errors.extra_km_rate ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'} focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition`}
+                  />
+                  {errors.extra_km_rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.extra_km_rate}</p>}
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-amber-400/80">EXTRA KM RATE (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                  <input
+                    type="text"
+                    name="vendor_extra_km_rate"
+                    placeholder="e.g. 12"
+                    value={formData.vendor_extra_km_rate}
+                    onChange={handleChange}
+                    className="w-full bg-slate-950/60 border border-slate-800 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition"
+                  />
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-amber-400/80">EXTRA KM RATE (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
-                <input
-                  type="text"
-                  name="vendor_extra_km_rate"
-                  placeholder="e.g. 12"
-                  value={formData.vendor_extra_km_rate}
-                  onChange={handleChange}
-                  className="w-full bg-slate-950/60 border border-slate-800 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 outline-none rounded-lg px-4 py-2.5 text-sm text-slate-200 transition"
-                />
-              </div>
-            </div>
+            )}
 
             {/* Extra Hour Rate row — Local only */}
             {formData.plan_type === 'Local' && (
               <div className="grid grid-cols-2 gap-4 mt-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-400">EXTRA HOUR RATE (₹) <span className="text-rose-500">*</span></label>
+                  <label className="text-xs font-semibold text-slate-400">HOUR RATE (₹) <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
                     name="extra_hours_rate"
@@ -378,7 +424,7 @@ export default function AddPlan({ navigateTo }) {
                   {errors.extra_hours_rate && <p className="text-xs text-rose-400 mt-1 font-medium">{errors.extra_hours_rate}</p>}
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-amber-400/80">EXTRA HOUR RATE (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                  <label className="text-xs font-semibold text-amber-400/80">HOUR RATE (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
                   <input
                     type="text"
                     name="vendor_extra_hours_rate"
