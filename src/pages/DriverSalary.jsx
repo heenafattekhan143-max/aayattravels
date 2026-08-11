@@ -417,7 +417,7 @@ export default function DriverSalary({ navigateTo }) {
             <div className="flex gap-3 items-center shrink-0">
               <div className="bg-slate-950 border border-slate-700/60 rounded-xl px-3 py-2 flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-indigo-400" />
-                <div className="w-28">
+                <div className="w-40">
                   <CustomSelect
                     value={selectedMonth}
                     onChange={(val) => setSelectedMonth(val)}
@@ -426,7 +426,7 @@ export default function DriverSalary({ navigateTo }) {
                   />
                 </div>
                 <span className="text-slate-600 font-bold">|</span>
-                <div className="w-24">
+                <div className="w-36">
                   <CustomSelect
                     value={selectedYear}
                     onChange={(val) => setSelectedYear(val)}
@@ -527,7 +527,7 @@ export default function DriverSalary({ navigateTo }) {
 
       {/* ── DETAIL MODAL DRAWER ── */}
       {activeDetailDriver && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 no-print animate-fade-in">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 no-print animate-fade-in">
           <div className="bg-slate-950 border border-slate-800 w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden rounded-2xl">
 
             {/* Modal Header */}
@@ -735,15 +735,7 @@ export default function DriverSalary({ navigateTo }) {
 
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-800/80 bg-slate-900/20 flex justify-end gap-3 shrink-0">
-              <button
-                onClick={() => setSelectedDriver(null)}
-                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition"
-              >
-                Close
-              </button>
-            </div>
+
 
           </div>
         </div>
