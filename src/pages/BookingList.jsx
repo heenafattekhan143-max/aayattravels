@@ -11,7 +11,7 @@ import CustomSelect from '../components/CustomSelect';
 
 const API = '/api';
 
-const TRIP_TYPES = ['One Way', 'Round Trip', 'Local'];
+const TRIP_TYPES = ['Local', 'Outstation'];
 const BOOKING_STATUSES = ['Unconfirmed', 'Confirmed', 'Cancelled', 'Completed'];
 const PAYMENT_STATUSES = ['Pending', 'Partial', 'Paid'];
 
@@ -31,7 +31,7 @@ const emptyForm = {
   return_date: '',
   vehicle_number: '',
   driver_name: '',
-  trip_type: 'One Way',
+  trip_type: 'Outstation',
   vehicle_type: '',
   passengers: 1,
   advance_amount: '',

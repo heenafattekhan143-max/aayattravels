@@ -480,6 +480,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         date: item.date,
         end_date: item.end_date,
         total_distance_km: parseFloat(item.total_distance_km),
+        plan_type: item.plan_type || '',
+        extra_km_rate: parseFloat(item.extra_km_rate) || 0,
         extra_km: item.extra_km,
         total_hours: parseFloat(item.total_hours),
         extra_hours: item.extra_hours,
@@ -541,6 +543,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             date: item.date,
             end_date: item.end_date,
             total_distance_km: totalDist,
+            plan_type: selectedPurchasePlan.plan_type || '',
+            extra_km_rate: extraKmRate,
             extra_km: extraKm,
             total_hours: totalHrs,
             extra_hours: extraHrs,
@@ -1604,7 +1608,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             {/* Toll input */}
             <div className="space-y-1 w-full md:w-2/3">
               <label className="text-sm font-semibold text-slate-300 flex items-center gap-1">
-                Toll Fees (Rs.)
+                Toll / Parking (Rs.)
                 <Calculator className="h-4 w-4 text-indigo-400" />
               </label>
               <input

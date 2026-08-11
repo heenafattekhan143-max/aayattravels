@@ -14,7 +14,7 @@ import CITIES from '../data/cities.json';
 
 const API = '/api';
 
-const TRIP_TYPES = ['One Way', 'Round Trip', 'Local'];
+const TRIP_TYPES = ['Local', 'Outstation'];
 const BOOKING_STATUSES = ['Unconfirmed', 'Confirmed', 'Cancelled', 'Completed'];
 const PAYMENT_STATUSES = ['Pending', 'Partial', 'Paid'];
 
@@ -65,7 +65,7 @@ const emptyForm = {
   vehicle_class: '',
   vehicle_number: '',
   driver_name: '',
-  trip_type: 'One Way',
+  trip_type: 'Outstation',
   vehicle_type: '',
   passengers: 1,
   passenger_details: [{ name: '', phone: '', email: '' }],
@@ -689,7 +689,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       return_date: b.return_date || '',
       vehicle_number: b.vehicle_number || '',
       driver_name: b.driver_name || '',
-      trip_type: b.trip_type || 'One Way',
+      trip_type: b.trip_type || 'Outstation',
       vehicle_class: b.vehicle_class || b.vehicle_type || '',
       vehicle_type: b.vehicle_type || '',
       passengers: b.passengers || 1,

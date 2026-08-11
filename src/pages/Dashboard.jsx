@@ -379,6 +379,7 @@ function CloseBookingModal({ booking, onClose, onSave }) {
   const [endKm, setEndKm] = useState(booking?.end_km || '');
   const [closeTime, setCloseTime] = useState(booking?.end_time || new Date().toTimeString().slice(0, 5));
   const [workingHours, setWorkingHours] = useState(booking?.working_hours || '');
+  const [tollParking, setTollParking] = useState(booking?.toll_parking || '');
   const [note, setNote] = useState(booking?.note || '');
   const [paymentStatus, setPaymentStatus] = useState(booking?.payment_status || 'Pending');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -416,6 +417,7 @@ function CloseBookingModal({ booking, onClose, onSave }) {
       end_km: parseInt(endKm, 10),
       end_time: closeTime,
       working_hours: parseInt(workingHours, 10) || 0,
+      toll_parking: parseInt(tollParking, 10) || 0,
       note: note,
       payment_status: paymentStatus,
       booking_status: 'Completed'
@@ -505,17 +507,29 @@ function CloseBookingModal({ booking, onClose, onSave }) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400 uppercase">Payment Status</label>
-              <select
-                value={paymentStatus}
-                onChange={(e) => setPaymentStatus(e.target.value)}
+              <label className="text-xs font-semibold text-slate-400 uppercase">Toll / Parking (₹)</label>
+              <input
+                type="number"
+                min="0"
+                value={tollParking}
+                onChange={(e) => setTollParking(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 text-slate-100 rounded-xl px-3 py-2.5 text-sm outline-none transition"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Partial">Partial</option>
-                <option value="Paid">Paid</option>
-              </select>
+                placeholder="e.g. 150"
+              />
             </div>
+          </div>
+
+          <div className="mt-4 space-y-1.5">
+            <label className="text-xs font-semibold text-slate-400 uppercase">Payment Status</label>
+            <select
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 text-slate-100 rounded-xl px-3 py-2.5 text-sm outline-none transition"
+            >
+              <option value="Pending">Pending</option>
+              <option value="Partial">Partial</option>
+              <option value="Paid">Paid</option>
+            </select>
           </div>
 
           <div className="space-y-1.5 mt-2">

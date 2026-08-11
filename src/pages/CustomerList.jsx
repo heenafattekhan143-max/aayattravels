@@ -30,6 +30,7 @@ export default function CustomerList({ navigateTo }) {
   const confirm = useConfirm();
   const [entities, setEntities] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -162,24 +163,43 @@ export default function CustomerList({ navigateTo }) {
     }
   };
 
-  const filteredEntities = entities.filter(e =>
-    e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.phone.includes(searchTerm) ||
-    e.gstin?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEntities = entities.filter(e => {
+    if (filterType !== 'all' && e.entity_type !== filterType) return false;
+    return (
+      e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.phone.includes(searchTerm) ||
+      e.gstin?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <div className="space-y-6">
 
-      <div className="flex gap-4 items-center glass-panel p-4 rounded-xl border border-slate-700/50">
-        <Search className="h-5 w-5 text-slate-400 shrink-0" />
-        <input
-          type="text"
-          placeholder="Search by name, phone number, or GSTIN..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-sm"
-        />
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between glass-panel p-4 rounded-xl border border-slate-700/50">
+        <div className="flex gap-4 items-center w-full sm:w-auto flex-1">
+          <Search className="h-5 w-5 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search by name, phone number, or GSTIN..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-sm"
+          />
+        </div>
+        <div className="flex gap-4 shrink-0 bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-300 hover:text-slate-100">
+            <input type="radio" name="listFilter" checked={filterType === 'all'} onChange={() => setFilterType('all')} className="w-3.5 h-3.5 text-indigo-600 bg-slate-950 border-slate-700" />
+            <span>All</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-indigo-300 hover:text-indigo-200">
+            <input type="radio" name="listFilter" checked={filterType === 'customer'} onChange={() => setFilterType('customer')} className="w-3.5 h-3.5 text-indigo-600 bg-slate-950 border-slate-700" />
+            <span>Clients</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-amber-300 hover:text-amber-200">
+            <input type="radio" name="listFilter" checked={filterType === 'vendor'} onChange={() => setFilterType('vendor')} className="w-3.5 h-3.5 text-indigo-600 bg-slate-950 border-slate-700" />
+            <span>Vendors</span>
+          </label>
+        </div>
       </div>
 
       {loading ? (

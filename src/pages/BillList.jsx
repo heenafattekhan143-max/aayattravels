@@ -935,10 +935,11 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse border border-slate-400">
                       <colgroup>
-                        <col style={{ width: '25%' }} />
+                        <col style={{ width: '35%' }} />
                         <col style={{ width: '8%' }} />
-                        <col />
+                        <col style={{ width: '10%' }} />
                         <col style={{ width: '9%' }} />
+                        <col style={{ width: '8%' }} />
                         <col style={{ width: '8%' }} />
                         <col style={{ width: '8%' }} />
                         {hasExtraHours && <col style={{ width: '8%' }} />}
@@ -949,8 +950,14 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                       <thead>
                         <tr className="border-b border-slate-300 text-slate-700 bg-slate-50 uppercase text-[9px] tracking-wider">
                           <th className="p-1.5 font-bold border border-slate-400">Rental Package Plan</th>
-                          <th className="p-1.5 font-bold text-center border border-slate-400">Rate</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Date</th>
+                          <th className="p-1.5 font-bold text-center border border-slate-400">
+                            {selectedBill.table_items && selectedBill.table_items.length > 0 &&
+                             ((selectedBill.table_items[0].plan_type || '').toLowerCase() === 'outstation' ||
+                              (selectedBill.table_items[0].plan_name || '').toLowerCase().includes('outstation'))
+                              ? 'KM Rate'
+                              : 'Rate'}
+                          </th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Total KM</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Extra KMs</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Total Hours</th>
@@ -964,11 +971,15 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                         {(selectedBill.table_items || []).map((item, idx) => (
                           <tr key={idx} className="hover:bg-slate-50 transition">
                             <td className="p-1.5 font-semibold text-slate-900 text-[9px] leading-tight border border-slate-400 break-words">{item.plan_name}</td>
-                            <td className="p-1.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">₹{(item.rate || 0).toLocaleString('en-IN')}</td>
                             <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">
                               {item.end_date
                                 ? `${formatDate(item.date)} to ${formatDate(item.end_date)}`
                                 : formatDate(item.date)}
+                            </td>
+                            <td className="p-1.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">
+                              {((item.plan_type || '').toLowerCase() === 'outstation' || (item.plan_name || '').toLowerCase().includes('outstation'))
+                                ? (item.extra_km_rate > 0 ? `₹${item.extra_km_rate}/km` : '-')
+                                : `₹${(item.rate || 0).toLocaleString('en-IN')}`}
                             </td>
                             <td className="p-1.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_distance_km} KM</td>
                             <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_km > 0 ? `${item.extra_km} KM` : '-'}</td>
@@ -995,6 +1006,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                               <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalDistance} KM</td>
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraKm > 0 ? `${totalExtraKm} KM` : '-'}</td>
+                              <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalHours} Hrs</td>
                               {hasExtraHours && <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraHours > 0 ? `${totalExtraHours} Hrs` : '-'}</td>}
                               <td className="p-1.5 text-center border border-slate-400 whitespace-nowrap">{totalDA > 0 ? `₹${totalDA.toLocaleString('en-IN')}` : '-'}</td>
@@ -1130,16 +1142,15 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                             <span className="font-semibold font-mono">₹{printGstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                           </div>
                         )}
-                        {selectedBill.toll_amount > 0 && (
-                          <div className="flex justify-between text-slate-600">
-                            <span>Toll Charges:</span>
-                            <span className="font-semibold font-mono">₹{selectedBill.toll_amount.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {selectedBill.parking_amount > 0 && (
+                        <div className="flex justify-between text-slate-600">
+                          <span>Toll / Parking:</span>
+                          <span className="font-semibold font-mono">₹{(parseFloat(selectedBill.toll_amount) || 0).toLocaleString()}</span>
+                        </div>
+                        
+                        {(parseFloat(selectedBill.parking_amount) || 0) > 0 && (
                           <div className="flex justify-between text-slate-600">
                             <span>Parking Charges:</span>
-                            <span className="font-semibold font-mono">₹{selectedBill.parking_amount.toLocaleString()}</span>
+                            <span className="font-semibold font-mono">₹{(parseFloat(selectedBill.parking_amount) || 0).toLocaleString()}</span>
                           </div>
                         )}
                         <div className="flex justify-between text-xl font-black text-slate-900 border-t border-slate-300 pt-1.5 bg-indigo-50/30 p-2 rounded-lg border border-indigo-100/50 mt-1">

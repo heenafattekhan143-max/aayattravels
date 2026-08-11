@@ -29,19 +29,19 @@ const YEARS = ['All Years', '2024', '2025', '2026', '2027', '2028', '2029', '203
 
 export default function DriverSalary({ navigateTo }) {
   const { user } = useAuth();
-  const bizName    = user?.businessName || 'My Business';
-  const bizAddress = user?.address      || '';
-  const bizPhone   = user?.phone        || '';
-  const bizEmail   = user?.email        || '';
-  const bizLogo    = user?.logo         || null;
+  const bizName = user?.businessName || 'My Business';
+  const bizAddress = user?.address || '';
+  const bizPhone = user?.phone || '';
+  const bizEmail = user?.email || '';
+  const bizLogo = user?.logo || null;
   const [drivers, setDrivers] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Selected Month & Year (Default to June 2026 as per system metadata date)
-  const [selectedMonth, setSelectedMonth] = useState('06');
-  const [selectedYear, setSelectedYear] = useState('2026');
+  // Selected Month & Year (Default to All)
+  const [selectedMonth, setSelectedMonth] = useState('All');
+  const [selectedYear, setSelectedYear] = useState('All Years');
 
   // Search and Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,7 +90,7 @@ export default function DriverSalary({ navigateTo }) {
 
         // Date match (format is YYYY-MM-DD)
         const [year, month] = b.journey_date.split('-');
-        const matchesYear = selectedYear === 'All' || year === selectedYear;
+        const matchesYear = selectedYear === 'All Years' || year === selectedYear;
         const matchesMonth = selectedMonth === 'All' || month === selectedMonth;
         const matchesDate = matchesYear && matchesMonth;
 
@@ -185,7 +185,7 @@ export default function DriverSalary({ navigateTo }) {
       if (!b.driver_name || !b.journey_date) return false;
       const matchesDriver = b.driver_name.toLowerCase().trim() === activeDetailDriver.name.toLowerCase().trim();
       const [year, month] = b.journey_date.split('-');
-      const matchesYear = selectedYear === 'All' || year === selectedYear;
+      const matchesYear = selectedYear === 'All Years' || year === selectedYear;
       const matchesMonth = selectedMonth === 'All' || month === selectedMonth;
       const matchesDate = matchesYear && matchesMonth;
       return matchesDriver && matchesDate;
@@ -785,7 +785,7 @@ export default function DriverSalary({ navigateTo }) {
                 <span className="text-sm font-black text-slate-900 tracking-widest uppercase">Compensation Statement</span>
               </div>
               <div className="p-3 px-4 flex items-center justify-center">
-                <span className="text-xs font-bold mr-3 text-slate-600 uppercase tracking-wider">Statement Period:</span> 
+                <span className="text-xs font-bold mr-3 text-slate-600 uppercase tracking-wider">Statement Period:</span>
                 <span className="text-sm font-black text-slate-900 uppercase">{getMonthName(selectedMonth)} {selectedYear}</span>
               </div>
             </div>

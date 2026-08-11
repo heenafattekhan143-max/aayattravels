@@ -17,6 +17,8 @@ class BillItem(BaseModel):
     date: str
     end_date: Optional[str] = ""
     total_distance_km: float
+    plan_type: Optional[str] = ""
+    extra_km_rate: Optional[float] = 0.0
     extra_km: float
     total_hours: float
     extra_hours: float

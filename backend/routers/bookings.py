@@ -52,6 +52,7 @@ class BookingBase(BaseModel):
     da_allowance: Optional[float] = 0.0
     night_allowance: Optional[float] = 0.0
     gst_rate: Optional[float] = 0.0
+    toll_parking: Optional[float] = 0.0
 
 class BookingCreate(BookingBase):
     pass
@@ -95,6 +96,7 @@ class BookingUpdate(BaseModel):
     rate: Optional[float] = None
     da_allowance: Optional[float] = None
     night_allowance: Optional[float] = None
+    toll_parking: Optional[float] = None
 
 class BookingResponse(BookingBase):
     id: str
@@ -103,6 +105,26 @@ class BookingResponse(BookingBase):
 def serialize_booking(doc) -> dict:
     if not doc:
         return None
+        
+    total_amount = float(doc.get("total_amount") or 0.0)
+    if not total_amount and doc.get("plan_id"):
+        try:
+            plan = plans_collection.find_one({"_id": ObjectId(doc["plan_id"])})
+            if plan:
+                rate = float(plan.get("rate") or 0.0)
+                if doc.get("vehicle_number") and doc.get("user_email"):
+                    vehicle = vehicles_collection.find_one({
+                        "vehicle_number": {"$regex": f"^{doc['vehicle_number']}$", "$options": "i"},
+                        "user_email": doc.get("user_email")
+                    })
+                    if vehicle and vehicle.get("ownership_type") == "Vendor":
+                        rate = float(plan.get("vendor_rate") or plan.get("rate") or 0.0)
+                    else:
+                        rate = float(plan.get("company_rate") or plan.get("rate") or 0.0)
+                total_amount = rate
+        except:
+            pass
+
     return {
         "id": str(doc["_id"]),
         "booking_id": doc.get("booking_id", ""),
@@ -128,7 +150,7 @@ def serialize_booking(doc) -> dict:
         "passengers": doc.get("passengers", 1),
         "passenger_details": doc.get("passenger_details", []),
         "advance_amount": doc.get("advance_amount", 0.0),
-        "total_amount": doc.get("total_amount", 0.0),
+        "total_amount": total_amount,
         "payment_status": doc.get("payment_status", "Pending"),
         "booking_status": doc.get("booking_status", "Confirmed"),
         "remarks": doc.get("remarks", ""),
@@ -286,6 +308,7 @@ def sync_provisional_bills(booking_doc, user_email: str):
         amount_with_gst = round(amount_without_gst * (1 + gst_rate / 100), 2)
         
     advance = float(booking_doc.get("advance_amount") or 0.0)
+    toll_parking = float(booking_doc.get("toll_parking") or 0.0)
     
     table_item = {
         "plan_id": plan_id if plan_id else "",
@@ -293,6 +316,8 @@ def sync_provisional_bills(booking_doc, user_email: str):
         "rate": base_rate,
         "date": booking_doc.get("journey_date", ""),
         "total_distance_km": total_distance,
+        "plan_type": plan.get("plan_type", "Local") if plan else "Event",
+        "extra_km_rate": extra_km_rate,
         "extra_km": extra_km,
         "total_hours": working_hours,
         "extra_hours": extra_hours,
@@ -317,11 +342,11 @@ def sync_provisional_bills(booking_doc, user_email: str):
         "destination": booking_doc.get("drop_location", ""),
         "travel_distance": total_distance,
         "table_items": [table_item],
-        "toll_amount": 0.0,
+        "toll_amount": toll_parking,
         "parking_amount": 0.0,
-        "final_bill_amount": amount_with_gst,
+        "final_bill_amount": amount_with_gst + toll_parking,
         "final_bill_words": "",
-        "profit": amount_with_gst,
+        "profit": amount_with_gst + toll_parking,
         "user_email": user_email
     }
     
@@ -445,6 +470,8 @@ def generate_bill_for_booking(booking_doc, user_email: str):
         "rate": base_rate,
         "date": booking_doc.get("journey_date", ""),
         "total_distance_km": total_distance,
+        "plan_type": plan.get("plan_type", "Local") if plan else "Event",
+        "extra_km_rate": extra_km_rate,
         "extra_km": extra_km,
         "total_hours": working_hours,
         "extra_hours": extra_hours,
@@ -456,6 +483,7 @@ def generate_bill_for_booking(booking_doc, user_email: str):
     }
     
     advance = float(booking_doc.get("advance_amount") or 0.0)
+    toll_parking = float(booking_doc.get("toll_parking") or 0.0)
     status = "Pending"
     if advance >= amount_without_gst and amount_without_gst > 0:
         status = "Paid"
@@ -482,13 +510,13 @@ def generate_bill_for_booking(booking_doc, user_email: str):
         "destination": booking_doc.get("drop_location", ""),
         "travel_distance": total_distance,
         "table_items": [table_item],
-        "toll_amount": 0.0,
+        "toll_amount": toll_parking,
         "parking_amount": 0.0,
-        "final_bill_amount": amount_with_gst,
+        "final_bill_amount": amount_with_gst + toll_parking,
         "final_bill_words": "",
         "paid_amount": advance,
         "status": status,
-        "profit": amount_with_gst,
+        "profit": amount_with_gst + toll_parking,
         "created_at": datetime.now(),
         "booking_ref": str(booking_doc["_id"]),
         "user_email": user_email

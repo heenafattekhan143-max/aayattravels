@@ -4,7 +4,7 @@ import CustomDatePicker from './CustomDatePicker';
 import CustomSelect from './CustomSelect';
 import { useVehicleClasses } from '../hooks/useVehicleClasses';
 
-const TRIP_TYPES = ['One Way', 'Round Trip', 'Local'];
+const TRIP_TYPES = ['Local', 'Outstation'];
 
 export default function EventBookingModal({ 
   isOpen, 

@@ -18,7 +18,8 @@ const REPORT_CONFIG = {
       { header: 'Status', key: 'status' },
       { header: 'Total Amount', key: 'final_bill_amount' },
       { header: 'Paid Amount', key: 'paid_amount' },
-      { header: 'Pending Amount', key: 'pending_amount', value: (row) => (row.final_bill_amount || 0) - (row.paid_amount || 0) }
+      { header: 'Pending Amount', key: 'pending_amount', value: (row) => (row.final_bill_amount || 0) - (row.paid_amount || 0) },
+      { header: 'Actions', key: 'actions' }
     ]
   },
   vendor: {
@@ -35,7 +36,8 @@ const REPORT_CONFIG = {
       { header: 'Status', key: 'status' },
       { header: 'Total Amount', key: 'final_bill_amount' },
       { header: 'Paid Amount', key: 'paid_amount' },
-      { header: 'Pending Amount', key: 'pending_amount', value: (row) => (row.final_bill_amount || 0) - (row.paid_amount || 0) }
+      { header: 'Pending Amount', key: 'pending_amount', value: (row) => (row.final_bill_amount || 0) - (row.paid_amount || 0) },
+      { header: 'Actions', key: 'actions' }
     ]
   },
   bookings: {
@@ -56,7 +58,8 @@ const REPORT_CONFIG = {
       { header: 'Status', key: 'booking_status' },
       { header: 'Total Fare', key: 'total_amount' },
       { header: 'Advance', key: 'advance_amount' },
-      { header: 'Pending', key: 'pending_amount', value: (row) => (row.total_amount || 0) - (row.advance_amount || 0) }
+      { header: 'Pending', key: 'pending_amount', value: (row) => (row.total_amount || 0) - (row.advance_amount || 0) },
+      { header: 'Actions', key: 'actions' }
     ]
   },
   maintenance: {
@@ -86,7 +89,7 @@ const REPORT_CONFIG = {
   }
 };
 
-export default function ReportsView({ reportType }) {
+export default function ReportsView({ reportType, navigateTo, setViewingBillId, setReturnToRoute }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -143,6 +146,29 @@ export default function ReportsView({ reportType }) {
       
       return true;
     });
+  };
+
+  const handleViewInvoice = async (row) => {
+    if (reportType === 'bookings') {
+      try {
+        const res = await axios.get('/api/bills');
+        const bill = res.data.find(b => b.booking_ref === row.id);
+        if (bill) {
+          setViewingBillId(bill.id);
+          setReturnToRoute('reports-bookings');
+          navigateTo('bill-list');
+        } else {
+          alert("Bill not generated for this booking yet.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to fetch bill details.");
+      }
+    } else {
+      setViewingBillId(row.id);
+      setReturnToRoute(reportType === 'sales' ? 'reports-sales' : 'reports-vendor');
+      navigateTo('bill-list');
+    }
   };
 
   const handleExport = () => {
@@ -264,6 +290,19 @@ export default function ReportsView({ reportType }) {
                 filteredData.slice(0, 50).map((row, i) => (
                   <tr key={i} className="border-b border-slate-700/30 hover:bg-slate-800/30 transition text-sm">
                     {config.columns.map((col, j) => {
+                      if (col.key === 'actions') {
+                        return (
+                          <td key={j} className="p-4 text-slate-300 whitespace-nowrap">
+                            <button
+                              onClick={() => handleViewInvoice(row)}
+                              className="p-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition"
+                              title="View Invoice"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          </td>
+                        );
+                      }
                       let val = col.value ? col.value(row) : row[col.key];
                       if (col.format && val) val = col.format(val);
                       return (

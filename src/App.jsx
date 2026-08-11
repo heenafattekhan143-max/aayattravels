@@ -727,11 +727,11 @@ function AppContent() {
       case 'my-sale':
         return <MyVehicleSalesScreen />;
 
-      case 'reports-sales': return <ReportsView reportType="sales" />;
-      case 'reports-vendor': return <ReportsView reportType="vendor" />;
-      case 'reports-bookings': return <ReportsView reportType="bookings" />;
-      case 'reports-maintenance': return <ReportsView reportType="maintenance" />;
-      case 'reports-driver': return <ReportsView reportType="driver" />;
+      case 'reports-sales': return <ReportsView reportType="sales" navigateTo={setCurrentPage} setViewingBillId={setViewingBillId} setReturnToRoute={setReturnToRoute} />;
+      case 'reports-vendor': return <ReportsView reportType="vendor" navigateTo={setCurrentPage} setViewingBillId={setViewingBillId} setReturnToRoute={setReturnToRoute} />;
+      case 'reports-bookings': return <ReportsView reportType="bookings" navigateTo={setCurrentPage} setViewingBillId={setViewingBillId} setReturnToRoute={setReturnToRoute} />;
+      case 'reports-maintenance': return <ReportsView reportType="maintenance" navigateTo={setCurrentPage} />;
+      case 'reports-driver': return <ReportsView reportType="driver" navigateTo={setCurrentPage} />;
 
       default:
         return <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} setEditingEventBillId={setEditingEventBillId} />;

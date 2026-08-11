@@ -172,7 +172,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
           });
         });
       }
-      
+
       // Sort newest first for display
       party.transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     });
@@ -281,27 +281,27 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
       setPayError("Please enter a valid positive payment amount.");
       return;
     }
-    
+
     if (type === 'vendor') {
       try {
         await axios.post('/api/payments', {
-          vendor_id: payingTxn.bill.customer_id || payingTxn.bill.vendor_id || '', 
+          vendor_id: payingTxn.bill.customer_id || payingTxn.bill.vendor_id || '',
           vendor_name: selectedParty.name,
           amount: amt,
           payment_date: new Date().toISOString().split('T')[0],
           payment_mode: 'Cash',
           notes: 'Recorded from Party View'
         });
-        
+
         setIsPayModalOpen(false);
         setPayAmount('');
         setPayingTxn(null);
         setPayError('');
-        
+
         // Refresh local payments to trigger FIFO recalculation
         const res = await axios.get('/api/payments');
         setPayments(res.data);
-        
+
         if (onStatusChange) onStatusChange();
       } catch (err) {
         console.error("Payment failed:", err);
@@ -573,7 +573,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                           <div className="font-semibold text-slate-200">{txn.type}</div>
                           <div className="font-mono text-xs text-indigo-300 mt-0.5">{txn.number}</div>
                         </td>
-                        
+
                         {/* Date */}
                         <td className="px-6 py-3.5 text-slate-300">
                           <div>{txn.date}</div>
@@ -606,13 +606,12 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                         {/* Status */}
                         <td className="px-6 py-3.5 text-center">
                           <div>
-                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border ${
-                              txn.status === 'Paid'
+                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border ${txn.status === 'Paid'
                                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                                 : txn.status === 'Partial'
-                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                            }`}>
+                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                              }`}>
                               {txn.status}
                             </span>
                           </div>
@@ -803,7 +802,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                 </button>
               </div>
             </div>
-            
+
             {/* Body */}
             <div className="p-6 overflow-y-auto flex-1 bg-slate-950/50">
               <div id="invoice-print-area" className="bg-white text-slate-900 p-8 md:p-12 rounded-xl text-left print-border min-h-[11in] flex flex-col justify-between">
@@ -842,7 +841,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
 
                   {/* Client, Invoice & Guest Details Box */}
                   <div className="border-x border-b border-slate-700 grid grid-cols-12 text-xs text-slate-800 divide-x divide-slate-700">
-                    
+
                     {/* Bill To Column */}
                     <div className="col-span-5 flex flex-col justify-between">
                       <div className="bg-slate-50 border-b border-slate-700 px-2.5 py-1 font-bold text-slate-600 text-[10px] uppercase">
@@ -922,9 +921,9 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                   <div className="mt-8">
                     <table className="w-full text-left text-[11px] border-collapse border border-slate-400">
                       <colgroup>
-                        <col style={{ width: '25%' }} />
+                        <col style={{ width: '35%' }} />
                         <col style={{ width: '8%' }} />
-                        <col />
+                        <col style={{ width: '10%' }} />
                         <col style={{ width: '9%' }} />
                         <col style={{ width: '8%' }} />
                         <col style={{ width: '8%' }} />
@@ -936,8 +935,14 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                       <thead>
                         <tr className="border-b border-slate-300 text-slate-700 bg-slate-50 uppercase text-[9px] tracking-wider">
                           <th className="p-2.5 font-bold border border-slate-400">Rental Package Plan</th>
-                          <th className="p-2.5 font-bold text-center border border-slate-400">Rate</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Date</th>
+                          <th className="p-2.5 font-bold text-center border border-slate-400">
+                            {viewingTxn.bill.table_items && viewingTxn.bill.table_items.length > 0 &&
+                             ((viewingTxn.bill.table_items[0].plan_type || '').toLowerCase() === 'outstation' ||
+                              (viewingTxn.bill.table_items[0].plan_name || '').toLowerCase().includes('outstation'))
+                              ? 'KM Rate'
+                              : 'Rate'}
+                          </th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Total KM</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Extra KMs</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Total Hours</th>
@@ -951,8 +956,12 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                         {(viewingTxn.bill.table_items || []).map((item, idx) => (
                           <tr key={idx} className="hover:bg-slate-50 transition">
                             <td className="p-2.5 font-semibold text-slate-900 whitespace-nowrap border border-slate-400">{item.plan_name}</td>
-                            <td className="p-2.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">₹{(item.rate || 0).toLocaleString('en-IN')}</td>
                             <td className="p-2.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{formatDate(item.date)}</td>
+                            <td className="p-2.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">
+                              {((item.plan_type || '').toLowerCase() === 'outstation' || (item.plan_name || '').toLowerCase().includes('outstation'))
+                                ? (item.extra_km_rate > 0 ? `₹${item.extra_km_rate}/km` : '-')
+                                : `₹${(item.rate || 0).toLocaleString('en-IN')}`}
+                            </td>
                             <td className="p-2.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_distance_km} KM</td>
                             <td className="p-2.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_km > 0 ? `${item.extra_km} KM` : '-'}</td>
                             <td className="p-2.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_hours} Hrs</td>
@@ -986,12 +995,12 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                             </tr>
                           );
                         })()}
-                       </tbody>
+                      </tbody>
                     </table>
                   </div>
                   {/* Bottom section with Tax Summary on left, Totals on right */}
                   <div className="mt-6 grid grid-cols-12 gap-8 items-start">
-                    
+
                     {/* Left: Tax Summary (only shown if GST enabled) */}
                     <div className="col-span-7">
                       {viewingTxn.bill.gst_enabled && getTaxSummary().length > 0 && (
