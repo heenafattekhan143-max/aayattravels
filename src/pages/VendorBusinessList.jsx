@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Search, IndianRupee, ChevronRight, User } from 'lucide-react';
+import VendorBusinessDetails from './VendorBusinessDetails';
 
 export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) {
   const [vendors, setVendors] = useState([]);
@@ -10,6 +11,9 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
   const [loading, setLoading] = useState(true);
 
   const [receivedPayments, setReceivedPayments] = useState([]);
+  const [advances, setAdvances] = useState([]);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedVendorId, setSelectedVendorId] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -17,16 +21,18 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
 
   const fetchData = async () => {
     try {
-      const [venRes, billsRes, payRes, recPayRes] = await Promise.all([
+      const [venRes, billsRes, payRes, recPayRes, advRes] = await Promise.all([
         axios.get('/api/customers?entity_type=vendor'),
         axios.get('/api/bills'),
         axios.get('/api/payments'),
-        axios.get('/api/received-payments')
+        axios.get('/api/received-payments'),
+        axios.get('/api/advances')
       ]);
       setVendors(venRes.data);
       setBills(billsRes.data);
       setPayments(payRes.data);
       setReceivedPayments(recPayRes.data);
+      setAdvances(advRes.data);
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {
@@ -75,6 +81,20 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
       }
     });
 
+    advances.forEach(a => {
+      if (a.party_type === 'Vendor') {
+        const vendorName = (a.party_name || '').toLowerCase();
+        const vendorId = nameToId[vendorName];
+        if (vendorId && balances[vendorId]) {
+          if (a.direction === 'received') {
+            balances[vendorId].totalReceived += (a.amount || 0);
+          } else {
+            balances[vendorId].totalPaid += (a.amount || 0);
+          }
+        }
+      }
+    });
+
     Object.keys(balances).forEach(id => {
       const bal = balances[id];
       bal.pendingPayable = bal.totalPurchases - bal.totalPaid;
@@ -83,11 +103,12 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
     });
 
     return balances;
-  }, [vendors, bills, payments, receivedPayments]);
+  }, [vendors, bills, payments, receivedPayments, advances]);
+
 
   const handleVendorClick = (vendorId) => {
-    setVendorForPayment(vendorId);
-    navigateTo('payment-details');
+    setSelectedVendorId(vendorId);
+    setIsDetailsModalOpen(true);
   };
 
   const filteredVendors = vendors.filter(v =>
@@ -180,6 +201,15 @@ export default function VendorPaymentsList({ navigateTo, setVendorForPayment }) 
           </div>
         </div>
       )}
+
+      <VendorBusinessDetails 
+        isOpen={isDetailsModalOpen} 
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          fetchData();
+        }} 
+        vendorId={selectedVendorId} 
+      />
     </div>
   );
 }

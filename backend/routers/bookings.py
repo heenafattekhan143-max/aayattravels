@@ -155,6 +155,7 @@ def serialize_booking(doc) -> dict:
         "booking_status": doc.get("booking_status", "Confirmed"),
         "remarks": doc.get("remarks", ""),
         "note": doc.get("note", ""),
+        "start_km": doc.get("start_km", 0),
         "end_km": doc.get("end_km", 0),
         "working_hours": doc.get("working_hours", 0),
         "plan_id": doc.get("plan_id", None),
@@ -260,13 +261,13 @@ def sync_provisional_bills(booking_doc, user_email: str):
     is_vendor = vehicle and vehicle.get("ownership_type") == "Vendor"
     
     plan = None
+    sales_base_rate = 0.0
+    purchase_base_rate = 0.0
     if plan_id:
         plan = plans_collection.find_one({"_id": ObjectId(plan_id), "user_email": user_email})
         if plan:
-            if is_vendor:
-                base_rate = float(plan.get("vendor_rate") or plan.get("rate") or 0.0)
-            else:
-                base_rate = float(plan.get("company_rate") or plan.get("rate") or 0.0)
+            sales_base_rate = float(plan.get("company_rate") or plan.get("rate") or 0.0)
+            purchase_base_rate = float(plan.get("vendor_rate") or plan.get("rate") or 0.0)
             da_allowance = float(plan.get("da_allowance") or 0.0)
             night_allowance = float(plan.get("night_allowance") or 0.0)
             plan_name = plan.get("plan_name", "")
@@ -288,7 +289,8 @@ def sync_provisional_bills(booking_doc, user_email: str):
         extra_hours_rate = float(plan.get("extra_hours_rate") or 0.0)
         extra_hours_charge = extra_hours * extra_hours_rate
     else:
-        base_rate = float(booking_doc.get("rate") or 0.0)
+        sales_base_rate = float(booking_doc.get("rate") or 0.0)
+        purchase_base_rate = sales_base_rate
         da_allowance = float(booking_doc.get("da_allowance") or 0.0)
         night_allowance = float(booking_doc.get("night_allowance") or 0.0)
         plan_name = "Event Plan"
@@ -302,53 +304,59 @@ def sync_provisional_bills(booking_doc, user_email: str):
         extra_hours_rate = float(booking_doc.get("extra_hours_rate") or 0.0)
         extra_hours_charge = extra_hours * extra_hours_rate
     
-    amount_without_gst = base_rate + extra_km_charge + extra_hours_charge + da_allowance + night_allowance
-    amount_with_gst = amount_without_gst
+    sales_amount_without_gst = sales_base_rate + extra_km_charge + extra_hours_charge + da_allowance + night_allowance
+    sales_amount_with_gst = sales_amount_without_gst
     if gst_rate > 0:
-        amount_with_gst = round(amount_without_gst * (1 + gst_rate / 100), 2)
+        sales_amount_with_gst = round(sales_amount_without_gst * (1 + gst_rate / 100), 2)
+        
+    purchase_amount_without_gst = purchase_base_rate + extra_km_charge + extra_hours_charge + da_allowance + night_allowance
+    purchase_amount_with_gst = purchase_amount_without_gst
+    # no GST on purchase
         
     advance = float(booking_doc.get("advance_amount") or 0.0)
     toll_parking = float(booking_doc.get("toll_parking") or 0.0)
     
-    table_item = {
-        "plan_id": plan_id if plan_id else "",
-        "plan_name": plan_name,
-        "rate": base_rate,
-        "date": booking_doc.get("journey_date", ""),
-        "total_distance_km": total_distance,
-        "plan_type": plan.get("plan_type", "Local") if plan else "Event",
-        "extra_km_rate": extra_km_rate,
-        "extra_km": extra_km,
-        "total_hours": working_hours,
-        "extra_hours": extra_hours,
-        "da_allowance": da_allowance,
-        "night_allowance": night_allowance,
-        "amount_without_gst": amount_without_gst,
-        "gst_rate": gst_rate,
-        "amount_with_gst": amount_with_gst
-    }
+    def create_table_item(rate, amt_without, amt_with, gst):
+        return {
+            "plan_id": plan_id if plan_id else "",
+            "plan_name": plan_name,
+            "rate": rate,
+            "date": booking_doc.get("journey_date", ""),
+            "total_distance_km": total_distance,
+            "plan_type": plan.get("plan_type", "Local") if plan else "Event",
+            "extra_km_rate": extra_km_rate,
+            "extra_km": extra_km,
+            "total_hours": working_hours,
+            "extra_hours": extra_hours,
+            "da_allowance": da_allowance,
+            "night_allowance": night_allowance,
+            "amount_without_gst": amt_without,
+            "gst_rate": gst,
+            "amount_with_gst": amt_with
+        }
     
-    base_bill = {
-        "gst_enabled": gst_rate > 0,
-        "customer_id": "",
-        "customer_name": booking_doc.get("customer_name", ""),
-        "phone_number": booking_doc.get("customer_phone", ""),
-        "guest_name": booking_doc.get("customer_name", "") if booking_doc.get("is_guest") else "",
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "vendor_name": "", 
-        "vehicle_number": booking_doc.get("vehicle_number", ""),
-        "driver_name": booking_doc.get("driver_name", ""),
-        "source": booking_doc.get("pickup_location", ""),
-        "destination": booking_doc.get("drop_location", ""),
-        "travel_distance": total_distance,
-        "table_items": [table_item],
-        "toll_amount": toll_parking,
-        "parking_amount": 0.0,
-        "final_bill_amount": amount_with_gst + toll_parking,
-        "final_bill_words": "",
-        "profit": amount_with_gst + toll_parking,
-        "user_email": user_email
-    }
+    def create_base_bill(rate, amt_without, amt_with, gst):
+        return {
+            "gst_enabled": gst > 0,
+            "customer_id": "",
+            "customer_name": booking_doc.get("customer_name", ""),
+            "phone_number": booking_doc.get("customer_phone", ""),
+            "guest_name": booking_doc.get("customer_name", "") if booking_doc.get("is_guest") else "",
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "vendor_name": "", 
+            "vehicle_number": booking_doc.get("vehicle_number", ""),
+            "driver_name": booking_doc.get("driver_name", ""),
+            "source": booking_doc.get("pickup_location", ""),
+            "destination": booking_doc.get("drop_location", ""),
+            "travel_distance": total_distance,
+            "table_items": [create_table_item(rate, amt_without, amt_with, gst)],
+            "toll_amount": toll_parking,
+            "parking_amount": 0.0,
+            "final_bill_amount": amt_with + toll_parking,
+            "final_bill_words": "",
+            "profit": amt_with + toll_parking,
+            "user_email": user_email
+        }
     
     # 1. Sales Bill (if customer is a Vendor)
     customer = None
@@ -363,12 +371,12 @@ def sync_provisional_bills(booking_doc, user_email: str):
         sales_bill = bills_collection.find_one({"booking_ref": booking_ref, "bill_type": "Sales", "user_email": user_email})
         
         status = "Pending"
-        if advance >= amount_without_gst and amount_without_gst > 0:
+        if advance >= sales_amount_without_gst and sales_amount_without_gst > 0:
             status = "Paid"
         elif advance > 0:
             status = "Partial"
             
-        sales_data = base_bill.copy()
+        sales_data = create_base_bill(sales_base_rate, sales_amount_without_gst, sales_amount_with_gst, gst_rate)
         sales_data["bill_type"] = "Sales"
         sales_data["party_type"] = "customer"
         sales_data["customer_id"] = str(customer["_id"])
@@ -388,7 +396,7 @@ def sync_provisional_bills(booking_doc, user_email: str):
     if is_vendor:
         purchase_bill = bills_collection.find_one({"booking_ref": booking_ref, "bill_type": "Purchase", "user_email": user_email})
         
-        purchase_data = base_bill.copy()
+        purchase_data = create_base_bill(sales_base_rate, purchase_amount_without_gst, purchase_amount_with_gst, 0)
         purchase_data["bill_type"] = "Purchase"
         purchase_data["party_type"] = "vendor"
         purchase_data["vendor_name"] = vehicle.get("owner_name")
@@ -435,10 +443,7 @@ def generate_bill_for_booking(booking_doc, user_email: str):
         extra_km_rate = float(plan.get("extra_km_rate") or 0.0)
         extra_hours_rate = float(plan.get("extra_hours_rate") or 0.0)
         
-        if is_vendor:
-            base_rate = float(plan.get("vendor_rate") or plan.get("rate") or 0.0)
-        else:
-            base_rate = float(plan.get("company_rate") or plan.get("rate") or 0.0)
+        base_rate = float(plan.get("company_rate") or plan.get("rate") or 0.0)
             
         da_allowance = float(plan.get("da_allowance") or 0.0)
         night_allowance = float(plan.get("night_allowance") or 0.0)

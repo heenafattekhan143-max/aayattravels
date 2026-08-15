@@ -146,10 +146,12 @@ const MENU_ITEMS = [
     id: 'reports', label: 'Reports',
     items: [
       { path: 'reports-sales', label: 'Sales Report', icon: FileText },
-      { path: 'reports-vendor', label: 'Vendor Report', icon: FileSpreadsheet },
+      { path: 'reports-vendor', label: 'Vendor Report', icon: Building2 },
       { path: 'reports-bookings', label: 'Bookings Report', icon: BookOpen },
       { path: 'reports-maintenance', label: 'Maintenance Report', icon: Wrench },
-      { path: 'reports-driver', label: 'Driver Report', icon: Users }
+      { path: 'reports-driver', label: 'Driver Report', icon: Users },
+      { path: 'reports-payments', label: 'Payments Report', icon: FileText },
+      { path: 'reports-advances', label: 'Advances Report', icon: FileText }
     ]
   },
   // { id: 'quotation', label: 'Quotation', icon: FileText, path: 'quotation' }
@@ -732,6 +734,8 @@ function AppContent() {
       case 'reports-bookings': return <ReportsView reportType="bookings" navigateTo={setCurrentPage} setViewingBillId={setViewingBillId} setReturnToRoute={setReturnToRoute} />;
       case 'reports-maintenance': return <ReportsView reportType="maintenance" navigateTo={setCurrentPage} />;
       case 'reports-driver': return <ReportsView reportType="driver" navigateTo={setCurrentPage} />;
+      case 'reports-payments': return <ReportsView reportType="payments" navigateTo={setCurrentPage} />;
+      case 'reports-advances': return <ReportsView reportType="advances" navigateTo={setCurrentPage} />;
 
       default:
         return <Dashboard navigateTo={setCurrentPage} theme={theme} setTheme={setTheme} setEditingBookingId={setEditingBookingId} setViewingBillId={setViewingBillId} setEditingEventBillId={setEditingEventBillId} />;

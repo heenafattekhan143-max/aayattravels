@@ -68,11 +68,15 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
   }, [viewingTxn]);
 
   const [payments, setPayments] = useState([]);
+  const [vendorAdvances, setVendorAdvances] = useState([]);
 
   React.useEffect(() => {
     if (type === 'vendor') {
       axios.get('/api/payments')
         .then(res => setPayments(res.data))
+        .catch(console.error);
+      axios.get('/api/advances')
+        .then(res => setVendorAdvances(res.data.filter(a => a.party_type === 'Vendor')))
         .catch(console.error);
     }
   }, [type, bills]);
@@ -112,7 +116,15 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
       if (type === 'vendor') {
         // FIFO logic for vendor payments
         const partyPayments = payments.filter(p => p.vendor_name === party.name);
-        let remainingPayment = partyPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const totalPayments = partyPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+        // Include net advances: sent advances reduce payable (like payments), received advances increase it
+        const partyAdvances = vendorAdvances.filter(a => a.party_name === party.name);
+        const advanceSent = partyAdvances.filter(a => a.direction !== 'received').reduce((sum, a) => sum + (a.amount || 0), 0);
+        const advanceReceived = partyAdvances.filter(a => a.direction === 'received').reduce((sum, a) => sum + (a.amount || 0), 0);
+        const netAdvances = advanceSent - advanceReceived;
+
+        let remainingPayment = totalPayments + netAdvances;
 
         sortedBills.forEach(bill => {
           const billTotal = bill.final_bill_amount || 0;
@@ -178,7 +190,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
     });
 
     return Object.values(partyMap).sort((a, b) => a.name.localeCompare(b.name));
-  }, [bills, type, transactionLabel, filterMonth, filterYear, payments]);
+  }, [bills, type, transactionLabel, filterMonth, filterYear, payments, vendorAdvances]);
 
   const filteredParties = parties.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 

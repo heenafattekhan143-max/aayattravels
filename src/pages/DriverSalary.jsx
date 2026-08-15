@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import {
-  Calendar, Search, CreditCard, Clock, ChevronDown, ChevronUp, FileText, Download, IndianRupee, Printer, SlidersHorizontal, UserCheck, Eye, Trash2, MapPin, Navigation, Map, MoreVertical, X, AlertCircle, ArrowLeft, Car, Phone, TrendingUp, User
+  Calendar, Search, CreditCard, Clock, ChevronDown, ChevronUp, FileText, Download, IndianRupee, Printer, SlidersHorizontal, UserCheck, Eye, Trash2, MapPin, Navigation, Map, MoreVertical, X, AlertCircle, ArrowLeft, Car, Phone, TrendingUp, User, History, Plus, Filter, CalendarDays
 } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect';
+import AdvanceModal from '../components/AdvanceModal';
+import AdvancesListModal from '../components/AdvancesListModal';
 import CustomDatePicker from '../components/CustomDatePicker';
 import { useAuth } from '../context/AuthContext';
 
@@ -56,6 +58,11 @@ export default function DriverSalary({ navigateTo }) {
   const [detailTripType, setDetailTripType] = useState('All'); // All, Local, Outstation
   const [detailBookingStatus, setDetailBookingStatus] = useState('All'); // All, Confirmed, Completed, Cancelled
 
+  const [advances, setAdvances] = useState([]);
+  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+  const [isAdvancesListModalOpen, setIsAdvancesListModalOpen] = useState(false);
+  const [activeAdvanceDriver, setActiveAdvanceDriver] = useState(null);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -64,12 +71,14 @@ export default function DriverSalary({ navigateTo }) {
     setLoading(true);
     setError('');
     try {
-      const [driversRes, bookingsRes] = await Promise.all([
+      const [driversRes, bookingsRes, advancesRes] = await Promise.all([
         axios.get(`${API}/drivers`),
-        axios.get(`${API}/bookings`)
+        axios.get(`${API}/bookings`),
+        axios.get(`${API}/advances`)
       ]);
       setDrivers(driversRes.data);
       setBookings(bookingsRes.data);
+      setAdvances(advancesRes.data.filter(a => a.party_type === 'Driver'));
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Failed to fetch drivers or bookings. Please try again.');
@@ -115,11 +124,25 @@ export default function DriverSalary({ navigateTo }) {
       const totalDaOutstation = outstationCount * daOutstationRate;
       const totalDa = totalDaLocal + totalDaOutstation;
 
-      const netSalary = basicSalary + totalDa;
+      const driverAdvances = advances.filter(a => {
+        if (a.party_name !== driver.name) return false;
+        const [year, month] = a.date.split('-');
+        const matchesYear = selectedYear === 'All Years' || year === selectedYear;
+        const matchesMonth = selectedMonth === 'All' || month === selectedMonth;
+        return matchesYear && matchesMonth;
+      });
+
+      const totalAdvancesSent = driverAdvances.filter(a => a.direction !== 'received').reduce((sum, a) => sum + (a.amount || 0), 0);
+      const totalAdvancesReceived = driverAdvances.filter(a => a.direction === 'received').reduce((sum, a) => sum + (a.amount || 0), 0);
+      const totalAdvances = totalAdvancesSent - totalAdvancesReceived; // net deduction
+      const netSalary = basicSalary + totalDa - totalAdvances;
+
 
       return {
         ...driver,
         bookingsList: driverBookings,
+        advancesList: driverAdvances,
+        totalAdvances,
         localCount,
         outstationCount,
         totalDaLocal,
@@ -128,7 +151,7 @@ export default function DriverSalary({ navigateTo }) {
         netSalary
       };
     });
-  }, [drivers, bookings, selectedMonth, selectedYear, includedStatuses]);
+  }, [drivers, bookings, advances, selectedMonth, selectedYear, includedStatuses]);
 
   // Filter and Sort the calculated driver summaries
   const filteredDrivers = useMemo(() => {
@@ -216,11 +239,13 @@ export default function DriverSalary({ navigateTo }) {
     let activeDrivers = driversCalculated.filter(d => d.status === 'Active').length;
     let totalTrips = 0;
     let totalDaPaid = 0;
+    let totalAdvances = 0;
     let totalSalaries = 0;
 
     driversCalculated.forEach(d => {
       totalTrips += d.localCount + d.outstationCount;
       totalDaPaid += d.totalDa;
+      totalAdvances += d.totalAdvances || 0;
       totalSalaries += d.netSalary;
     });
 
@@ -228,6 +253,7 @@ export default function DriverSalary({ navigateTo }) {
       activeDrivers,
       totalTrips,
       totalDaPaid,
+      totalAdvances,
       totalSalaries
     };
   }, [driversCalculated]);
@@ -290,7 +316,7 @@ export default function DriverSalary({ navigateTo }) {
       )}
 
       {/* ── METRIC CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 no-print">
         {/* Active Drivers */}
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 bg-slate-900/20 shadow-lg flex items-center gap-4">
           <div className="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 text-indigo-400">
@@ -322,6 +348,19 @@ export default function DriverSalary({ navigateTo }) {
             <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">Total Allowances (DA)</span>
             <span className="text-2xl font-extrabold text-amber-400 font-mono">
               {loading ? '...' : formatCurrency(monthlyMetrics.totalDaPaid)}
+            </span>
+          </div>
+        </div>
+
+        {/* Total Advances */}
+        <div className="glass-panel p-5 rounded-2xl border border-slate-800 bg-slate-900/20 shadow-lg flex items-center gap-4">
+          <div className="bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 text-rose-400">
+            <IndianRupee className="h-6 w-6" />
+          </div>
+          <div>
+            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">Total Advances</span>
+            <span className="text-2xl font-extrabold text-rose-400 font-mono">
+              {loading ? '...' : formatCurrency(monthlyMetrics.totalAdvances)}
             </span>
           </div>
         </div>
@@ -452,6 +491,7 @@ export default function DriverSalary({ navigateTo }) {
                 <th className="p-4 text-center">Local Trips (DA)</th>
                 <th className="p-4 text-center">Outstation Trips (DA)</th>
                 <th className="p-4 text-right">Total DA Earned</th>
+                <th className="p-4 text-right text-rose-300 bg-rose-900/10">Advances</th>
                 <th className="p-4 text-right bg-indigo-900/10 text-indigo-300">Net Payable</th>
                 <th className="p-4 text-center">Actions</th>
               </tr>
@@ -501,6 +541,9 @@ export default function DriverSalary({ navigateTo }) {
                     <td className="p-4 text-right font-semibold text-amber-400 font-mono">
                       {formatCurrency(driver.totalDa)}
                     </td>
+                    <td className="p-4 text-right font-bold text-rose-400 bg-rose-900/5 font-mono text-sm">
+                      {formatCurrency(driver.totalAdvances)}
+                    </td>
                     <td className="p-4 text-right font-bold text-indigo-300 bg-indigo-900/5 font-mono text-sm">
                       {formatCurrency(driver.netSalary)}
                     </td>
@@ -544,12 +587,24 @@ export default function DriverSalary({ navigateTo }) {
                   <p className="text-xs text-slate-500">Trip log and compensation details for {activeDetailDriver.name}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={handlePrint}
                   className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-lg transition"
                 >
                   <Printer className="h-3.5 w-3.5" /> Print Salary Slip
+                </button>
+                <button
+                  onClick={() => { setIsAdvanceModalOpen(true); }}
+                  className="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-lg transition"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Send Advance
+                </button>
+                <button
+                  onClick={() => setIsAdvancesListModalOpen(true)}
+                  className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-lg transition"
+                >
+                  <History className="h-3.5 w-3.5" /> History
                 </button>
                 <button
                   onClick={() => setSelectedDriver(null)}
@@ -558,6 +613,7 @@ export default function DriverSalary({ navigateTo }) {
                   <X className="h-5 w-5" />
                 </button>
               </div>
+
             </div>
 
             {/* Modal Content */}
@@ -611,6 +667,10 @@ export default function DriverSalary({ navigateTo }) {
                     <div className="flex justify-between text-slate-400">
                       <span>Outstation Trips ({activeDetailDriver.outstationCount}):</span>
                       <span className="font-mono text-slate-200 font-semibold">+{formatCurrency(activeDetailDriver.totalDaOutstation)}</span>
+                    </div>
+                    <div className="flex justify-between text-rose-400">
+                      <span>Less: Advances:</span>
+                      <span className="font-mono font-semibold">-{formatCurrency(activeDetailDriver.totalAdvances)}</span>
                     </div>
                     <div className="border-t border-slate-800 my-1.5 pt-1.5 flex justify-between text-sm font-bold">
                       <span className="text-slate-50">Net Payable:</span>
@@ -826,6 +886,10 @@ export default function DriverSalary({ navigateTo }) {
                 <span>3. Outstation Trips Allowance ({activeDetailDriver.outstationCount} Trips @ {formatCurrency(activeDetailDriver.da_outstation || 0)})</span>
                 <span className="font-mono">+{formatCurrency(activeDetailDriver.totalDaOutstation)}</span>
               </div>
+              <div className="flex justify-between text-rose-600 border-b border-slate-200 pb-1.5">
+                <span>4. Less: Advances</span>
+                <span className="font-mono">-{formatCurrency(activeDetailDriver.totalAdvances)}</span>
+              </div>
               <div className="flex justify-between text-slate-600 border-b border-slate-200 pb-1.5">
                 <span>Total Allowance (DA) Earned</span>
                 <span className="font-mono font-semibold">{formatCurrency(activeDetailDriver.totalDa)}</span>
@@ -854,6 +918,33 @@ export default function DriverSalary({ navigateTo }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modals for Advances */}
+      {selectedDriver && (
+        <>
+          <AdvanceModal
+            isOpen={isAdvanceModalOpen}
+            onClose={() => setIsAdvanceModalOpen(false)}
+            partyType="Driver"
+            partyId={selectedDriver.id}
+            partyName={selectedDriver.name}
+            onSuccess={fetchData}
+            showReceiveToggle={false}
+          />
+
+          <AdvancesListModal
+            isOpen={isAdvancesListModalOpen}
+            onClose={() => {
+              setIsAdvancesListModalOpen(false);
+              fetchData();
+            }}
+            partyType="Driver"
+            partyId={selectedDriver.id}
+            partyName={selectedDriver.name}
+            showReceiveToggle={false}
+          />
+        </>
       )}
 
     </div>

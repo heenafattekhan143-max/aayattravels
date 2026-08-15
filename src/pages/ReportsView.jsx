@@ -86,6 +86,33 @@ const REPORT_CONFIG = {
       { header: 'Basic Salary', key: 'basic_salary' },
       { header: 'Status', key: 'status' }
     ]
+  },
+  payments: {
+    title: 'Payments Report (Vendors)',
+    endpoint: '/api/payments',
+    filter: (data) => data,
+    columns: [
+      { header: 'Date', key: 'payment_date', format: (v) => v ? new Date(v).toLocaleDateString() : '-' },
+      { header: 'Vendor Name', key: 'vendor_name' },
+      { header: 'Amount', key: 'amount' },
+      { header: 'Mode', key: 'payment_mode' },
+      { header: 'Reference ID', key: 'reference_id' },
+      { header: 'Notes', key: 'notes' }
+    ]
+  },
+  advances: {
+    title: 'Advances Report (Drivers & Vendors)',
+    endpoint: '/api/advances',
+    filter: (data) => data,
+    columns: [
+      { header: 'Date', key: 'date', format: (v) => v ? new Date(v).toLocaleDateString() : '-' },
+      { header: 'Party Type', key: 'party_type' },
+      { header: 'Name', key: 'party_name' },
+      { header: 'Amount', key: 'amount' },
+      { header: 'Direction', key: 'direction' },
+      { header: 'Mode', key: 'payment_mode' },
+      { header: 'Notes', key: 'notes' }
+    ]
   }
 };
 
@@ -113,6 +140,84 @@ export default function ReportsView({ reportType, navigateTo, setViewingBillId, 
       setError('');
       const res = await axios.get(`${config.endpoint}?t=${Date.now()}`);
       let processedData = config.filter(res.data);
+
+      // FIFO Logic for Sales and Vendor Reports to compute Paid Amount correctly
+      if (reportType === 'sales') {
+        const recvRes = await axios.get('/api/received-payments');
+        const receivedPayments = recvRes.data || [];
+        
+        // Group bills by customer
+        const customerMap = {};
+        processedData.forEach(b => {
+          const name = (b.customer_name || '').toLowerCase().trim();
+          if (!customerMap[name]) customerMap[name] = [];
+          customerMap[name].push(b);
+        });
+
+        Object.keys(customerMap).forEach(cust => {
+          let totalReceived = receivedPayments
+            .filter(p => (p.customer_name || '').toLowerCase().trim() === cust)
+            .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+          // Sort oldest first for FIFO
+          customerMap[cust].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          
+          customerMap[cust].forEach(bill => {
+            const billTotal = bill.final_bill_amount || 0;
+            // First use explicitly saved paid_amount (e.g. from advance), then remaining ledger pool
+            let paid = parseFloat(bill.paid_amount) || 0;
+            if (paid < billTotal && totalReceived > 0) {
+              const shortfall = billTotal - paid;
+              const apply = Math.min(shortfall, totalReceived);
+              paid += apply;
+              totalReceived -= apply;
+            }
+            bill.paid_amount = paid;
+          });
+        });
+      } else if (reportType === 'vendor') {
+        const [payRes, advRes] = await Promise.all([
+          axios.get('/api/payments'),
+          axios.get('/api/advances')
+        ]);
+        const payments = payRes.data || [];
+        const advances = advRes.data || [];
+        
+        const vendorMap = {};
+        processedData.forEach(b => {
+          const name = (b.vendor_name || '').toLowerCase().trim();
+          if (!vendorMap[name]) vendorMap[name] = [];
+          vendorMap[name].push(b);
+        });
+
+        Object.keys(vendorMap).forEach(vend => {
+          const totalPaid = payments
+            .filter(p => (p.vendor_name || '').toLowerCase().trim() === vend)
+            .reduce((sum, p) => sum + (p.amount || 0), 0);
+            
+          const totalAdvances = advances
+            .filter(a => (a.party_name || '').toLowerCase().trim() === vend && a.party_type === 'Vendor' && a.direction === 'sent')
+            .reduce((sum, a) => sum + (a.amount || 0), 0);
+            
+          let availableCredit = totalPaid + totalAdvances;
+
+          // Sort oldest first for FIFO
+          vendorMap[vend].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          
+          vendorMap[vend].forEach(bill => {
+            const billTotal = bill.final_bill_amount || 0;
+            let paid = parseFloat(bill.paid_amount) || 0;
+            if (paid < billTotal && availableCredit > 0) {
+              const shortfall = billTotal - paid;
+              const apply = Math.min(shortfall, availableCredit);
+              paid += apply;
+              availableCredit -= apply;
+            }
+            bill.paid_amount = paid;
+          });
+        });
+      }
+
       setData(processedData);
     } catch (err) {
       console.error(err);

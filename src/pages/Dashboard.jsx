@@ -375,8 +375,8 @@ function AllotmentModal({ booking, onClose, onSave, vehicles, drivers, vendors, 
 }
 
 function CloseBookingModal({ booking, onClose, onSave }) {
-  const [startKm, setStartKm] = useState(booking?.start_km || '');
-  const [endKm, setEndKm] = useState(booking?.end_km || '');
+  const [startKm, setStartKm] = useState(booking?.start_km != null ? booking.start_km : '');
+  const [endKm, setEndKm] = useState(booking?.end_km != null ? booking.end_km : '');
   const [closeTime, setCloseTime] = useState(booking?.end_time || new Date().toTimeString().slice(0, 5));
   const [workingHours, setWorkingHours] = useState(booking?.working_hours || '');
   const [tollParking, setTollParking] = useState(booking?.toll_parking || '');

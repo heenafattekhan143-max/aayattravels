@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import CustomSelect from '../components/CustomSelect';
-import { IndianRupee, ArrowLeft, History, FileText, Calendar, Plus, Clock, CheckCircle, Trash2, Filter, Receipt, ArrowLeftCircle, ArrowRightCircle } from 'lucide-react';
+import { IndianRupee, ArrowLeft, History, FileText, Calendar, Plus, Clock, CheckCircle, Trash2, Filter, Receipt, ArrowLeftCircle, ArrowRightCircle, X } from 'lucide-react';
 import CustomDatePicker from '../components/CustomDatePicker';
+import AdvanceModal from '../components/AdvanceModal';
+import AdvancesListModal from '../components/AdvancesListModal';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
@@ -17,10 +19,11 @@ const formatDate = (dateStr) => {
 };
 import { useConfirm } from '../context/ConfirmContext';
 
-export default function VendorBusinessDetails({ navigateTo, vendorId }) {
+export default function VendorBusinessDetails({ isOpen, onClose, vendorId }) {
   const confirm = useConfirm();
   const [vendor, setVendor] = useState(null);
   const [bills, setBills] = useState([]);
+  const [allBills, setAllBills] = useState([]);
   const [salesBills, setSalesBills] = useState([]);
   const [payments, setPayments] = useState([]);
   const [receivedPayments, setReceivedPayments] = useState([]);
@@ -38,14 +41,23 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
   const [paymentMode, setPaymentMode] = useState('Cash');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [advances, setAdvances] = useState([]);
+  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+  const [isAdvancesListModalOpen, setIsAdvancesListModalOpen] = useState(false);
 
   useEffect(() => {
-    if (!vendorId) {
-      navigateTo('vendor-payments');
+    if (!isOpen || !vendorId) {
+      setVendor(null);
+      setBills([]);
+      setAllBills([]);
+      setSalesBills([]);
+      setPayments([]);
+      setReceivedPayments([]);
+      setAdvances([]);
       return;
     }
     fetchData();
-  }, [vendorId]);
+  }, [vendorId, isOpen]);
 
   const fetchData = async () => {
     try {
@@ -57,6 +69,8 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
       // Fetch all bills to filter purchases & sales for this vendor
       // Ideally we would have a query param, but we filter client-side here
       const billsRes = await axios.get('/api/bills');
+      setAllBills(billsRes.data);
+
       const vendorBills = billsRes.data.filter(b =>
         b.bill_type === 'Purchase' &&
         (b.customer_name === vendorRes.data.name || b.vendor_name === vendorRes.data.name)
@@ -75,6 +89,10 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
       // Fetch received payments
       const rPaymentsRes = await axios.get('/api/received-payments');
       setReceivedPayments(rPaymentsRes.data.filter(p => p.customer_name === vendorRes.data.name));
+
+      // Fetch advances
+      const advancesRes = await axios.get(`/api/advances/party/Vendor/${vendorId}`);
+      setAdvances(advancesRes.data);
 
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -165,7 +183,7 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
 
   const transactions = useMemo(() => {
     let txns = [];
-    
+
     // Sales Bills (+ Receivable)
     salesBills.forEach(b => {
       const details = [
@@ -174,7 +192,7 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
         b.source && b.destination ? `${b.source} → ${b.destination}` : b.source,
         b.guest_name
       ].filter(Boolean).join(' | ');
-      
+
       txns.push({
         id: `sale-${b.id}`,
         date: b.date || b.created_at?.split('T')[0],
@@ -230,6 +248,20 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
       });
     });
 
+    // Advances — direction: 'sent' means we paid them (reduces their payable), 'received' means they returned it (increases payable again)
+    advances.forEach(a => {
+      const isSent = a.direction !== 'received';
+      txns.push({
+        id: `advance-${a.id}`,
+        date: a.date || a.created_at?.split('T')[0],
+        type: isSent ? 'Advance Given' : 'Advance Returned',
+        ref: a.notes || a.payment_mode || '-',
+        charge: isSent ? (a.amount || 0) : 0,
+        credit: isSent ? 0 : (a.amount || 0),
+        obj: a
+      });
+    });
+
     // Filter by date if needed
     if (startDate || endDate) {
       txns = txns.filter(t => {
@@ -255,361 +287,444 @@ export default function VendorBusinessDetails({ navigateTo, vendorId }) {
     });
 
     return txns;
-  }, [salesBills, bills, receivedPayments, payments, startDate, endDate]);
+  }, [salesBills, bills, receivedPayments, payments, advances, startDate, endDate]);
 
   const globalTotalPurchase = useMemo(() => bills.reduce((sum, b) => sum + (b.final_bill_amount || 0), 0), [bills]);
-  const globalTotalPaid = useMemo(() => payments.reduce((sum, p) => sum + (p.amount || 0), 0), [payments]);
+  const globalTotalPaid = useMemo(() => {
+    const regularPayments = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const sentAdvances = advances.filter(a => a.direction !== 'received').reduce((sum, a) => sum + (a.amount || 0), 0);
+    return regularPayments + sentAdvances;
+  }, [payments, advances]);
   const globalTotalSales = useMemo(() => salesBills.reduce((sum, b) => sum + (b.final_bill_amount || 0), 0), [salesBills]);
-  const globalTotalReceived = useMemo(() => receivedPayments.reduce((sum, p) => sum + (p.amount || 0), 0), [receivedPayments]);
+  const globalTotalReceived = useMemo(() => {
+    const regularReceived = receivedPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const receivedAdvances = advances.filter(a => a.direction === 'received').reduce((sum, a) => sum + (a.amount || 0), 0);
+    return regularReceived + receivedAdvances;
+  }, [receivedPayments, advances]);
+
+  const totalCommission = useMemo(() => {
+    let comm = 0;
+    bills.forEach(pb => {
+      if (pb.booking_ref) {
+        const sb = allBills.find(b => b.bill_type === 'Sales' && b.booking_ref === pb.booking_ref);
+        if (sb) {
+          const sAmt = parseFloat(sb.final_bill_amount) || 0;
+          const pAmt = parseFloat(pb.final_bill_amount) || 0;
+          comm += (sAmt - pAmt);
+        }
+      }
+    });
+    return comm;
+  }, [bills, allBills]);
 
   const netBalance = transactions.length > 0 ? transactions[transactions.length - 1].balance : 0;
   const isPayable = netBalance < 0;
 
-  const isFiltered = startDate !== '' || endDate !== '';  if (loading) {
-    return <div className="text-center py-20 text-slate-400">Loading details...</div>;
+  if (!isOpen) return null;
+
+  if (loading || !vendor) {
+    return (
+      <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl p-12 text-center text-slate-400">
+          Loading details...
+        </div>
+      </div>
+    );
   }
 
-  if (!vendor) return null;
-
   return (
-    <div className="w-full px-3 sm:px-6 space-y-4 sm:space-y-6 pb-12 min-w-0">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigateTo('vendor-payments')}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-700 hover:border-indigo-500 hover:bg-indigo-500/10 transition text-slate-300 hover:text-indigo-400"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-50 tracking-tight">{vendor.name}</h1>
-            <p className="text-sm text-slate-400 mt-1">Vendor Business Details</p>
-          </div>
-        </div>
+    <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-2xl relative custom-scrollbar">
+        <div className="w-full px-4 sm:px-6 py-6 space-y-6 min-w-0">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-50 tracking-tight">{vendor.name}</h1>
+                <p className="text-sm text-slate-400 mt-1">Vendor Business Details</p>
+              </div>
+            </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
-          <div className="flex items-center gap-2 pl-2 text-slate-400 border-r border-slate-700 pr-3 shrink-0">
-            <Filter className="h-4 w-4" />
-            <span className="text-xs font-semibold uppercase">Date</span>
-          </div>
-          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <div className="flex-1 sm:w-32 relative">
-              <CustomDatePicker 
-                value={startDate} 
-                onChange={setStartDate} 
-                maxDate={endDate}
-                placeholder="Start Date"
-                className="bg-slate-800 text-slate-200 text-sm border-none rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition w-full min-w-0"
-              />
-            </div>
-            <span className="text-slate-500 text-sm shrink-0">to</span>
-            <div className="flex-1 sm:w-32 relative">
-              <CustomDatePicker 
-                value={endDate} 
-                onChange={setEndDate} 
-                minDate={startDate}
-                placeholder="End Date"
-                className="bg-slate-800 text-slate-200 text-sm border-none rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition w-full min-w-0"
-              />
-            </div>
-          </div>
-          {(startDate || endDate) && (
-            <button 
-              onClick={() => { setStartDate(''); setEndDate(''); }}
-              className="text-xs text-rose-400 font-bold border border-rose-500/30 px-3 py-1.5 rounded-lg hover:bg-rose-500/10 transition shrink-0"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </div>
+            <div className="flex items-center gap-4">
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
+                <div className="flex items-center gap-2 pl-2 text-slate-400 border-r border-slate-700 pr-3 shrink-0">
+                  <Filter className="h-4 w-4" />
+                  <span className="text-xs font-semibold uppercase">Date</span>
+                </div>
+                <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                  <div className="flex-1 sm:w-32 relative">
+                    <CustomDatePicker
+                      value={startDate}
+                      onChange={setStartDate}
+                      maxDate={endDate}
+                      placeholder="Start Date"
+                      className="bg-slate-800 text-slate-200 text-sm border-none rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition w-full min-w-0"
+                    />
+                  </div>
+                  <span className="text-slate-500 text-sm shrink-0">to</span>
+                  <div className="flex-1 sm:w-32 relative">
+                    <CustomDatePicker
+                      value={endDate}
+                      onChange={setEndDate}
+                      minDate={startDate}
+                      placeholder="End Date"
+                      className="bg-slate-800 text-slate-200 text-sm border-none rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition w-full min-w-0"
+                    />
+                  </div>
+                </div>
+                {(startDate || endDate) && (
+                  <button
+                    onClick={() => { setStartDate(''); setEndDate(''); }}
+                    className="text-xs text-rose-400 font-bold border border-rose-500/30 px-3 py-1.5 rounded-lg hover:bg-rose-500/10 transition shrink-0"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {/* Net Party Balance */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between col-span-1 md:col-span-3 lg:col-span-2">
-          <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Net Party Balance</p>
-            <div className={`text-2xl font-bold font-mono ${isPayable ? 'text-rose-400' : 'text-emerald-400'}`}>
-              ₹{Math.abs(netBalance).toLocaleString('en-IN')}
-            </div>
-            <p className={`text-[10px] mt-1 font-semibold ${isPayable ? 'text-rose-500' : 'text-emerald-500'}`}>
-              {isPayable ? '(Payable to them)' : netBalance > 0 ? '(Receivable from them)' : 'Settled'}
-            </p>
-          </div>
-          <div className="flex gap-2 mt-4">
-            {isPayable && (
               <button
-                onClick={() => setIsModalOpen(true)}
-                title="Record Payment (Payable)"
-                className="flex-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2"
+                onClick={onClose}
+                className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-rose-500 hover:bg-rose-500/10 transition text-slate-300 hover:text-rose-400"
+                title="Close"
               >
-                <Plus className="h-4 w-4" />
-                <span className="text-xs">Pay</span>
+                <X className="h-5 w-5" />
               </button>
-            )}
-            {netBalance > 0 && (
-              <button
-                onClick={() => setIsReceiveModalOpen(true)}
-                title="Record Received Payment (Receivable)"
-                className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="text-xs">Receive</span>
-              </button>
-            )}
+            </div>
           </div>
-        </div>
 
-        {/* Purchase Section */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Purchase</p>
-          <div className="text-xl font-bold text-rose-400 font-mono">₹{globalTotalPurchase.toLocaleString('en-IN')}</div>
-          <p className="text-[10px] text-slate-500 mt-1">Sum of {bills.length} purchase bills</p>
-        </div>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {/* Net Party Balance */}
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between col-span-1 md:col-span-3 lg:col-span-2">
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Net Party Balance</p>
+                <div className={`text-2xl font-bold font-mono ${isPayable ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  ₹{Math.abs(netBalance).toLocaleString('en-IN')}
+                </div>
+                <p className={`text-[10px] mt-1 font-semibold ${isPayable ? 'text-rose-500' : 'text-emerald-500'}`}>
+                  {isPayable ? '(Payable to them)' : netBalance > 0 ? '(Receivable from them)' : 'Settled'}
+                </p>
+              </div>
+              <div className="flex gap-2 mt-4">
+                {isPayable && (
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    title="Record Payment (Payable)"
+                    className="flex-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span className="text-xs">Pay</span>
+                  </button>
+                )}
+                {netBalance > 0 && (
+                  <button
+                    onClick={() => setIsReceiveModalOpen(true)}
+                    title="Record Received Payment (Receivable)"
+                    className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span className="text-xs">Receive</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsAdvanceModalOpen(true)}
+                  title="Send Advance"
+                  className="flex-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 border border-indigo-500/30 px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="text-xs">Advance</span>
+                </button>
+                <button
+                  onClick={() => setIsAdvancesListModalOpen(true)}
+                  title="View Advances"
+                  className="flex-none bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2"
+                >
+                  <History className="h-4 w-4" />
+                  <span className="text-xs">History</span>
+                </button>
+              </div>
+            </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Paid</p>
-          <div className="text-xl font-bold text-indigo-400 font-mono">₹{globalTotalPaid.toLocaleString('en-IN')}</div>
-          <p className="text-[10px] text-slate-500 mt-1">Sum of {payments.length} payments made</p>
-        </div>
+            {/* Purchase Section */}
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Purchase</p>
+              <div className="text-xl font-bold text-rose-400 font-mono">₹{globalTotalPurchase.toLocaleString('en-IN')}</div>
+              <p className="text-[10px] text-slate-500 mt-1">Sum of {bills.length} purchase bills</p>
+            </div>
 
-        {/* Sales Section */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Sales</p>
-          <div className="text-xl font-bold text-emerald-400 font-mono">₹{globalTotalSales.toLocaleString('en-IN')}</div>
-          <p className="text-[10px] text-slate-500 mt-1">Sum of {salesBills.length} sales bills</p>
-        </div>
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Paid</p>
+              <div className="text-xl font-bold text-indigo-400 font-mono">₹{globalTotalPaid.toLocaleString('en-IN')}</div>
+              <p className="text-[10px] text-slate-500 mt-1">Sum of {payments.length} payments made</p>
+            </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Received</p>
-          <div className="text-xl font-bold text-cyan-400 font-mono">₹{globalTotalReceived.toLocaleString('en-IN')}</div>
-          <p className="text-[10px] text-slate-500 mt-1">Sum of {receivedPayments.length} payments received</p>
-        </div>
-      </div>
+            {/* Sales Section */}
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Sales</p>
+              <div className="text-xl font-bold text-emerald-400 font-mono">₹{globalTotalSales.toLocaleString('en-IN')}</div>
+              <p className="text-[10px] text-slate-500 mt-1">Sum of {salesBills.length} sales bills</p>
+            </div>
 
-      <div className="glass-panel p-3 sm:p-6 rounded-2xl border border-slate-700/50 shadow-xl flex flex-col min-w-0">
-        <div className="flex items-center gap-2 mb-4 sm:mb-6">
-          <FileText className="h-5 w-5 text-indigo-400 shrink-0" />
-          <h2 className="text-lg font-bold text-slate-50 truncate">Unified Business Ledger</h2>
-        </div>
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Received</p>
+              <div className="text-xl font-bold text-cyan-400 font-mono">₹{globalTotalReceived.toLocaleString('en-IN')}</div>
+              <p className="text-[10px] text-slate-500 mt-1">Sum of {receivedPayments.length} payments received</p>
+            </div>
 
-        <div className="bg-slate-950/50 border border-slate-800 rounded-xl overflow-x-auto shadow-inner w-full">
-          <table className="w-full text-left border-collapse min-w-[700px]">
-            <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/50 text-xs uppercase tracking-wider text-slate-400 font-semibold">
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Ref / Notes</th>
-                <th className="px-4 py-3 text-right text-emerald-400">Charge (+)</th>
-                <th className="px-4 py-3 text-right text-rose-400">Credit (-)</th>
-                <th className="px-4 py-3 text-right">Balance</th>
-                <th className="px-4 py-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50 text-sm">
-              {transactions.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="px-4 py-12 text-center text-slate-500">
-                    No transactions found for this vendor.
-                  </td>
-                </tr>
-              ) : (
-                transactions.map((txn, idx) => (
-                  <tr key={txn.id || idx} className="hover:bg-slate-800/30 transition-colors group">
-                    <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{formatDate(txn.date)}</td>
-                    <td className="px-4 py-3 font-medium">
-                      {txn.type === 'Sale' && <span className="text-indigo-400 flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5"/> Sale</span>}
-                      {txn.type === 'Purchase' && <span className="text-fuchsia-400 flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5"/> Purchase</span>}
-                      {txn.type === 'Received Payment' && <span className="text-emerald-400 flex items-center gap-1.5"><ArrowLeftCircle className="h-3.5 w-3.5"/> Received</span>}
-                      {txn.type === 'Vendor Payment' && <span className="text-rose-400 flex items-center gap-1.5"><ArrowRightCircle className="h-3.5 w-3.5"/> Paid</span>}
-                    </td>
-                    <td className="px-4 py-3 text-slate-400 max-w-[300px] text-xs leading-relaxed" title={txn.ref}>{txn.ref}</td>
-                    <td className="px-4 py-3 text-right font-mono text-emerald-400">
-                      {txn.charge > 0 ? `₹${txn.charge.toLocaleString()}` : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono text-rose-400">
-                      {txn.credit > 0 ? `₹${txn.credit.toLocaleString()}` : '—'}
-                    </td>
-                    <td className={`px-4 py-3 text-right font-mono font-bold ${txn.balance < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      {txn.balance < 0 ? '-' : ''}₹{Math.abs(txn.balance).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {(txn.type === 'Received Payment' || txn.type === 'Vendor Payment') && (
-                        <button
-                          onClick={async () => {
-                            const isConfirmed = await confirm("Are you sure you want to delete this payment record?");
-                            if (isConfirmed) {
-                              const endpoint = txn.type === 'Received Payment' ? `/api/received-payments/${txn.obj.id}` : `/api/payments/${txn.obj.id}`;
-                              await axios.delete(endpoint);
-                              fetchData();
-                            }
-                          }}
-                          className="text-rose-400/50 hover:text-rose-400 hover:bg-rose-400/10 p-1.5 rounded-lg transition-all"
-                          title="Delete Payment"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
-                    </td>
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+              <div>
+                <p className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-2">Commission Earned</p>
+                <div className="text-xl font-bold text-amber-400 font-mono">₹{totalCommission.toLocaleString('en-IN')}</div>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1 leading-tight">From {bills.filter(b => b.booking_ref).length} vehicle bookings</p>
+            </div>
+          </div>
+
+          <div className="glass-panel p-3 sm:p-6 rounded-2xl border border-slate-700/50 shadow-xl flex flex-col min-w-0">
+            <div className="flex items-center gap-2 mb-4 sm:mb-6">
+              <FileText className="h-5 w-5 text-indigo-400 shrink-0" />
+              <h2 className="text-lg font-bold text-slate-50 truncate">Unified Business Ledger</h2>
+            </div>
+
+            <div className="bg-slate-950/50 border border-slate-800 rounded-xl overflow-x-auto shadow-inner w-full">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-slate-800 bg-slate-900/50 text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Type</th>
+                    <th className="px-4 py-3">Ref / Notes</th>
+                    <th className="px-4 py-3 text-right text-emerald-400">Charge (+)</th>
+                    <th className="px-4 py-3 text-right text-rose-400">Credit (-)</th>
+                    <th className="px-4 py-3 text-right">Balance</th>
+                    <th className="px-4 py-3 text-center">Action</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50 text-sm">
+                  {transactions.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="px-4 py-12 text-center text-slate-500">
+                        No transactions found for this vendor.
+                      </td>
+                    </tr>
+                  ) : (
+                    transactions.map((txn, idx) => (
+                      <tr key={txn.id || idx} className="hover:bg-slate-800/30 transition-colors group">
+                        <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{formatDate(txn.date)}</td>
+                        <td className="px-4 py-3 font-medium">
+                          {txn.type === 'Sale' && <span className="text-indigo-400 flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" /> Sale</span>}
+                          {txn.type === 'Purchase' && <span className="text-fuchsia-400 flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" /> Purchase</span>}
+                          {txn.type === 'Received Payment' && <span className="text-emerald-400 flex items-center gap-1.5"><ArrowLeftCircle className="h-3.5 w-3.5" /> Received</span>}
+                          {txn.type === 'Vendor Payment' && <span className="text-rose-400 flex items-center gap-1.5"><ArrowRightCircle className="h-3.5 w-3.5" /> Paid</span>}
+                          {txn.type === 'Advance Given' && <span className="text-indigo-400 flex items-center gap-1.5"><ArrowRightCircle className="h-3.5 w-3.5" /> Advance ↑</span>}
+                          {txn.type === 'Advance Returned' && <span className="text-teal-400 flex items-center gap-1.5"><ArrowLeftCircle className="h-3.5 w-3.5" /> Advance ↓</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-400 max-w-[300px] text-xs leading-relaxed" title={txn.ref}>{txn.ref}</td>
+                        <td className="px-4 py-3 text-right font-mono text-emerald-400">
+                          {txn.charge > 0 ? `₹${txn.charge.toLocaleString()}` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-rose-400">
+                          {txn.credit > 0 ? `₹${txn.credit.toLocaleString()}` : '—'}
+                        </td>
+                        <td className={`px-4 py-3 text-right font-mono font-bold ${txn.balance < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                          {txn.balance < 0 ? '-' : ''}₹{Math.abs(txn.balance).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {(txn.type === 'Received Payment' || txn.type === 'Vendor Payment' || txn.type === 'Advance Given' || txn.type === 'Advance Returned') && (
+                            <button
+                              onClick={async () => {
+                                const isConfirmed = await confirm("Are you sure you want to delete this payment record?");
+                                if (!isConfirmed) return;
+                                const endpoint = txn.type === 'Received Payment' ? `/api/received-payments/${txn.obj.id}` :
+                                  (txn.type === 'Advance Given' || txn.type === 'Advance Returned') ? `/api/advances/${txn.obj.id}` : `/api/payments/${txn.obj.id}`;
+                                await axios.delete(endpoint);
+                                fetchData();
+                              }}
+                              className="text-rose-400/50 hover:text-rose-400 hover:bg-rose-400/10 p-1.5 rounded-lg transition-all"
+                              title="Delete Payment"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Payment Modal */}
+          {isModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+              <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-50">Pay Vendor</h2>
+                    <p className="text-sm font-medium text-rose-400 mt-1">
+                      Pending Payable: ₹{Math.abs(netBalance).toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                  <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-50 transition">
+                    <CheckCircle className="h-5 w-5 opacity-0" /> {/* Spacer */}
+                    <span className="text-xl leading-none">&times;</span>
+                  </button>
+                </div>
+
+                <form onSubmit={handleMakePayment} className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Amount to Pay (₹)</label>
+                    <input
+                      type="number"
+                      required
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
+                      placeholder="Enter amount"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={paymentDate}
+                        onChange={(e) => setPaymentDate(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Mode</label>
+                      <CustomSelect
+                        value={paymentMode}
+                        onChange={(val) => setPaymentMode(val)}
+                        options={['Cash', 'UPI', 'Bank Transfer', 'Cheque']}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Notes (Optional)</label>
+                    <input
+                      type="text"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
+                      placeholder="e.g. Transaction ID"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-rose-500/25 transition disabled:opacity-50 mt-4"
+                  >
+                    {submitting ? 'Recording...' : 'Record Payment Made'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Receive Payment Modal */}
+          {isReceiveModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+              <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-50">Receive from Vendor</h2>
+                    <p className="text-sm font-medium text-emerald-400 mt-1">
+                      Pending Receivable: ₹{Math.abs(netBalance).toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                  <button onClick={() => setIsReceiveModalOpen(false)} className="text-slate-400 hover:text-slate-50 transition">
+                    <CheckCircle className="h-5 w-5 opacity-0" /> {/* Spacer */}
+                    <span className="text-xl leading-none">&times;</span>
+                  </button>
+                </div>
+
+                <form onSubmit={handleReceivePayment} className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Amount Received (₹)</label>
+                    <input
+                      type="number"
+                      required
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
+                      placeholder="Enter amount"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={paymentDate}
+                        onChange={(e) => setPaymentDate(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Mode</label>
+                      <CustomSelect
+                        value={paymentMode}
+                        onChange={(val) => setPaymentMode(val)}
+                        options={['Cash', 'UPI', 'Bank Transfer', 'Cheque']}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Notes (Optional)</label>
+                    <input
+                      type="text"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
+                      placeholder="e.g. Transaction ID"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/25 transition disabled:opacity-50 mt-4"
+                  >
+                    {submitting ? 'Recording...' : 'Record Payment Received'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <AdvanceModal
+            isOpen={isAdvanceModalOpen}
+            onClose={() => setIsAdvanceModalOpen(false)}
+            partyType="Vendor"
+            partyId={vendorId}
+            partyName={vendor.name}
+            onSuccess={fetchData}
+          />
+
+          <AdvancesListModal
+            isOpen={isAdvancesListModalOpen}
+            onClose={() => {
+              setIsAdvancesListModalOpen(false);
+              fetchData(); // refresh in case advances were deleted
+            }}
+            partyType="Vendor"
+            partyId={vendorId}
+            partyName={vendor.name}
+          />
+
         </div>
       </div>
-
-      {/* Payment Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-slate-50">Pay Vendor</h2>
-                <p className="text-sm font-medium text-rose-400 mt-1">
-                  Pending Payable: ₹{Math.abs(netBalance).toLocaleString('en-IN')}
-                </p>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-50 transition">
-                <CheckCircle className="h-5 w-5 opacity-0" /> {/* Spacer */}
-                <span className="text-xl leading-none">&times;</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleMakePayment} className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Amount to Pay (₹)</label>
-                <input
-                  type="number"
-                  required
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
-                  placeholder="Enter amount"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={paymentDate}
-                    onChange={(e) => setPaymentDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Mode</label>
-                  <CustomSelect
-                    value={paymentMode}
-                    onChange={(val) => setPaymentMode(val)}
-                    options={['Cash', 'UPI', 'Bank Transfer', 'Cheque']}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Notes (Optional)</label>
-                <input
-                  type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
-                  placeholder="e.g. Transaction ID"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-rose-500/25 transition disabled:opacity-50 mt-4"
-              >
-                {submitting ? 'Recording...' : 'Record Payment Made'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Receive Payment Modal */}
-      {isReceiveModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-slate-50">Receive from Vendor</h2>
-                <p className="text-sm font-medium text-emerald-400 mt-1">
-                  Pending Receivable: ₹{Math.abs(netBalance).toLocaleString('en-IN')}
-                </p>
-              </div>
-              <button onClick={() => setIsReceiveModalOpen(false)} className="text-slate-400 hover:text-slate-50 transition">
-                <CheckCircle className="h-5 w-5 opacity-0" /> {/* Spacer */}
-                <span className="text-xl leading-none">&times;</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleReceivePayment} className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Amount Received (₹)</label>
-                <input
-                  type="number"
-                  required
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
-                  placeholder="Enter amount"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={paymentDate}
-                    onChange={(e) => setPaymentDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Mode</label>
-                  <CustomSelect
-                    value={paymentMode}
-                    onChange={(val) => setPaymentMode(val)}
-                    options={['Cash', 'UPI', 'Bank Transfer', 'Cheque']}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Notes (Optional)</label>
-                <input
-                  type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-slate-100 outline-none transition"
-                  placeholder="e.g. Transaction ID"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/25 transition disabled:opacity-50 mt-4"
-              >
-                {submitting ? 'Recording...' : 'Record Payment Received'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

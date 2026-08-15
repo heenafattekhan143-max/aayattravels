@@ -23,6 +23,7 @@ event_bills_collection = db["event_bills"]
 vehicle_classes_collection = db["vehicle_classes"]
 counters_collection = db["counters"]
 users_collection = db["users"]
+advances_collection = db["advances"]
 
 def get_next_sequence_value(sequence_name: str) -> int:
     sequence_document = counters_collection.find_one_and_update(

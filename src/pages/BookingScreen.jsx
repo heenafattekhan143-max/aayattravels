@@ -638,9 +638,9 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
         passenger_details: formData.passenger_details || [],
         advance_amount: parseFloat(formData.advance_amount) || 0,
         total_amount: parseFloat(formData.total_amount) || 0,
-        start_km: formData.start_km ? parseInt(formData.start_km) : null,
-        end_km: formData.end_km ? parseInt(formData.end_km) : null,
-        working_hours: formData.working_hours ? parseInt(formData.working_hours) : null,
+        start_km: formData.start_km !== '' && formData.start_km != null ? parseInt(formData.start_km) : null,
+        end_km: formData.end_km !== '' && formData.end_km != null ? parseInt(formData.end_km) : null,
+        working_hours: formData.working_hours !== '' && formData.working_hours != null ? parseInt(formData.working_hours) : null,
         booking_status: formData.booking_status || 'Confirmed',
         gst_rate: formData.gst_rate !== '' ? parseFloat(formData.gst_rate) : 0,
       };
@@ -698,8 +698,9 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
       plan_id: b.plan_id || '',
       payment_status: b.payment_status || 'Pending',
       booking_status: b.booking_status || 'Confirmed',
-      end_km: b.end_km || '',
-      working_hours: b.working_hours || '',
+      start_km: b.start_km != null ? b.start_km : '',
+      end_km: b.end_km != null ? b.end_km : '',
+      working_hours: b.working_hours != null ? b.working_hours : '',
       remarks: b.remarks || '',
       gst_rate: b.gst_rate != null ? String(b.gst_rate) : '',
     });
@@ -1112,9 +1113,7 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                               <div className="text-right">
                                 <div className="text-sm font-bold text-emerald-400">
                                   ₹{
-                                    vehicles.find(v => v.vehicle_number === formData.vehicle_number)?.ownership_type === 'Vendor' 
-                                      ? (guestPlanDetails.vendor_rate || guestPlanDetails.rate)
-                                      : (guestPlanDetails.company_rate || guestPlanDetails.rate)
+                                    guestPlanDetails.company_rate || guestPlanDetails.rate
                                   }
                                 </div>
                                 <div className="text-[10px] text-slate-500 uppercase">Base Rate</div>
@@ -1221,13 +1220,18 @@ export default function BookingScreen({ navigateTo, editingBookingId, setEditing
                 </div>
 
                 {formData.booking_status === 'Completed' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                    <div className="space-y-1 sm:col-span-2 mb-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                    <div className="space-y-1 sm:col-span-3 mb-1">
                       <p className="text-xs font-bold text-emerald-400">Completion Details (Used for auto-billing)</p>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-emerald-100">Total KM Driven *</label>
-                      <input type="number" placeholder="e.g. 350" value={formData.end_km} required
+                      <label className="text-xs font-semibold text-emerald-100">Start KM</label>
+                      <input type="number" placeholder="e.g. 100" value={formData.start_km}
+                        onChange={(e) => handleChange('start_km', e.target.value)} className={inputCls('start_km')} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-emerald-100">End KM</label>
+                      <input type="number" placeholder="e.g. 350" value={formData.end_km}
                         onChange={(e) => handleChange('end_km', e.target.value)} className={inputCls('end_km')} />
                     </div>
                     <div className="space-y-1">

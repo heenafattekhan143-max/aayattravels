@@ -184,9 +184,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
             amount_with_gst: item.amount_with_gst,
 
             // Resolve from master plans or fall back
-            rate: item.rate ?? (matchedPlan ? (
-              resolvedVehicle?.ownership_type === 'Vendor' ? matchedPlan.vendor_rate : matchedPlan.company_rate
-            ) || matchedPlan.rate : 0),
+            rate: item.rate ?? (matchedPlan ? (matchedPlan.company_rate || matchedPlan.rate) : 0),
             extra_km_rate: matchedPlan ? matchedPlan.extra_km_rate : 0,
             extra_hours_rate: matchedPlan ? matchedPlan.extra_hours_rate : 0,
             base_km: matchedPlan ? matchedPlan.base_km : 0,
@@ -245,7 +243,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
       if (!item.plan_id) return item;
       const p = allPlans.find(plan => plan.id === item.plan_id);
       if (p) {
-        const newRate = (selectedVehicle?.ownership_type === 'Vendor' ? p.vendor_rate : p.company_rate) || p.rate || item.rate;
+        const newRate = p.company_rate || p.rate || item.rate;
         if (newRate !== item.rate) {
           hasChanges = true;
           return { ...item, rate: newRate };
@@ -392,7 +390,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
         plan_id: plan.id,
         plan_name: plan.plan_name,
         plan_type: plan.plan_type || '',
-        rate: (selectedVehicle?.ownership_type === 'Vendor' ? plan.vendor_rate : plan.company_rate) || plan.rate || 0,
+        rate: plan.company_rate || plan.rate || 0,
         extra_km_rate: plan.extra_km_rate,
         extra_hours_rate: plan.extra_hours_rate,
         base_km: plan.base_km,
@@ -1022,7 +1020,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                             <span className="text-xs text-slate-400 ml-2">({plan.plan_type})</span>
                           </div>
                           <div className="text-right text-xs text-slate-400 space-x-2">
-                            <span className="text-amber-300 font-mono font-bold">₹{(selectedVehicle?.ownership_type === 'Vendor' ? plan.vendor_rate : plan.company_rate) || plan.rate}</span>
+                            <span className="text-amber-300 font-mono font-bold">₹{plan.company_rate || plan.rate}</span>
                             {plan.extra_km_rate > 0 && <span>+₹{plan.extra_km_rate}/km</span>}
                             {plan.extra_hours_rate > 0 && <span>+₹{plan.extra_hours_rate}/hr</span>}
                           </div>
@@ -1146,7 +1144,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                                     </span>
                                   )}
                                 </div>
-                                <span className="font-semibold text-indigo-400 font-mono">₹{(selectedVehicle?.ownership_type === 'Vendor' ? plan.vendor_rate : plan.company_rate) || plan.rate}</span>
+                                <span className="font-semibold text-indigo-400 font-mono">₹{plan.company_rate || plan.rate}</span>
                               </div>
                             </div>
                           ))
@@ -1397,7 +1395,7 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
                                           </span>
                                         )}
                                       </div>
-                                      <span className="font-semibold text-indigo-400 font-mono">₹{(selectedVehicle?.ownership_type === 'Vendor' ? plan.vendor_rate : plan.company_rate) || plan.rate}</span>
+                                      <span className="font-semibold text-indigo-400 font-mono">₹{plan.company_rate || plan.rate}</span>
                                     </div>
                                   </div>
                                 ))
