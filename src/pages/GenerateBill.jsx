@@ -88,11 +88,10 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
   useEffect(() => {
     async function loadData() {
       try {
-        const [custRes, planRes, vehRes] = await Promise.all([
-          axios.get('/api/customers'),
-          axios.get('/api/plans'),
-          axios.get('/api/vehicles')
-        ]);
+        const custRes = await axios.get('/api/customers').catch(() => ({ data: [] }));
+        const planRes = await axios.get('/api/plans').catch(() => ({ data: [] }));
+        const vehRes = await axios.get('/api/vehicles').catch(() => ({ data: [] }));
+        
         setAllCustomers(Array.isArray(custRes.data) ? custRes.data : []);
         setAllPlans(Array.isArray(planRes.data) ? planRes.data : []);
         setAllVehicles(Array.isArray(vehRes.data) ? vehRes.data : []);
@@ -190,8 +189,8 @@ export default function GenerateBill({ navigateTo, editingBillId, setEditingBill
 
   // Filter customers by selected party type and search term
   const filteredCustomers = allCustomers.filter(c =>
-    c.entity_type === partyType &&
-    c.name.toLowerCase().includes(customerSearch.toLowerCase())
+    (c.entity_type || '').trim().toLowerCase() === partyType.trim().toLowerCase() &&
+    (c.name || '').trim().toLowerCase().includes(customerSearch.trim().toLowerCase())
   );
 
   // Auto-fill customer when partyType changes (or clear)

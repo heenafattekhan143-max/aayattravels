@@ -925,7 +925,6 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                         <col style={{ width: '22%' }} />
                         <col style={{ width: '10%' }} />
                         <col style={{ width: '8%' }} />
-                        <col />
                         <col style={{ width: '9%' }} />
                         {hasTotalHours && <col style={{ width: '8%' }} />}
                         <col style={{ width: '8%' }} />
@@ -939,7 +938,6 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                           <th className="p-1.5 font-bold border border-slate-400">Rental Package Plan</th>
                           <th className="p-1.5 font-bold border border-slate-400 text-center">Vehicle No</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Rate</th>
-                          <th className="p-1.5 font-bold text-center border border-slate-400">KM Rate</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Date</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Total Distance</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Extra KMs</th>
@@ -956,26 +954,25 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                             <td className="p-1.5 font-semibold text-slate-900 text-[9px] leading-tight border border-slate-400 break-words">{item.plan_name}</td>
                             <td className="p-1.5 text-center font-medium text-slate-800 whitespace-nowrap border border-slate-400">{item.vehicle_number || '-'}</td>
                             <td className="p-1.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">₹{(item.rate || 0).toLocaleString('en-IN')}</td>
-                            <td className="p-1.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">₹{item.extra_km_rate || 0}/km</td>
                             <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">
                               {item.end_date
                                 ? `${formatDate(item.date)} to ${formatDate(item.end_date)}`
                                 : formatDate(item.date)}
                             </td>
-                            <td className="p-1.5 text-center font-medium whitespace-nowrap border border-slate-400">{item.total_distance_km} KM</td>
+                            <td className="p-1.5 text-center font-medium whitespace-nowrap border border-slate-400">{(parseFloat(item.total_distance_km) || 0) + (parseFloat(item.extra_km) || 0)} KM</td>
                             <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_km > 0 ? `${item.extra_km} KM` : '-'}</td>
-                            {hasTotalHours && <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.total_hours} Hrs</td>}
+                            {hasTotalHours && <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{(parseFloat(item.total_hours) || 0) + (parseFloat(item.extra_hours) || 0)} Hrs</td>}
                             {hasExtraHours && <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_hours > 0 ? `${item.extra_hours} Hrs` : '-'}</td>}
                             <td className="p-1.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">{item.da_allowance > 0 ? `₹${item.da_allowance.toLocaleString('en-IN')}` : '-'}</td>
                             {hasNightAllowance && <td className="p-1.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">{item.night_allowance > 0 ? `₹${item.night_allowance.toLocaleString('en-IN')}` : '-'}</td>}
                             <td className="p-1.5 text-right font-bold text-slate-900 whitespace-nowrap border border-slate-400">₹{item.amount_without_gst.toLocaleString('en-IN')}</td>
                           </tr>
                         ))}
-                        {selectedBill.table_items && selectedBill.table_items.length > 1 && (() => {
+                        {selectedBill.table_items && selectedBill.table_items.length > 0 && (() => {
                           const items = selectedBill.table_items;
-                          const totalDistance = items.reduce((sum, item) => sum + (parseFloat(item.total_distance_km) || 0), 0);
+                          const totalDistance = items.reduce((sum, item) => sum + (parseFloat(item.total_distance_km) || 0) + (parseFloat(item.extra_km) || 0), 0);
                           const totalExtraKm = items.reduce((sum, item) => sum + (parseFloat(item.extra_km) || 0), 0);
-                          const totalHours = items.reduce((sum, item) => sum + (parseFloat(item.total_hours) || 0), 0);
+                          const totalHours = items.reduce((sum, item) => sum + (parseFloat(item.total_hours) || 0) + (parseFloat(item.extra_hours) || 0), 0);
                           const totalExtraHours = items.reduce((sum, item) => sum + (parseFloat(item.extra_hours) || 0), 0);
                           const totalDA = items.reduce((sum, item) => sum + (parseFloat(item.da_allowance) || 0), 0);
                           const totalNight = items.reduce((sum, item) => sum + (parseFloat(item.night_allowance) || 0), 0);
@@ -983,7 +980,6 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                           return (
                             <tr className="bg-slate-50 font-bold border-t border-slate-400 text-slate-900">
                               <td className="p-1.5 text-left border border-slate-400 whitespace-nowrap uppercase tracking-wider">Total</td>
-                              <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
