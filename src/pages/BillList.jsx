@@ -146,11 +146,15 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
   }
 
   const handlePrint = () => {
+    const invoiceNo = selectedBill?.bill_no || 'Invoice';
+    const originalTitle = document.title;
+    document.title = `PURVI TOURS & TRAVELS - ${invoiceNo}`;
     const printContent = document.getElementById("invoice-print-area").innerHTML;
     const originalContent = document.body.innerHTML;
     document.body.innerHTML = printContent;
     window.print();
     document.body.innerHTML = originalContent;
+    document.title = originalTitle;
     window.location.reload(); // Reload to restore event listeners
   };
 
@@ -922,15 +926,16 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse border border-slate-400">
                       <colgroup>
-                        <col style={{ width: '22%' }} />
+                        <col style={{ width: '20%' }} />
                         <col style={{ width: '10%' }} />
-                        <col style={{ width: '8%' }} />
+                        <col style={{ width: '7%' }} />
+                        <col style={{ width: '7%' }} />
                         <col style={{ width: '9%' }} />
                         {hasTotalHours && <col style={{ width: '8%' }} />}
-                        <col style={{ width: '8%' }} />
-                        {hasExtraHours && <col style={{ width: '8%' }} />}
                         <col style={{ width: '7%' }} />
-                        {hasNightAllowance && <col style={{ width: '11%' }} />}
+                        {hasExtraHours && <col style={{ width: '7%' }} />}
+                        <col style={{ width: '6%' }} />
+                        {hasNightAllowance && <col style={{ width: '10%' }} />}
                         <col />
                       </colgroup>
                       <thead>
@@ -938,6 +943,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                           <th className="p-1.5 font-bold border border-slate-400">Rental Package Plan</th>
                           <th className="p-1.5 font-bold border border-slate-400 text-center">Vehicle No</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Rate</th>
+                          <th className="p-1.5 font-bold text-center border border-slate-400">Per KM</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Date</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Total Distance</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">Extra KMs</th>
@@ -954,6 +960,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                             <td className="p-1.5 font-semibold text-slate-900 text-[9px] leading-tight border border-slate-400 break-words">{item.plan_name}</td>
                             <td className="p-1.5 text-center font-medium text-slate-800 whitespace-nowrap border border-slate-400">{item.vehicle_number || '-'}</td>
                             <td className="p-1.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">₹{(item.rate || 0).toLocaleString('en-IN')}</td>
+                            <td className="p-1.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_km_rate > 0 ? `₹${item.extra_km_rate}/km` : '-'}</td>
                             <td className="p-1.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">
                               {item.end_date
                                 ? `${formatDate(item.date)} to ${formatDate(item.end_date)}`
@@ -980,6 +987,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                           return (
                             <tr className="bg-slate-50 font-bold border-t border-slate-400 text-slate-900">
                               <td className="p-1.5 text-left border border-slate-400 whitespace-nowrap uppercase tracking-wider">Total</td>
+                              <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>
                               <td className="p-1.5 text-center border border-slate-400"></td>

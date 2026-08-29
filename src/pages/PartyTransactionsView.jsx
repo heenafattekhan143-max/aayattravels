@@ -240,7 +240,11 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
   const printGstAmount = viewingTxn && viewingTxn.bill ? (viewingTxn.bill.table_items || []).reduce((sum, item) => sum + ((item.amount_with_gst || 0) - (item.amount_without_gst || 0)), 0) : 0;
 
   const handlePrint = () => {
+    const invoiceNo = viewingTxn?.bill?.bill_no || 'Invoice';
+    const originalTitle = document.title;
+    document.title = `PURVI TOURS & TRAVELS - ${invoiceNo}`;
     window.print();
+    document.title = originalTitle;
   };
 
   const handleExport = () => {
@@ -771,11 +775,15 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                 </label>
                 <button
                   onClick={() => {
+                    const invoiceNo = viewingTxn?.bill?.bill_no || 'Invoice';
+                    const originalTitle = document.title;
+                    document.title = `PURVI TOURS & TRAVELS - ${invoiceNo}`;
                     const printContent = document.getElementById("invoice-print-area").innerHTML;
                     const originalContent = document.body.innerHTML;
                     document.body.innerHTML = printContent;
                     window.print();
                     document.body.innerHTML = originalContent;
+                    document.title = originalTitle;
                     window.location.reload(); // Reload to restore event listeners
                   }}
                   className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition"
@@ -909,8 +917,9 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                   <div className="mt-8">
                     <table className="w-full text-left text-[11px] border-collapse border border-slate-400">
                       <colgroup>
-                        <col style={{ width: '25%' }} />
-                        <col style={{ width: '8%' }} />
+                        <col style={{ width: '22%' }} />
+                        <col style={{ width: '7%' }} />
+                        <col style={{ width: '7%' }} />
                         <col style={{ width: '9%' }} />
                         <col style={{ width: '8%' }} />
                         <col style={{ width: '8%' }} />
@@ -923,6 +932,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                         <tr className="border-b border-slate-300 text-slate-700 bg-slate-50 uppercase text-[9px] tracking-wider">
                           <th className="p-2.5 font-bold border border-slate-400">Rental Package Plan</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Rate</th>
+                          <th className="p-2.5 font-bold text-center border border-slate-400">Per KM</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Date</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Total Distance</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">Extra KMs</th>
@@ -938,6 +948,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                           <tr key={idx} className="hover:bg-slate-50 transition">
                             <td className="p-2.5 font-semibold text-slate-900 whitespace-nowrap border border-slate-400">{item.plan_name}</td>
                             <td className="p-2.5 text-center font-semibold text-slate-900 whitespace-nowrap border border-slate-400">₹{(item.rate || 0).toLocaleString('en-IN')}</td>
+                            <td className="p-2.5 text-center font-medium text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_km_rate > 0 ? `₹${item.extra_km_rate}/km` : '-'}</td>
                             <td className="p-2.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{formatDate(item.date)}</td>
                             <td className="p-2.5 text-center font-medium whitespace-nowrap border border-slate-400">{(parseFloat(item.total_distance_km) || 0) + (parseFloat(item.extra_km) || 0)} KM</td>
                             <td className="p-2.5 text-center text-slate-600 whitespace-nowrap border border-slate-400">{item.extra_km > 0 ? `${item.extra_km} KM` : '-'}</td>
@@ -960,6 +971,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                           return (
                             <tr className="bg-slate-50 font-bold border-t border-slate-400 text-slate-900">
                               <td className="p-2.5 text-left border border-slate-400 whitespace-nowrap uppercase tracking-wider">Total</td>
+                              <td className="p-2.5 text-center border border-slate-400"></td>
                               <td className="p-2.5 text-center border border-slate-400"></td>
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalDistance} KM</td>
                               <td className="p-2.5 text-center border border-slate-400 whitespace-nowrap">{totalExtraKm > 0 ? `${totalExtraKm} KM` : '-'}</td>

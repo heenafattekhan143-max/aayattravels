@@ -115,7 +115,7 @@ def create_bill(bill: BillCreate, user_email: str = Depends(get_current_user)):
     sequence_name = "pt_bills"
     seq_val = get_next_sequence_value(sequence_name)
     prefix = "PT-"
-    bill_dict["bill_no"] = f"{prefix}{seq_val:03d}"
+    bill_dict["bill_no"] = f"{prefix}{seq_val:04d}"
     
     result = bills_collection.insert_one(bill_dict)
     bill_dict["_id"] = result.inserted_id

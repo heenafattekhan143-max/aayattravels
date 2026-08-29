@@ -61,13 +61,8 @@ def create_entity(entity: EntityCreate, user_email: str = Depends(get_current_us
     entity_dict = entity.model_dump()
     entity_dict['user_email'] = user_email
     
-    # Check if duplicate name/phone
-    existing = entities_collection.find_one({"phone": entity.phone, "entity_type": entity.entity_type, "user_email": user_email})
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"{entity.entity_type.capitalize()} with this phone number already exists."
-        )
+
+
         
     result = entities_collection.insert_one(entity_dict)
     entity_dict["_id"] = result.inserted_id

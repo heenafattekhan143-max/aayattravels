@@ -370,7 +370,7 @@ export default function CustomerList({ navigateTo }) {
                   <input
                     type="text"
                     name="phone"
-                    maxLength="10"
+                    maxLength="15"
                     value={editFormData.phone}
                     onChange={handleEditChange}
                     className={`w-full bg-slate-950 text-xs border ${editErrors.phone ? 'border-rose-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-slate-100 outline-none focus:border-indigo-500`}

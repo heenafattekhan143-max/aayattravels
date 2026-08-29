@@ -18,6 +18,7 @@ if raw_origins == "*":
     allow_origins =[
     "https://aayattravels.vercel.app",
     "http://localhost:5173",  # if you use Vite locally
+    "http://localhost:5174",  # fallback port if 5173 is in use
     "http://localhost:3000"   # if you use Next.js/React locally
 ]
 else:
