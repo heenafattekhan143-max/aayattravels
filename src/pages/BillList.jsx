@@ -38,14 +38,14 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
   const confirm = useConfirm();
   const { user } = useAuth();
   // Dynamic business info from user profile
-  const bizName    = user?.businessName || 'My Business';
-  const bizAddress = user?.address      || '';
-  const bizPhone   = user?.phone        || '';
-  const bizEmail   = user?.email        || '';
-  const bizGstin   = user?.gstin        || '';
-  const bizSac     = user?.sacCode      || '998559';
-  const bizState   = user?.state        || '27-Maharashtra';
-  const bizLogo    = user?.logo         || null;
+  const bizName = user?.businessName || 'My Business';
+  const bizAddress = user?.address || '';
+  const bizPhone = user?.phone || '';
+  const bizEmail = user?.email || '';
+  const bizGstin = user?.gstin || '';
+  const bizSac = user?.sacCode || '998559';
+  const bizState = user?.state || '27-Maharashtra';
+  const bizLogo = user?.logo || null;
   const [bills, setBills] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -56,6 +56,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
 
   // Selected bill to view / print details
   const [selectedBill, setSelectedBill] = useState(null);
+  const [showStamp, setShowStamp] = useState(true);
   const [customerDetails, setCustomerDetails] = useState(null);
   const [bookingDetails, setBookingDetails] = useState(null);
 
@@ -175,7 +176,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
 
   const printSubtotalExclTax = selectedBill ? (selectedBill.table_items || []).reduce((sum, item) => sum + (item.amount_without_gst || 0), 0) : 0;
   const printGstAmount = selectedBill ? (selectedBill.table_items || []).reduce((sum, item) => sum + ((item.amount_with_gst || 0) - (item.amount_without_gst || 0)), 0) : 0;
-  
+
   const hasExtraHours = selectedBill ? (selectedBill.table_items || []).some(item => parseFloat(item.extra_hours) > 0) : true;
   const hasNightAllowance = selectedBill ? (selectedBill.table_items || []).some(item => parseFloat(item.night_allowance) > 0) : true;
 
@@ -212,15 +213,15 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     };
 
     const boldCenter = { font: { bold: true }, alignment: { horizontal: 'center', vertical: 'center' } };
-    const boldLeft   = { font: { bold: true }, alignment: { horizontal: 'left', vertical: 'center' } };
-    const boldRight  = { font: { bold: true }, alignment: { horizontal: 'right', vertical: 'center' } };
-    const numFmt     = { numFmt: '₹#,##0.00', alignment: { horizontal: 'right' } };
+    const boldLeft = { font: { bold: true }, alignment: { horizontal: 'left', vertical: 'center' } };
+    const boldRight = { font: { bold: true }, alignment: { horizontal: 'right', vertical: 'center' } };
+    const numFmt = { numFmt: '₹#,##0.00', alignment: { horizontal: 'right' } };
     const numFmtBold = { numFmt: '₹#,##0.00', font: { bold: true }, alignment: { horizontal: 'right' } };
-    const hdrStyle   = { font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1E3A5F' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: { style: 'thin', color: { rgb: 'AAAAAA' } } } };
-    const subHdrStyle= { font: { bold: true, sz: 10, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E5FA3' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: { style: 'thin', color: { rgb: '9999AA' } } } };
+    const hdrStyle = { font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1E3A5F' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: { style: 'thin', color: { rgb: 'AAAAAA' } } } };
+    const subHdrStyle = { font: { bold: true, sz: 10, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E5FA3' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: { style: 'thin', color: { rgb: '9999AA' } } } };
     const totalStyle = { font: { bold: true, color: { rgb: '006100' } }, fill: { fgColor: { rgb: 'C6EFCE' } }, alignment: { horizontal: 'right', vertical: 'center' } };
-    const altRow1    = { fill: { fgColor: { rgb: 'F0F4FF' } }, alignment: { horizontal: 'center' } };
-    const altRow2    = { fill: { fgColor: { rgb: 'FFFFFF' } }, alignment: { horizontal: 'center' } };
+    const altRow1 = { fill: { fgColor: { rgb: 'F0F4FF' } }, alignment: { horizontal: 'center' } };
+    const altRow2 = { fill: { fgColor: { rgb: 'FFFFFF' } }, alignment: { horizontal: 'center' } };
 
     // ════════════════════════════════════════════════
     // SHEET 1 — Full Bill Summary (one row per bill)
@@ -292,14 +293,14 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
       for (let c = 0; c < nCol; c++) {
         const addr = XLSX.utils.encode_cell({ r: ri + 1, c });
         if (!ws1[addr]) ws1[addr] = { t: 'n', v: 0 };
-        ws1[addr].s = [9,10,11,12,13,14,15].includes(c) ? { ...numFmt, fill: style.fill } : style;
+        ws1[addr].s = [9, 10, 11, 12, 13, 14, 15].includes(c) ? { ...numFmt, fill: style.fill } : style;
       }
     });
     const totalRowIdx = wsData1.length - 1;
     for (let c = 0; c < nCol; c++) {
       const addr = XLSX.utils.encode_cell({ r: totalRowIdx, c });
       if (!ws1[addr]) ws1[addr] = { t: 's', v: '' };
-      ws1[addr].s = [9,10,11,12,13,14,15].includes(c) ? { ...numFmtBold, fill: { fgColor: { rgb: 'C6EFCE' } }, font: { bold: true, color: { rgb: '006100' } } } : totalStyle;
+      ws1[addr].s = [9, 10, 11, 12, 13, 14, 15].includes(c) ? { ...numFmtBold, fill: { fgColor: { rgb: 'C6EFCE' } }, font: { bold: true, color: { rgb: '006100' } } } : totalStyle;
     }
 
     ws1['!cols'] = [
@@ -480,10 +481,10 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     const hdrStyle = { font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1E3A5F' } }, alignment: { horizontal: 'center', vertical: 'center' } };
     const labelStyle = { font: { bold: true }, fill: { fgColor: { rgb: 'EEF2FF' } }, alignment: { horizontal: 'left' } };
     const valueStyle = { alignment: { horizontal: 'left' } };
-    const numFmt    = { numFmt: '₹#,##0.00', alignment: { horizontal: 'right' } };
-    const numBold   = { numFmt: '₹#,##0.00', font: { bold: true }, fill: { fgColor: { rgb: 'C6EFCE' } }, alignment: { horizontal: 'right' }, font2: { bold: true, color: { rgb: '006100' } } };
-    const altRow1   = { fill: { fgColor: { rgb: 'F0F4FF' } }, alignment: { horizontal: 'center' } };
-    const altRow2   = { fill: { fgColor: { rgb: 'FFFFFF' } }, alignment: { horizontal: 'center' } };
+    const numFmt = { numFmt: '₹#,##0.00', alignment: { horizontal: 'right' } };
+    const numBold = { numFmt: '₹#,##0.00', font: { bold: true }, fill: { fgColor: { rgb: 'C6EFCE' } }, alignment: { horizontal: 'right' }, font2: { bold: true, color: { rgb: '006100' } } };
+    const altRow1 = { fill: { fgColor: { rgb: 'F0F4FF' } }, alignment: { horizontal: 'center' } };
+    const altRow2 = { fill: { fgColor: { rgb: 'FFFFFF' } }, alignment: { horizontal: 'center' } };
 
     const billGstin = bill.customer_gstin || '';
     const stateCode = billGstin ? billGstin.substring(0, 2) : '27';
@@ -493,7 +494,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
     let subtotal = 0, gstAmt = 0;
     (bill.table_items || []).forEach(item => {
       subtotal += parseFloat(item.amount_without_gst) || 0;
-      gstAmt   += (parseFloat(item.amount_with_gst) || 0) - (parseFloat(item.amount_without_gst) || 0);
+      gstAmt += (parseFloat(item.amount_with_gst) || 0) - (parseFloat(item.amount_without_gst) || 0);
     });
 
     const infoData = [
@@ -785,26 +786,37 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
             {/* Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800 bg-slate-950/80">
               <h2 className="text-lg font-bold text-slate-100 uppercase tracking-wider">Invoice Details</h2>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition"
-                >
-                  <Printer className="h-4 w-4" /> Print / PDF
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedBill(null);
-                    if (setViewingBillId) setViewingBillId(null);
-                    if (returnToRoute) {
-                      navigateTo(returnToRoute);
-                      if (setReturnToRoute) setReturnToRoute(null);
-                    }
-                  }}
-                  className="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-800 rounded-lg hover:bg-slate-700 transition"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm text-slate-300 font-medium cursor-pointer hover:text-slate-100 transition">
+                  <input
+                    type="checkbox"
+                    className="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                    checked={showStamp}
+                    onChange={(e) => setShowStamp(e.target.checked)}
+                  />
+                  Show Stamp
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePrint}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition"
+                  >
+                    <Printer className="h-4 w-4" /> Print / PDF
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedBill(null);
+                      if (setViewingBillId) setViewingBillId(null);
+                      if (returnToRoute) {
+                        navigateTo(returnToRoute);
+                        if (setReturnToRoute) setReturnToRoute(null);
+                      }
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-800 rounded-lg hover:bg-slate-700 transition"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -953,8 +965,8 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                           <th className="p-1.5 font-bold text-center border border-slate-400">Date</th>
                           <th className="p-1.5 font-bold text-center border border-slate-400">
                             {selectedBill.table_items && selectedBill.table_items.length > 0 &&
-                             ((selectedBill.table_items[0].plan_type || '').toLowerCase() === 'outstation' ||
-                              (selectedBill.table_items[0].plan_name || '').toLowerCase().includes('outstation'))
+                              ((selectedBill.table_items[0].plan_type || '').toLowerCase() === 'outstation' ||
+                                (selectedBill.table_items[0].plan_name || '').toLowerCase().includes('outstation'))
                               ? 'KM Rate'
                               : 'Rate'}
                           </th>
@@ -1146,7 +1158,7 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                           <span>Toll / Parking:</span>
                           <span className="font-semibold font-mono">₹{(parseFloat(selectedBill.toll_amount) || 0).toLocaleString()}</span>
                         </div>
-                        
+
                         {(parseFloat(selectedBill.parking_amount) || 0) > 0 && (
                           <div className="flex justify-between text-slate-600">
                             <span>Parking Charges:</span>
@@ -1179,10 +1191,14 @@ export default function BillList({ navigateTo, setEditingBillId, viewingBillId, 
                   </div>
                   <div className="flex flex-col justify-end items-end h-full">
                     <div className="flex flex-col items-center">
-                      {user?.stamp ? (
-                        <img src={user.stamp} alt="Business Stamp" className="h-36 object-contain -mb-5 -mt-10 relative z-10 opacity-90" />
+                      {showStamp ? (
+                        user?.stamp ? (
+                          <img src={user.stamp} alt="Business Stamp" className="h-36 object-contain -mb-5 -mt-10 relative z-10 opacity-90" />
+                        ) : (
+                          <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 -mt-10 relative z-10 opacity-90" />
+                        )
                       ) : (
-                        <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 -mt-10 relative z-10 opacity-90" />
+                        <div className="h-20 w-full"></div>
                       )}
                       <div className="w-44 border-t border-slate-400 text-center pt-2 relative z-20">
                         <p className="font-bold text-slate-800 text-[10px]">Authorized Signature</p>

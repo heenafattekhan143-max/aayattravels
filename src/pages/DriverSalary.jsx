@@ -570,12 +570,12 @@ export default function DriverSalary({ navigateTo }) {
 
       {/* ── DETAIL MODAL DRAWER ── */}
       {activeDetailDriver && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 no-print animate-fade-in">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-2 sm:p-4 no-print animate-fade-in">
           <div className="bg-slate-950 border border-slate-800 w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden rounded-2xl">
 
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-800/80 bg-slate-900/40 flex justify-between items-center shrink-0">
-              <div className="flex items-center gap-3">
+            <div className="p-4 sm:p-6 border-b border-slate-800/80 bg-slate-900/40 flex flex-col sm:flex-row justify-between items-start sm:items-center shrink-0 gap-4 relative">
+              <div className="flex items-center gap-3 pr-10">
                 <button
                   onClick={() => setSelectedDriver(null)}
                   className="p-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-50 rounded-lg transition"
@@ -587,42 +587,44 @@ export default function DriverSalary({ navigateTo }) {
                   <p className="text-xs text-slate-500">Trip log and compensation details for {activeDetailDriver.name}</p>
                 </div>
               </div>
-              <div className="flex gap-2 flex-wrap">
+              
+              <button
+                onClick={() => setSelectedDriver(null)}
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div className="flex gap-2 flex-wrap w-full sm:w-auto mt-2 sm:mt-0">
                 <button
                   onClick={handlePrint}
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-lg transition"
+                  className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-lg transition"
                 >
-                  <Printer className="h-3.5 w-3.5" /> Print Salary Slip
+                  <Printer className="h-3.5 w-3.5" /> Print
                 </button>
                 <button
                   onClick={() => { setIsAdvanceModalOpen(true); }}
-                  className="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-lg transition"
+                  className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-lg transition"
                 >
-                  <Plus className="h-3.5 w-3.5" /> Send Advance
+                  <Plus className="h-3.5 w-3.5" /> Advance
                 </button>
                 <button
                   onClick={() => setIsAdvancesListModalOpen(true)}
-                  className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-lg transition"
+                  className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-lg transition"
                 >
                   <History className="h-3.5 w-3.5" /> History
-                </button>
-                <button
-                  onClick={() => setSelectedDriver(null)}
-                  className="p-2 text-slate-400 hover:text-slate-50 hover:bg-slate-800 rounded-lg transition"
-                >
-                  <X className="h-5 w-5" />
                 </button>
               </div>
 
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-2 sm:p-6 space-y-4 sm:space-y-6">
               {/* Driver & Salary Summary Card */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                 {/* Driver Profile */}
-                <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-900/10 space-y-2.5">
+                <div className="glass-panel p-3 sm:p-4 rounded-xl border border-slate-800 bg-slate-900/10 space-y-2.5">
                   <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Driver Details</div>
                   <div className="space-y-1.5 text-xs text-slate-300">
                     <div className="font-bold text-sm text-slate-50">{activeDetailDriver.name}</div>
@@ -637,7 +639,7 @@ export default function DriverSalary({ navigateTo }) {
                 </div>
 
                 {/* Rates Card */}
-                <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-900/10 space-y-2.5">
+                <div className="glass-panel p-3 sm:p-4 rounded-xl border border-slate-800 bg-slate-900/10 space-y-2.5">
                   <div className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Approved Rates</div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
@@ -653,7 +655,7 @@ export default function DriverSalary({ navigateTo }) {
                 </div>
 
                 {/* Calculation Summary Card */}
-                <div className="glass-panel p-4 rounded-xl border border-slate-800/80 bg-indigo-950/20 shadow-lg space-y-2">
+                <div className="glass-panel p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-indigo-950/20 shadow-lg space-y-2">
                   <div className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Salary Summary ({getMonthName(selectedMonth)} {selectedYear})</div>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between text-slate-400">
@@ -682,7 +684,7 @@ export default function DriverSalary({ navigateTo }) {
               </div>
 
               {/* Booking List Filters */}
-              <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-900/10 space-y-3">
+              <div className="glass-panel p-3 sm:p-4 rounded-xl border border-slate-800 bg-slate-900/10 space-y-3">
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Filter Trip History</div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {/* Search customer/vehicle */}

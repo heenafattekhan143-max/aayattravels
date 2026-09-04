@@ -29,14 +29,14 @@ import { useAuth } from '../context/AuthContext';
 
 export default function EventBilling({ navigateTo, editingEventBillId, setEditingEventBillId }) {
   const { user } = useAuth();
-  const bizName    = user?.businessName || 'My Business';
-  const bizAddress = user?.address      || '';
-  const bizPhone   = user?.phone        || '';
-  const bizEmail   = user?.email        || '';
-  const bizGstin   = user?.gstin        || '';
-  const bizSac     = user?.sacCode      || '998559';
-  const bizState   = user?.state        || '27-Maharashtra';
-  const bizLogo    = user?.logo         || null;
+  const bizName = user?.businessName || 'My Business';
+  const bizAddress = user?.address || '';
+  const bizPhone = user?.phone || '';
+  const bizEmail = user?.email || '';
+  const bizGstin = user?.gstin || '';
+  const bizSac = user?.sacCode || '998559';
+  const bizState = user?.state || '27-Maharashtra';
+  const bizLogo = user?.logo || null;
   // Master Lists
   const [allCustomers, setAllCustomers] = useState([]);
   const [allVehicles, setAllVehicles] = useState([]);
@@ -71,6 +71,7 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showStamp, setShowStamp] = useState(true);
   const [generatedBillNo, setGeneratedBillNo] = useState('');
 
   // Event Bookings State
@@ -318,10 +319,10 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
     return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
   };
   const isFormValidForBooking = clientName.trim() !== '' && eventName.trim() !== '' && eventLocation.trim() !== '' && startDate && endDate && totalVehiclesCount > 0;
-  
+
   const activeBookingsCount = pendingBookings.filter(b => b.booking_status !== 'Cancelled').length;
   const effectiveVehiclesCount = activeBookingsCount > 0 ? activeBookingsCount : (parseInt(totalVehiclesCount) || 0);
-  
+
   const isAddBookingDisabled = !isFormValidForBooking || pendingBookings.length >= totalVehiclesCount;
 
   const vehicleClassSummary = React.useMemo(() => {
@@ -438,11 +439,10 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                     const cleaned = e.target.value.replace(/\D/g, '');
                     setTotalDays(cleaned ? parseInt(cleaned) : '');
                   }}
-                  className={`w-full border outline-none rounded-xl px-4 py-2.5 text-sm font-black font-mono transition text-center ${
-                    pendingBookings.length > 0 
-                      ? 'bg-slate-950/40 border-slate-800 text-slate-500 cursor-not-allowed' 
+                  className={`w-full border outline-none rounded-xl px-4 py-2.5 text-sm font-black font-mono transition text-center ${pendingBookings.length > 0
+                      ? 'bg-slate-950/40 border-slate-800 text-slate-500 cursor-not-allowed'
                       : 'bg-slate-950/60 border-slate-700 focus:border-indigo-500 text-slate-300'
-                  }`}
+                    }`}
                 />
               </div>
 
@@ -463,7 +463,7 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
             </div>
           </div>
 
-        {/* Section: Event Bookings */}
+          {/* Section: Event Bookings */}
           <div className="glass-panel p-6 rounded-2xl border border-slate-700/50 shadow-xl space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-slate-800">
               <h2 className="text-sm font-bold text-slate-50 uppercase tracking-wider flex items-center gap-2">
@@ -476,11 +476,10 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                 type="button"
                 disabled={isAddBookingDisabled}
                 onClick={() => setIsBookingModalOpen(true)}
-                className={`px-3 py-1.5 text-white text-xs font-bold rounded-lg shadow-lg transition duration-150 ${
-                  isAddBookingDisabled 
-                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-60' 
+                className={`px-3 py-1.5 text-white text-xs font-bold rounded-lg shadow-lg transition duration-150 ${isAddBookingDisabled
+                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-60'
                     : 'bg-emerald-600 hover:bg-emerald-500'
-                }`}
+                  }`}
                 title={!isFormValidForBooking ? "Please fill all event details above to add bookings" : ""}
               >
                 + Add Event Booking
@@ -506,47 +505,47 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                     {pendingBookings.map((b, bIdx) => {
                       const isCancelled = b.booking_status === 'Cancelled';
                       return (
-                      <tr key={b.id || bIdx} className={`group border-b border-slate-800/30 ${isCancelled ? 'opacity-50 bg-rose-950/10' : 'hover:bg-slate-800/20'}`}>
-                        <td className="py-2 px-2">
-                          <div className="flex flex-col">
-                            <span className={`font-medium ${isCancelled ? 'line-through text-slate-500' : 'text-slate-300'}`}>{formatDate(b.journey_date)}</span>
-                            <span className="text-[10px] text-indigo-400 font-mono font-bold mt-0.5">{b.pickup_time}</span>
-                          </div>
-                        </td>
-                        <td className={`py-2 px-2 font-semibold ${isCancelled ? 'line-through text-slate-500' : 'text-slate-300'}`}>{b.customer_name || '—'}</td>
-                        <td className={`py-2 px-2 font-bold ${isCancelled ? 'text-slate-600' : 'text-slate-200'}`}>{b.vehicle_number}</td>
-                        <td className={`py-2 px-2 ${isCancelled ? 'text-slate-600' : 'text-slate-300'}`}>{b.driver_name}</td>
-                        <td className={`py-2 px-2 font-mono font-bold ${isCancelled ? 'line-through text-slate-600' : 'text-emerald-400'}`}>₹{b.rate || 0}</td>
-                        <td className={`py-2 px-2 truncate max-w-[120px] hidden md:table-cell ${isCancelled ? 'text-slate-600' : 'text-slate-400'}`}>{b.pickup_location}</td>
-                        <td className={`py-2 px-2 truncate max-w-[120px] hidden md:table-cell ${isCancelled ? 'text-slate-600' : 'text-slate-400'}`}>{b.drop_location}</td>
-                        <td className="py-2 pl-2 text-right">
-                          {isCancelled ? (
-                            <span className="text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded-lg">Cancelled</span>
-                          ) : (
-                          <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingBookingIndex(bIdx);
-                              setIsBookingModalOpen(true);
-                            }}
-                            className="p-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg hover:bg-indigo-500 hover:text-white transition duration-150 mr-2"
-                            title="Edit Booking"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPendingBookings(prev => prev.filter((_, i) => i !== bIdx))}
-                            className="p-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg hover:bg-rose-500 hover:text-white transition duration-150"
-                            title="Delete Booking"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                          </>
-                          )}
-                        </td>
-                      </tr>
+                        <tr key={b.id || bIdx} className={`group border-b border-slate-800/30 ${isCancelled ? 'opacity-50 bg-rose-950/10' : 'hover:bg-slate-800/20'}`}>
+                          <td className="py-2 px-2">
+                            <div className="flex flex-col">
+                              <span className={`font-medium ${isCancelled ? 'line-through text-slate-500' : 'text-slate-300'}`}>{formatDate(b.journey_date)}</span>
+                              <span className="text-[10px] text-indigo-400 font-mono font-bold mt-0.5">{b.pickup_time}</span>
+                            </div>
+                          </td>
+                          <td className={`py-2 px-2 font-semibold ${isCancelled ? 'line-through text-slate-500' : 'text-slate-300'}`}>{b.customer_name || '—'}</td>
+                          <td className={`py-2 px-2 font-bold ${isCancelled ? 'text-slate-600' : 'text-slate-200'}`}>{b.vehicle_number}</td>
+                          <td className={`py-2 px-2 ${isCancelled ? 'text-slate-600' : 'text-slate-300'}`}>{b.driver_name}</td>
+                          <td className={`py-2 px-2 font-mono font-bold ${isCancelled ? 'line-through text-slate-600' : 'text-emerald-400'}`}>₹{b.rate || 0}</td>
+                          <td className={`py-2 px-2 truncate max-w-[120px] hidden md:table-cell ${isCancelled ? 'text-slate-600' : 'text-slate-400'}`}>{b.pickup_location}</td>
+                          <td className={`py-2 px-2 truncate max-w-[120px] hidden md:table-cell ${isCancelled ? 'text-slate-600' : 'text-slate-400'}`}>{b.drop_location}</td>
+                          <td className="py-2 pl-2 text-right">
+                            {isCancelled ? (
+                              <span className="text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded-lg">Cancelled</span>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingBookingIndex(bIdx);
+                                    setIsBookingModalOpen(true);
+                                  }}
+                                  className="p-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg hover:bg-indigo-500 hover:text-white transition duration-150 mr-2"
+                                  title="Edit Booking"
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setPendingBookings(prev => prev.filter((_, i) => i !== bIdx))}
+                                  className="p-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg hover:bg-rose-500 hover:text-white transition duration-150"
+                                  title="Delete Booking"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
                       );
                     })}
                   </tbody>
@@ -664,7 +663,7 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                 <span className="text-indigo-400 text-sm">Final Bill:</span>
                 <span className="text-indigo-300 font-mono text-xl">₹{finalBillAmount.toLocaleString('en-IN')}</span>
               </div>
-              
+
               {parseFloat(advanceAmount) > 0 && (
                 <div className="flex justify-between text-slate-400 font-medium">
                   <span>Advance Received:</span>
@@ -718,28 +717,39 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
               <div className="flex items-center gap-2">
                 <span className="text-slate-800 font-black text-sm">PDF Format Invoice Preview</span>
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow hover:bg-indigo-500 transition"
-                >
-                  <Printer className="h-4 w-4" /> Print / Download PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPreviewModal(false);
-                  }}
-                  className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 rounded-lg transition"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm text-slate-700 font-medium cursor-pointer hover:text-slate-900 transition print:hidden">
+                  <input
+                    type="checkbox"
+                    className="rounded bg-white border-slate-300 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                    checked={showStamp}
+                    onChange={(e) => setShowStamp(e.target.checked)}
+                  />
+                  Show Stamp
+                </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow hover:bg-indigo-500 transition"
+                  >
+                    <Printer className="h-4 w-4" /> Print / Download PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPreviewModal(false);
+                    }}
+                    className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 rounded-lg transition"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Printable PDF Area */}
-            <div id="invoice-print-area" className="bg-white text-slate-900 p-8 md:p-12 rounded-xl text-left print-border min-h-[11in] flex flex-col justify-between">
+            <div id="invoice-print-area" className="invoice-theme bg-white text-slate-900 p-8 md:p-12 rounded-xl text-left print-border min-h-[11in] flex flex-col justify-between">
               <div>
                 {/* Top Company Header Box */}
                 <div className="border border-slate-700 text-xs text-slate-800">
@@ -956,10 +966,14 @@ export default function EventBilling({ navigateTo, editingEventBillId, setEditin
                 </div>
                 <div className="text-right flex flex-col justify-end items-end">
                   <p className="font-bold text-slate-700 uppercase mb-0">For {bizName.toUpperCase()}</p>
-                  {user?.stamp ? (
-                    <img src={user.stamp} alt="Business Stamp" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                  {showStamp ? (
+                    user?.stamp ? (
+                      <img src={user.stamp} alt="Business Stamp" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                    ) : (
+                      <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                    )
                   ) : (
-                    <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                    <div className="h-20 w-full"></div>
                   )}
                   <p className="font-bold text-slate-400 border-t border-dashed border-slate-300 pt-1 w-44 text-center uppercase tracking-widest relative z-20">Authorized Signatory</p>
                 </div>

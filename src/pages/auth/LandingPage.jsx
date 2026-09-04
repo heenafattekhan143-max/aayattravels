@@ -1,29 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Car, Star, Shield, Zap, Globe, CheckCircle, ArrowRight, Menu, X, TrendingUp, Clock, Users } from 'lucide-react';
+import { Car, Star, Calendar, Shield, Zap, Globe, CheckCircle, ArrowRight, Menu, X, TrendingUp, Clock, Users, BarChart2, FileSpreadsheet, BookOpen, Wrench, CreditCard, Wallet, Smartphone } from 'lucide-react';
 
 const features = [
-  { icon: Zap,        title: 'Smart Booking',       desc: 'Real-time scheduling & automated alerts for every trip.',        color: 'indigo' },
-  { icon: Shield,     title: 'Role-Based Access',    desc: 'Enterprise-grade security. Control what each member sees.',       color: 'emerald' },
-  { icon: Globe,      title: 'Fleet Overview',       desc: 'Every vehicle, driver and trip on one powerful dashboard.',       color: 'sky' },
-  { icon: Star,       title: 'GST Billing',          desc: 'Generate professional invoices instantly, GST compliant.',        color: 'amber' },
-  { icon: TrendingUp, title: 'Revenue Analytics',    desc: 'Visual reports on earnings, expenses, and growth trends.',        color: 'violet' },
-  { icon: Users,      title: 'Driver Management',    desc: 'Track salaries, assign trips, monitor driver performance.',      color: 'rose' },
+  { icon: Zap,        title: 'Smart Booking',      desc: 'Real-time scheduling & automated alerts for every trip.',          color: 'indigo'  },
+  { icon: Calendar,   title: 'Event Management',    desc: 'Plan & bill events effortlessly — weddings, corporate trips & more.', color: 'emerald' },
+  { icon: Globe,      title: 'Fleet Overview',      desc: 'Every vehicle, driver and trip on one powerful dashboard.',          color: 'sky'     },
+  { icon: Star,       title: 'GST Billing',         desc: 'Generate professional invoices instantly, GST compliant.',           color: 'amber'   },
+  { icon: TrendingUp, title: 'Revenue Analytics',   desc: 'Visual reports on earnings, expenses, and growth trends.',           color: 'violet'  },
+  { icon: Users,      title: 'Driver Management',   desc: 'Track salaries, assign trips, monitor driver performance.',          color: 'rose'    },
+  { icon: Smartphone, title: 'Mobile Responsive',   desc: 'Fully optimised for all devices — phones, tablets & desktops.',     color: 'teal'    },
 ];
 
 const colorMap = {
-  indigo:  { bg: 'bg-indigo-500/10',  border: 'border-indigo-500/20',  icon: 'text-indigo-400',  glow: 'hover:shadow-indigo-500/20' },
+  indigo: { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', icon: 'text-indigo-400', glow: 'hover:shadow-indigo-500/20' },
   emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: 'text-emerald-400', glow: 'hover:shadow-emerald-500/20' },
-  sky:     { bg: 'bg-sky-500/10',     border: 'border-sky-500/20',     icon: 'text-sky-400',     glow: 'hover:shadow-sky-500/20' },
-  amber:   { bg: 'bg-amber-500/10',   border: 'border-amber-500/20',   icon: 'text-amber-400',   glow: 'hover:shadow-amber-500/20' },
-  violet:  { bg: 'bg-violet-500/10',  border: 'border-violet-500/20',  icon: 'text-violet-400',  glow: 'hover:shadow-violet-500/20' },
-  rose:    { bg: 'bg-rose-500/10',    border: 'border-rose-500/20',    icon: 'text-rose-400',    glow: 'hover:shadow-rose-500/20' },
+  sky: { bg: 'bg-sky-500/10', border: 'border-sky-500/20', icon: 'text-sky-400', glow: 'hover:shadow-sky-500/20' },
+  amber: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', icon: 'text-amber-400', glow: 'hover:shadow-amber-500/20' },
+  violet: { bg: 'bg-violet-500/10', border: 'border-violet-500/20', icon: 'text-violet-400', glow: 'hover:shadow-violet-500/20' },
+  rose:    { bg: 'bg-rose-500/10',   border: 'border-rose-500/20',   icon: 'text-rose-400',   glow: 'hover:shadow-rose-500/20'   },
+  teal:    { bg: 'bg-teal-500/10',   border: 'border-teal-500/20',   icon: 'text-teal-400',   glow: 'hover:shadow-teal-500/20'   },
 };
 
 const stats = [
-  { value: '10K+',  label: 'Bookings Managed', icon: TrendingUp },
-  { value: '500+',  label: 'Businesses',        icon: Users },
-  { value: '99.9%', label: 'Uptime',            icon: Shield },
-  { value: '24/7',  label: 'Support',           icon: Clock },
+  { value: '10K+', label: 'Bookings Managed', icon: TrendingUp },
+  { value: '500+', label: 'Businesses', icon: Users },
+  { value: '99.9%', label: 'Uptime', icon: Shield },
+  { value: '24/7', label: 'Support', icon: Clock },
 ];
 
 // Floating stat badge component
@@ -76,10 +78,10 @@ export default function LandingPage({ onNavigate }) {
       {/* ===== ANIMATED BACKGROUND ===== */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-60 -left-60 w-[700px] h-[700px] bg-indigo-600/20 rounded-full blur-[140px] animate-pulse" />
-        <div className="absolute top-1/2 -right-60 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[120px] animate-pulse" style={{animationDelay:'1.5s'}} />
-        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-sky-600/10 rounded-full blur-[100px] animate-pulse" style={{animationDelay:'3s'}} />
+        <div className="absolute top-1/2 -right-60 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-sky-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '3s' }} />
         {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage:'linear-gradient(#818cf8 1px,transparent 1px),linear-gradient(90deg,#818cf8 1px,transparent 1px)',backgroundSize:'60px 60px'}} />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#818cf8 1px,transparent 1px),linear-gradient(90deg,#818cf8 1px,transparent 1px)', backgroundSize: '60px 60px' }} />
       </div>
 
       {/* ===== NAVBAR ===== */}
@@ -90,14 +92,14 @@ export default function LandingPage({ onNavigate }) {
               <Car className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="font-extrabold text-slate-50 text-xl tracking-tight">Premier Fleet Management System</span>
-              <span className="text-[10px] text-indigo-400 font-semibold tracking-widest uppercase block leading-none">From Booking to Billing, All in One .</span>
+              <span className="font-extrabold text-slate-50 text-base sm:text-xl tracking-tight leading-tight">Premier Fleet Management System</span>
+              <span className="text-[10px] text-indigo-400 font-semibold tracking-widest uppercase block leading-none hidden sm:block">From Booking to Billing, All in One .</span>
             </div>
           </div>
 
           <nav className="hidden md:flex items-center gap-8">
             {['Features', 'Pricing', 'Contact'].map((item, i) => (
-              <a key={item} href={`#${item.toLowerCase()}`} style={{animationDelay:`${i*0.1}s`}}
+              <a key={item} href={`#${item.toLowerCase()}`} style={{ animationDelay: `${i * 0.1}s` }}
                 className="text-sm text-slate-400 hover:text-slate-100 transition animate-fade-in-down opacity-0-init">{item}</a>
             ))}
           </nav>
@@ -230,7 +232,7 @@ export default function LandingPage({ onNavigate }) {
           {/* Live stats strip */}
           <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((s, i) => (
-              <div key={s.label} className={`bg-slate-900/60 border border-slate-700/50 rounded-2xl p-4 text-center animate-fade-in-up opacity-0-init`} style={{animationDelay:`${i*0.1+0.5}s`}}>
+              <div key={s.label} className={`bg-slate-900/60 border border-slate-700/50 rounded-2xl p-4 text-center animate-fade-in-up opacity-0-init`} style={{ animationDelay: `${i * 0.1 + 0.5}s` }}>
                 <s.icon className="h-5 w-5 text-indigo-400 mx-auto mb-2" />
                 <div className="text-2xl font-black text-slate-50">{s.value}</div>
                 <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
@@ -254,7 +256,7 @@ export default function LandingPage({ onNavigate }) {
               const c = colorMap[f.color];
               return (
                 <div key={f.title} className={`group p-6 rounded-2xl border ${c.border} ${c.bg} hover:shadow-xl ${c.glow} transition-all duration-300 hover:-translate-y-1 cursor-default animate-fade-in-up opacity-0-init`}
-                  style={{animationDelay:`${i*0.1}s`}}>
+                  style={{ animationDelay: `${i * 0.1}s` }}>
                   <div className={`w-11 h-11 rounded-xl ${c.bg} border ${c.border} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                     <f.icon className={`h-5 w-5 ${c.icon}`} />
                   </div>
@@ -273,7 +275,7 @@ export default function LandingPage({ onNavigate }) {
           <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/60">
             <img src="/login-bg.png" alt="Indian city highways at night" className="w-full h-72 sm:h-96 object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-[#020617]/90 via-[#020617]/50 to-transparent" />
-            <div className="absolute inset-0 flex items-center px-10 sm:px-16">
+            <div className="absolute inset-0 flex items-center px-5 sm:px-10 md:px-16">
               <div className="max-w-lg">
                 <h3 className="text-2xl sm:text-3xl font-black text-white mb-4 leading-tight">
                   Built for the Roads of India
@@ -291,9 +293,183 @@ export default function LandingPage({ onNavigate }) {
         </div>
       </section>
 
+      {/* ===== REPORTS SECTION ===== */}
+      <section className="relative z-10 py-20 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-400 text-xs font-bold tracking-widest uppercase mb-4">
+              Powerful Reports
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-50 mb-3">Data-Driven Insights</h2>
+            <p className="text-slate-400 text-lg max-w-xl mx-auto">
+              Generate, filter, and export detailed reports across every area of your business.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: BarChart2, color: 'indigo', title: 'Sales Report', desc: 'Track all sales bills, pending dues & revenue trends.' },
+              { icon: Users, color: 'emerald', title: 'Vendor Report', desc: 'Monitor vendor-wise payments, outstanding & history.' },
+              { icon: BookOpen, color: 'sky', title: 'Bookings Report', desc: 'Complete booking history with trip & vehicle details.' },
+              { icon: Wrench, color: 'amber', title: 'Maintenance Report', desc: 'Vehicle-wise service records, costs & schedules.' },
+              { icon: Users, color: 'rose', title: 'Driver Report', desc: 'Driver assignments, salary, and trip performance.' },
+              { icon: CreditCard, color: 'violet', title: 'Payments Report', desc: 'Vendor payment ledger — paid, pending & history.' },
+              { icon: Wallet, color: 'teal', title: 'Advances Report', desc: 'Driver & vendor advance tracking with balance view.' },
+              { icon: FileSpreadsheet, color: 'green', title: 'Excel Export', desc: 'Export any report to Excel with one click instantly.' },
+            ].map(r => {
+              const cm = {
+                indigo: { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', ic: 'text-indigo-400' },
+                emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', ic: 'text-emerald-400' },
+                sky: { bg: 'bg-sky-500/10', border: 'border-sky-500/20', ic: 'text-sky-400' },
+                amber: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', ic: 'text-amber-400' },
+                rose: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', ic: 'text-rose-400' },
+                violet: { bg: 'bg-violet-500/10', border: 'border-violet-500/20', ic: 'text-violet-400' },
+                teal: { bg: 'bg-teal-500/10', border: 'border-teal-500/20', ic: 'text-teal-400' },
+                green: { bg: 'bg-green-500/10', border: 'border-green-500/20', ic: 'text-green-400' },
+              }[r.color];
+              return (
+                <div key={r.title} className={`group p-5 rounded-2xl border ${cm.border} ${cm.bg} hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-default`}>
+                  <div className={`w-10 h-10 rounded-xl ${cm.bg} border ${cm.border} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                    <r.icon className={`h-5 w-5 ${cm.ic}`} />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-100 mb-1">{r.title}</h3>
+                  <p className="text-slate-400 text-xs leading-relaxed">{r.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== PRICING SECTION ===== */}
+
+      <section id="pricing" className="relative z-10 py-24 px-4 sm:px-6">
+        {/* Background glow */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
+        </div>
+
+        <div className="max-w-6xl mx-auto relative">
+          {/* Heading */}
+          <div className="text-center mb-14">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs font-bold tracking-widest uppercase mb-4">
+              Simple Pricing
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-50 mb-4 leading-tight">
+              Plans for Every Business
+            </h2>
+            <p className="text-slate-400 text-lg max-w-xl mx-auto">
+              Start with a 7-day free trial. No credit card required. Cancel anytime.
+            </p>
+          </div>
+
+          {/* Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+
+            {/* ── 1 Month ── */}
+            <div className="relative flex flex-col bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-8 shadow-xl hover:border-indigo-500/40 hover:shadow-indigo-500/10 transition-all duration-300 group">
+              <div className="mb-6">
+                <p className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Starter</p>
+                <h3 className="text-2xl font-black text-slate-50 mb-1">1 Month</h3>
+                <div className="flex items-end gap-1 mt-3">
+                  <span className="text-4xl font-black text-slate-50">₹999</span>
+                  <span className="text-slate-400 text-sm mb-1.5"></span>
+                </div>
+
+              </div>
+
+              <ul className="space-y-3 flex-1 mb-8">
+                {['200 Bookings per Month', 'GST-Compliant Billing', 'Fleet & Driver Management', 'Customer & Vendor Business Accounting', 'Invoice PDF (With & Without Stamp)', 'Booking Screen Management', 'Vehicle Maintenance Tracking', 'Event Billing Module', 'Driver Salary & Advance Payment Management', 'Reports & Excel Export'].map(f => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-300">
+                    <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <button onClick={() => onNavigate('register')}
+                className="w-full py-3.5 rounded-xl font-bold text-sm border border-slate-600 text-slate-200 hover:border-indigo-500 hover:text-white hover:bg-indigo-500/10 transition-all duration-200">
+                Get Started
+              </button>
+            </div>
+
+            {/* ── 6 Months ── */}
+            <div className="relative flex flex-col bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-8 shadow-xl hover:border-indigo-500/40 hover:shadow-indigo-500/10 transition-all duration-300 group">
+
+              <div className="mb-6">
+                <p className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Growth</p>
+                <h3 className="text-2xl font-black text-slate-50 mb-1">6 Months</h3>
+                <div className="flex items-end gap-1 mt-3">
+                  <span className="text-4xl font-black text-slate-50">₹4999</span>
+                  <span className="text-slate-400 text-sm mb-1.5"></span>
+                </div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-slate-400 text-xs line-through">₹5,994</span>
+                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[11px] font-bold rounded-full border border-emerald-500/30">Save 17%</span>
+                </div>
+
+              </div>
+
+              <ul className="space-y-3 flex-1 mb-8">
+                {['250 Bookings per Month', 'GST-Compliant Billing', 'Fleet & Driver Management', 'Customer & Vendor Business Accounting', 'Invoice PDF (With & Without Stamp)', 'Booking Screen Management', 'Vehicle Maintenance Tracking', 'Event Billing Module', 'Driver Salary & Advance Payment Management', 'Reports & Excel Export'].map(f => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-300">
+                    <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <button onClick={() => onNavigate('register')}
+                className="w-full py-3.5 rounded-xl font-bold text-sm border border-slate-600 text-slate-200 hover:border-indigo-500 hover:text-white hover:bg-indigo-500/10 transition-all duration-200">
+                Get Started
+              </button>
+            </div>
+
+            {/* ── 1 Year (POPULAR) ── */}
+            <div className="relative flex flex-col bg-gradient-to-b from-indigo-600/25 to-slate-900/80 backdrop-blur-xl border-2 border-indigo-500/70 rounded-3xl p-8 shadow-2xl shadow-indigo-500/20 md:scale-[1.03] z-10">
+              {/* Popular badge */}
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-full shadow-lg shadow-indigo-500/40 tracking-wide">
+                  ⭐ Most Popular
+                </span>
+              </div>
+
+              <div className="mb-6 mt-2">
+                <p className="text-indigo-400 text-sm font-semibold uppercase tracking-wider mb-1">Pro</p>
+                <h3 className="text-2xl font-black text-slate-50 mb-1">1 Year</h3>
+                <div className="flex items-end gap-1 mt-3">
+                  <span className="text-4xl font-black text-white">₹9999</span>
+                  <span className="text-slate-300 text-sm mb-1.5"></span>
+                </div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-slate-400 text-xs line-through">₹11,988</span>
+                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[11px] font-bold rounded-full border border-emerald-500/30">Save 17%</span>
+                </div>
+
+              </div>
+
+              <ul className="space-y-3 flex-1 mb-8">
+                {['350 Bookings per Month', 'GST-Compliant Billing', 'Fleet & Driver Management', 'Customer & Vendor Business Accounting', 'Invoice PDF (With & Without Stamp)', 'Booking Screen Management', 'Vehicle Maintenance Tracking', 'Event Billing Module', 'Driver Salary & Advance Payment Management', 'Reports & Excel Export'].map(f => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-200">
+                    <span className="w-4 h-4 rounded-full bg-indigo-500 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <button onClick={() => onNavigate('register')}
+                className="w-full py-3.5 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/30 transition-all duration-200 hover:shadow-indigo-500/50">
+                Get Started →
+              </button>
+            </div>
+          </div>
+
+
+        </div>
+      </section>
+
       {/* ===== CTA BANNER ===== */}
-      <section id="pricing" className="relative z-10 py-20 px-4 sm:px-6">
-        <div className="max-w-3xl mx-auto text-center bg-gradient-to-br from-indigo-600/20 via-violet-600/10 to-slate-900 border border-indigo-500/25 rounded-3xl p-12 shadow-2xl shadow-indigo-500/10">
+      <section className="relative z-10 py-10 px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto text-center bg-gradient-to-br from-indigo-600/20 via-violet-600/10 to-slate-900 border border-indigo-500/25 rounded-3xl p-6 sm:p-12 shadow-2xl shadow-indigo-500/10">
           <h2 className="text-3xl sm:text-4xl font-black text-slate-50 mb-4">Ready to Transform Your Business?</h2>
           <p className="text-slate-400 mb-8 text-lg">
             Join hundreds of travel businesses already using Miracrest Group to streamline their operations.

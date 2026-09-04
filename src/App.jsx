@@ -166,7 +166,7 @@ function AppContent() {
   const [customerForReceivedPayment, setCustomerForReceivedPayment] = useState(null);
   const [viewingBillId, setViewingBillId] = useState(null);
   const [returnToRoute, setReturnToRoute] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());

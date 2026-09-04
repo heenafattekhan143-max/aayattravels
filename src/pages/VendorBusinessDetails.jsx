@@ -335,6 +335,13 @@ export default function VendorBusinessDetails({ isOpen, onClose, vendorId }) {
   return (
     <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
       <div className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-2xl relative custom-scrollbar">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 p-2.5 rounded-xl bg-slate-900/80 backdrop-blur-sm border border-slate-700 hover:border-rose-500 hover:bg-rose-500/10 transition text-slate-300 hover:text-rose-400 shadow-lg"
+          title="Close"
+        >
+          <X className="h-5 w-5" />
+        </button>
         <div className="w-full px-4 sm:px-6 py-6 space-y-6 min-w-0">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -345,14 +352,14 @@ export default function VendorBusinessDetails({ isOpen, onClose, vendorId }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto justify-between md:justify-end">
               {/* Filters */}
-              <div className="flex flex-wrap items-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
-                <div className="flex items-center gap-2 pl-2 text-slate-400 border-r border-slate-700 pr-3 shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50 flex-1 sm:flex-none">
+                <div className="flex items-center gap-2 pl-2 text-slate-400 border-b sm:border-b-0 sm:border-r border-slate-700 pb-2 sm:pb-0 pr-3 shrink-0">
                   <Filter className="h-4 w-4" />
                   <span className="text-xs font-semibold uppercase">Date</span>
                 </div>
-                <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 sm:min-w-[200px]">
                   <div className="flex-1 sm:w-32 relative">
                     <CustomDatePicker
                       value={startDate}
@@ -383,13 +390,6 @@ export default function VendorBusinessDetails({ isOpen, onClose, vendorId }) {
                 )}
               </div>
 
-              <button
-                onClick={onClose}
-                className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-rose-500 hover:bg-rose-500/10 transition text-slate-300 hover:text-rose-400"
-                title="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
             </div>
           </div>
 
@@ -406,7 +406,7 @@ export default function VendorBusinessDetails({ isOpen, onClose, vendorId }) {
                   {isPayable ? '(Payable to them)' : netBalance > 0 ? '(Receivable from them)' : 'Settled'}
                 </p>
               </div>
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-wrap gap-2 mt-4">
                 {isPayable && (
                   <button
                     onClick={() => setIsModalOpen(true)}

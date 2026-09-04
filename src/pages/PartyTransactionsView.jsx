@@ -31,6 +31,7 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
   const [payAmount, setPayAmount] = useState('');
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingTxn, setViewingTxn] = useState(null);
+  const [showStamp, setShowStamp] = useState(true);
   const [customerDetails, setCustomerDetails] = useState(null);
   const [bookingDetails, setBookingDetails] = useState(null);
   const [payError, setPayError] = useState('');
@@ -393,10 +394,10 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
   };
 
   return (
-    <div className="h-full flex bg-slate-900 overflow-hidden text-slate-100 rounded-lg border border-slate-800">
+    <div className="h-full flex flex-col md:flex-row bg-slate-900 overflow-y-auto md:overflow-hidden text-slate-100 rounded-lg border border-slate-800">
 
       {/* LEFT PANE - Parties List */}
-      <div className="w-80 border-r border-slate-800 flex flex-col bg-slate-950/50 shrink-0">
+      <div className="w-full md:w-80 h-1/3 min-h-[300px] md:h-auto md:border-r border-b md:border-b-0 border-slate-800 flex flex-col bg-slate-950/50 shrink-0">
         <div className="p-4 border-b border-slate-800 bg-slate-900/50">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-slate-200">{title} <span className="text-slate-500 text-xs">v</span></h2>
@@ -478,11 +479,11 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
       </div>
 
       {/* RIGHT PANE - Party Details & Transactions */}
-      <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
+      <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden relative min-h-[600px] md:min-h-0">
         {selectedParty ? (
           <>
             {/* Top Header */}
-            <div className="px-6 py-5 border-b border-slate-800 bg-slate-900/30 flex justify-between items-center">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-800 bg-slate-900/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <h1 className="text-xl font-bold text-slate-100 uppercase tracking-wider">{selectedParty.name}</h1>
@@ -496,8 +497,8 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border ${type === 'vendor' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
+              <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+                <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border w-full sm:w-auto ${type === 'vendor' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
                   <span className={`text-xs font-semibold uppercase tracking-wider ${type === 'vendor' ? 'text-rose-300' : 'text-emerald-300'}`}>Total Bills Amount</span>
                   <span className={`text-lg font-bold font-mono ${type === 'vendor' ? 'text-rose-400' : 'text-emerald-400'}`}>
                     ₹{totalSale.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -517,8 +518,8 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
             {/* Transactions Section */}
             <div className="flex-1 flex flex-col min-h-0">
               {/* Filter + Total bar */}
-              <div className="px-6 py-3 flex flex-wrap justify-between items-center gap-3 bg-slate-900/40 border-b border-slate-800">
-                <div className="flex items-center gap-3">
+              <div className="px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-3 bg-slate-900/40 border-b border-slate-800">
+                <div className="flex flex-wrap items-center gap-3">
                   <h3 className="font-semibold text-slate-300 mr-2">Transactions</h3>
                   {/* Month filter */}
                   <div className="w-32">
@@ -619,10 +620,10 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                         <td className="px-6 py-3.5 text-center">
                           <div>
                             <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border ${txn.status === 'Paid'
-                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                : txn.status === 'Partial'
-                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              : txn.status === 'Partial'
+                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                               }`}>
                               {txn.status}
                             </span>
@@ -792,32 +793,43 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
             {/* Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800 bg-slate-950/80">
               <h2 className="text-lg font-bold text-slate-100 uppercase tracking-wider">Invoice Details</h2>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    const printContent = document.getElementById("invoice-print-area").innerHTML;
-                    const originalContent = document.body.innerHTML;
-                    document.body.innerHTML = printContent;
-                    window.print();
-                    document.body.innerHTML = originalContent;
-                    window.location.reload(); // Reload to restore event listeners
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition"
-                >
-                  <Printer className="h-4 w-4" /> Print / PDF
-                </button>
-                <button
-                  onClick={() => { setIsViewModalOpen(false); setViewingTxn(null); }}
-                  className="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-800 rounded-lg hover:bg-slate-700 transition"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm text-slate-300 font-medium cursor-pointer hover:text-slate-100 transition">
+                  <input
+                    type="checkbox"
+                    className="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                    checked={showStamp}
+                    onChange={(e) => setShowStamp(e.target.checked)}
+                  />
+                  Show Stamp
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const printContent = document.getElementById("invoice-print-area").innerHTML;
+                      const originalContent = document.body.innerHTML;
+                      document.body.innerHTML = printContent;
+                      window.print();
+                      document.body.innerHTML = originalContent;
+                      window.location.reload(); // Reload to restore event listeners
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition"
+                  >
+                    <Printer className="h-4 w-4" /> Print / PDF
+                  </button>
+                  <button
+                    onClick={() => { setIsViewModalOpen(false); setViewingTxn(null); }}
+                    className="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-800 rounded-lg hover:bg-slate-700 transition"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Body */}
             <div className="p-6 overflow-y-auto flex-1 bg-slate-950/50">
-              <div id="invoice-print-area" className="bg-white text-slate-900 p-8 md:p-12 rounded-xl text-left print-border min-h-[11in] flex flex-col justify-between">
+              <div id="invoice-print-area" className="invoice-theme bg-white text-slate-900 p-8 md:p-12 rounded-xl text-left print-border min-h-[11in] flex flex-col justify-between">
                 <div>
 
 
@@ -950,8 +962,8 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                           <th className="p-2.5 font-bold text-center border border-slate-400">Date</th>
                           <th className="p-2.5 font-bold text-center border border-slate-400">
                             {viewingTxn.bill.table_items && viewingTxn.bill.table_items.length > 0 &&
-                             ((viewingTxn.bill.table_items[0].plan_type || '').toLowerCase() === 'outstation' ||
-                              (viewingTxn.bill.table_items[0].plan_name || '').toLowerCase().includes('outstation'))
+                              ((viewingTxn.bill.table_items[0].plan_type || '').toLowerCase() === 'outstation' ||
+                                (viewingTxn.bill.table_items[0].plan_name || '').toLowerCase().includes('outstation'))
                               ? 'KM Rate'
                               : 'Rate'}
                           </th>
@@ -1131,10 +1143,14 @@ export default function PartyTransactionsView({ title, type, bills, transactionL
                   </div>
                   <div className="flex flex-col justify-end items-end h-full">
                     <div className="flex flex-col items-center mt-2">
-                      {user?.stamp ? (
-                        <img src={user.stamp} alt="Business Stamp" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                      {showStamp ? (
+                        user?.stamp ? (
+                          <img src={user.stamp} alt="Business Stamp" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                        ) : (
+                          <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                        )
                       ) : (
-                        <img src="/signature.png" alt="Signature" className="h-36 object-contain -mb-5 relative z-10 opacity-90" />
+                        <div className="h-20 w-full"></div>
                       )}
                       <div className="w-44 border-t border-slate-400 text-center pt-2 relative z-20">
                         <p className="font-bold text-slate-800 text-[10px]">Authorized Signature</p>
